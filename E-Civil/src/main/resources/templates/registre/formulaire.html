@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page(${existant} ? 'Modifier un acte' : 'Transcrire un acte', ~{::main})}">
+<body>
+<main class="container py-4" style="max-width: 960px"
+      th:with="t=${acte.typeActe.name()}, verrouille=${existant != null and existant.estValide()}">
+    <h1 class="h3" th:text="${existant} ? 'Acte ' + ${existant.numeroActe} : 'Transcrire un acte du registre papier'"></h1>
+    <p class="text-muted" th:if="${verrouille}">Cet acte est validé : seules les mentions marginales et les observations peuvent être modifiées.</p>
+
+    <form th:unless="${existant}" class="mb-3" method="get" th:action="@{/registre/actes/nouveau}">
+        <div class="btn-group" role="group">
+            <button th:each="ty : ${types}" class="btn" type="submit" name="type" th:value="${ty}"
+                    th:classappend="${ty.name() == t} ? 'btn-primary' : 'btn-outline-primary'" th:text="${ty.libelle}"></button>
+        </div>
+    </form>
+
+    <form th:action="${existant} ? @{/registre/actes/{id}(id=${existant.id})} : @{/registre/actes}" th:object="${acte}" method="post" novalidate>
+        <input type="hidden" th:field="*{typeActe}">
+        <fieldset th:disabled="${verrouille}">
+            <div class="card mb-3"><div class="card-body">
+                <h2 class="h6 text-brun">Registre papier</h2>
+                <div class="row">
+                    <div class="col-md-6" th:insert="~{fragments/champs :: texte('centre', 'Centre d\'état civil', 'text', true)}"></div>
+                    <div class="col-md-6" th:insert="~{fragments/champs :: texte('commune', 'Commune', 'text', false)}"></div>
+                    <div class="col-md-3" th:insert="~{fragments/champs :: texte('volume', 'Volume', 'text', false)}"></div>
+                    <div class="col-md-3" th:insert="~{fragments/champs :: texte('folio', 'Folio', 'text', false)}"></div>
+                    <div class="col-md-3" th:insert="~{fragments/champs :: texte('dateEvenement', ${t == 'NAISSANCE'} ? 'Date de naissance' : (${t == 'DECES'} ? 'Date du décès' : 'Date de l\'acte'), 'date', true)}"></div>
+                    <div class="col-md-3" th:insert="~{fragments/champs :: texte('lieuEvenement', 'Lieu', 'text', true)}"></div>
+                </div>
+            </div></div>
+
+            <div class="card mb-3"><div class="card-body">
+                <h2 class="h6 text-brun" th:text="${t == 'NAISSANCE'} ? 'Enfant' : (${t == 'DECES'} ? 'Défunt(e)' : 'Premier conjoint')"></h2>
+                <div class="row">
+                    <div class="col-md-5" th:insert="~{fragments/champs :: texte('prenom', 'Prénom(s)', 'text', true)}"></div>
+                    <div class="col-md-5" th:insert="~{fragments/champs :: texte('nom', 'Nom', 'text', true)}"></div>
+                    <div class="col-md-2 mb-3">
+                        <label class="form-label" for="sexe">Sexe<span th:if="${t == 'NAISSANCE'}" class="text-danger"> *</span></label>
+                        <select class="form-select" th:field="*{sexe}">
+                            <option value="">—</option><option value="F">F</option><option value="M">M</option>
+                        </select>
+                    </div>
+                    <th:block th:if="${t != 'NAISSANCE'}">
+                        <div class="col-md-6" th:insert="~{fragments/champs :: texte('dateNaissance', 'Date de naissance', 'date', false)}"></div>
+                        <div class="col-md-6" th:insert="~{fragments/champs :: texte('lieuNaissance', 'Lieu de naissance', 'text', false)}"></div>
+                    </th:block>
+                    <div class="col-md-3" th:insert="~{fragments/champs :: texte('prenomPere', 'Prénom du père', 'text', false)}"></div>
+                    <div class="col-md-3" th:insert="~{fragments/champs :: texte('nomPere', 'Nom du père', 'text', false)}"></div>
+                    <div class="col-md-3" th:insert="~{fragments/champs :: texte('prenomMere', 'Prénom de la mère', 'text', false)}"></div>
+                    <div class="col-md-3" th:insert="~{fragments/champs :: texte('nomMere', 'Nom de la mère', 'text', false)}"></div>
+                </div>
+            </div></div>
+
+            <div class="card mb-3" th:if="${t == 'MARIAGE' or t == 'DIVORCE'}"><div class="card-body">
+                <h2 class="h6 text-brun">Second conjoint</h2>
+                <div class="row">
+                    <div class="col-md-6" th:insert="~{fragments/champs :: texte('prenomConjoint', 'Prénom(s)', 'text', true)}"></div>
+                    <div class="col-md-6" th:insert="~{fragments/champs :: texte('nomConjoint', 'Nom', 'text', true)}"></div>
+                    <div class="col-md-6" th:insert="~{fragments/champs :: texte('dateNaissanceConjoint', 'Date de naissance', 'date', false)}"></div>
+                    <div class="col-md-6" th:insert="~{fragments/champs :: texte('lieuNaissanceConjoint', 'Lieu de naissance', 'text', false)}"></div>
+                </div>
+            </div></div>
+
+            <div class="card mb-3" th:if="${t == 'DECES'}"><div class="card-body">
+                <h2 class="h6 text-brun">Décès</h2>
+                <div class="row">
+                    <div class="col-md-3" th:insert="~{fragments/champs :: texte('heureDeces', 'Heure (HH:MM)', 'text', false)}"></div>
+                    <div class="col-md-9" th:insert="~{fragments/champs :: texte('causeDeces', 'Cause déclarée', 'text', false)}"></div>
+                </div>
+            </div></div>
+
+            <div class="card mb-3"><div class="card-body">
+                <h2 class="h6 text-brun">Témoins</h2>
+                <div class="row">
+                    <div class="col-md-6" th:insert="~{fragments/champs :: texte('temoin1', 'Premier témoin', 'text', false)}"></div>
+                    <div class="col-md-6" th:insert="~{fragments/champs :: texte('temoin2', 'Second témoin', 'text', false)}"></div>
+                </div>
+            </div></div>
+        </fieldset>
+
+        <div class="card mb-3"><div class="card-body">
+            <h2 class="h6 text-brun">Mentions</h2>
+            <div class="mb-3"><label class="form-label" for="mentionsMarginales">Mentions marginales</label>
+                <textarea class="form-control" rows="3" th:field="*{mentionsMarginales}"></textarea></div>
+            <div><label class="form-label" for="observations">Observations</label>
+                <textarea class="form-control" rows="2" th:field="*{observations}"></textarea></div>
+        </div></div>
+
+        <!-- Les champs désactivés ne sont pas envoyés : on transmet leurs valeurs pour un acte validé -->
+        <th:block th:if="${verrouille}">
+            <input type="hidden" th:each="c : ${ {'centre','commune','volume','folio','dateEvenement','lieuEvenement','prenom','nom','sexe',
+                'dateNaissance','lieuNaissance','prenomPere','nomPere','prenomMere','nomMere','prenomConjoint','nomConjoint',
+                'dateNaissanceConjoint','lieuNaissanceConjoint','heureDeces','causeDeces','temoin1','temoin2'} }"
+                   th:name="${c}" th:value="*{__${c}__}">
+        </th:block>
+
+        <button class="btn btn-primary" type="submit" th:text="${existant} ? 'Enregistrer' : 'Enregistrer dans le registre central'"></button>
+        <a class="btn btn-link" th:href="${existant} ? @{/registre/actes/{id}(id=${existant.id})} : @{/registre/actes}">Annuler</a>
+    </form>
+</main>
+</body>
+</html>

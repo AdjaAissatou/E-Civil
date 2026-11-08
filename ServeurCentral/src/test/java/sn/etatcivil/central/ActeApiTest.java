@@ -59,6 +59,9 @@ class ActeApiTest {
                 .andExpect(jsonPath("$.statut").value("SAISI"))
                 .andExpect(jsonPath("$.dateNaissance").value("1998-03-14"))
                 .andExpect(jsonPath("$.lieuNaissance").value("Hôpital Principal, Dakar"));
+        mvc.perform(avecCle(get("/api/v1/actes/numero/n-1998-000001")))
+                .andExpect(jsonPath("$.id").value(id));
+        mvc.perform(avecCle(get("/api/v1/actes/numero/N-1998-999999"))).andExpect(status().isNotFound());
         long id2 = creer(NAISSANCE.replace("Fatou Bintou", "Awa"));
         mvc.perform(avecCle(get("/api/v1/actes/" + id2)))
                 .andExpect(jsonPath("$.numeroActe").value("N-1998-000002"));
@@ -79,6 +82,14 @@ class ActeApiTest {
         mvc.perform(avecCle(post("/api/v1/actes/recherche")).content(recherche))
                 .andExpect(jsonPath("$.resultat").value("TROUVE"))
                 .andExpect(jsonPath("$.actes[0].numeroActe").value("N-1998-000001"));
+
+        // Un lieu moins précis que celui de l'acte reste compatible, un autre lieu non
+        mvc.perform(avecCle(post("/api/v1/actes/recherche"))
+                        .content(recherche.replace("\"nomMere\"", "\"lieuNaissance\":\"dakar\",\"nomMere\"")))
+                .andExpect(jsonPath("$.resultat").value("TROUVE"));
+        mvc.perform(avecCle(post("/api/v1/actes/recherche"))
+                        .content(recherche.replace("\"nomMere\"", "\"lieuNaissance\":\"Thiès\",\"nomMere\"")))
+                .andExpect(jsonPath("$.resultat").value("NON_TROUVE"));
 
         // Un critère fourni qui contredit l'acte l'écarte
         mvc.perform(avecCle(post("/api/v1/actes/recherche"))

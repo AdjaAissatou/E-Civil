@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: page('Mon profil', ~{::main})}">
+<body>
+<main class="container py-4" style="max-width: 760px">
+    <h1 class="h4">Mon profil</h1>
+    <div class="card mb-3"><div class="card-body">
+        <dl class="row fiche mb-0">
+            <dt class="col-sm-4">Nom complet</dt><dd class="col-sm-8" th:text="${compte.nomComplet}"></dd>
+            <dt class="col-sm-4">Email</dt><dd class="col-sm-8" th:text="${compte.email}"></dd>
+            <dt class="col-sm-4">Rôle</dt><dd class="col-sm-8" th:text="${compte.role.libelle}"></dd>
+            <dt class="col-sm-4" th:if="${compte.dateNaissance}">Né(e) le</dt>
+            <dd class="col-sm-8" th:if="${compte.dateNaissance}"
+                th:text="${#temporals.format(compte.dateNaissance, 'dd/MM/yyyy')} + (${compte.lieuNaissance} ? ' à ' + ${compte.lieuNaissance} : '')"></dd>
+            <dt class="col-sm-4">Inscrit(e) le</dt><dd class="col-sm-8" th:text="${#temporals.format(compte.dateInscription, 'dd/MM/yyyy')}"></dd>
+        </dl>
+    </div></div>
+    <form class="card" th:action="@{/profil}" method="post"><div class="card-body">
+        <h2 class="h6">Coordonnées</h2>
+        <div class="row">
+            <div class="col-md-6 mb-3"><label class="form-label" for="telephone">Téléphone</label>
+                <input class="form-control" id="telephone" name="telephone" type="tel" th:value="${compte.telephone}"></div>
+            <div class="col-md-6 mb-3"><label class="form-label" for="adresse">Adresse</label>
+                <input class="form-control" id="adresse" name="adresse" th:value="${compte.adresse}"></div>
+        </div>
+        <button class="btn btn-primary" type="submit">Enregistrer</button>
+    </div></form>
+</main>
+</body>
+</html>

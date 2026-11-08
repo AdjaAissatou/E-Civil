@@ -40,6 +40,11 @@ public class ActeController {
         return service.obtenir(id);
     }
 
+    @GetMapping("/numero/{numero}")
+    public ActeReponse parNumero(@PathVariable String numero) {
+        return service.parNumero(numero);
+    }
+
     @GetMapping
     public Page<ActeReponse> lister(@RequestParam(required = false) TypeActe type,
                                     @RequestParam(required = false) StatutActe statut,

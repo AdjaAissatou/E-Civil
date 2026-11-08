@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: page('Administration', ~{::main})}">
+<body>
+<main class="container py-4">
+    <h1 class="h3">Tableau de bord</h1>
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3"><div class="card"><div class="card-body">
+            <div class="text-muted small">Demandes</div><div class="chiffre" th:text="${total}">0</div></div></div></div>
+        <div class="col-6 col-md-3"><div class="card"><div class="card-body">
+            <div class="text-muted small">Citoyens inscrits</div><div class="chiffre" th:text="${citoyens}">0</div></div></div></div>
+        <div class="col-6 col-md-3"><div class="card"><div class="card-body">
+            <div class="text-muted small">Agents</div><div class="chiffre" th:text="${agents}">0</div></div></div></div>
+        <div class="col-6 col-md-3"><div class="card"><div class="card-body">
+            <div class="text-muted small">Actes au registre</div>
+            <div class="chiffre" th:text="${registre} ? ${registre.total} : '—'">0</div>
+            <div class="small text-muted" th:if="${registre}" th:text="${registre.valides} + ' validés, ' + ${registre.saisis} + ' à valider'"></div>
+            <div class="small text-danger" th:if="${registreIndisponible}">registre injoignable</div>
+        </div></div></div>
+    </div>
+    <div class="card"><div class="card-body">
+        <h2 class="h6 text-brun">Demandes par statut</h2>
+        <table class="table mb-0">
+            <tbody>
+            <tr th:each="e : ${parStatut}">
+                <td><span th:replace="~{fragments/statut :: badge(${e.key})}"></span></td>
+                <td class="text-muted small" th:text="${e.key.explication}"></td>
+                <td class="text-end fw-semibold"><a th:href="@{/back-office/demandes(statut=${e.key})}" th:text="${e.value}"></a></td>
+            </tr>
+            </tbody>
+        </table>
+    </div></div>
+</main>
+</body>
+</html>

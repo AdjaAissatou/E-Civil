@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: page('Nouvelle demande', ~{::main})}">
+<body>
+<main class="container py-4" style="max-width: 900px">
+    <h1 class="h3 mb-1" th:text="${type.libelle}">Document</h1>
+    <p class="text-muted" th:text="${type.description}"></p>
+    <p><span class="badge text-bg-light fs-6" th:text="${#numbers.formatInteger(type.tarif, 1, 'WHITESPACE')} + ' FCFA'"></span>
+       <span class="text-muted small ms-2">payable en ligne après validation de la demande</span></p>
+
+    <form th:action="@{/demandes}" th:object="${demande}" method="post" novalidate>
+        <input type="hidden" th:field="*{typeDocumentId}">
+
+        <div class="card mb-3"><div class="card-body">
+            <h2 class="h6 text-brun">Votre demande</h2>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label" for="motifId">Motif<span class="text-danger"> *</span></label>
+                    <select class="form-select" th:field="*{motifId}" required th:classappend="${#fields.hasErrors('motifId')} ? 'is-invalid'">
+                        <option value="">Choisissez…</option>
+                        <option th:each="m : ${motifs}" th:value="${m.id}" th:text="${m.libelle}"></option>
+                    </select>
+                    <div class="invalid-feedback" th:errors="*{motifId}"></div>
+                </div>
+                <div class="col-md-6" th:insert="~{fragments/champs :: texte('motifPrecision', 'Précision (obligatoire si « Autre »)', 'text', false)}"></div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label" for="lienDemandeur">L'acte concerne<span class="text-danger"> *</span></label>
+                    <select class="form-select" th:field="*{lienDemandeur}">
+                        <option th:each="l : ${liens}" th:value="${l}" th:text="${l.libelle}"></option>
+                    </select>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Format<span class="text-danger"> *</span></label>
+                    <div th:each="f : ${formats}" class="form-check">
+                        <input class="form-check-input" type="radio" th:field="*{format}" th:value="${f}">
+                        <label class="form-check-label" th:for="${#ids.prev('format')}" th:text="${f.libelle}"></label>
+                    </div>
+                </div>
+                <div class="col-md-8" th:insert="~{fragments/champs :: texte('adresseLivraison', 'Adresse de livraison (format papier)', 'text', false)}"></div>
+                <div class="col-md-4" th:insert="~{fragments/champs :: texte('villeLivraison', 'Ville', 'text', false)}"></div>
+            </div>
+        </div></div>
+
+        <div class="card mb-3"><div class="card-body">
+            <h2 class="h6 text-brun" th:text="${type.typeActe.concerneUnCouple()} ? 'Premier conjoint' : 'Personne concernée par l\'acte'"></h2>
+            <p class="small text-muted">Recopiez les informations exactement comme elles figurent sur l'acte : elles servent à le retrouver dans le registre national.</p>
+            <div class="row">
+                <div class="col-md-6" th:insert="~{fragments/champs :: texte('prenom', 'Prénom(s)', 'text', true)}"></div>
+                <div class="col-md-6" th:insert="~{fragments/champs :: texte('nom', 'Nom', 'text', true)}"></div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label" for="sexe">Sexe</label>
+                    <select class="form-select" th:field="*{sexe}">
+                        <option value="">—</option><option value="F">Féminin</option><option value="M">Masculin</option>
+                    </select>
+                </div>
+                <div class="col-md-4" th:insert="~{fragments/champs :: texte('dateNaissance', 'Date de naissance', 'date', ${type.typeActe.name() == 'NAISSANCE'})}"></div>
+                <div class="col-md-4" th:insert="~{fragments/champs :: texte('lieuNaissance', 'Lieu de naissance', 'text', ${type.typeActe.name() == 'NAISSANCE'})}"></div>
+            </div>
+            <h3 class="h6 mt-2">Filiation <span class="text-muted small fw-normal">(fortement recommandée pour éviter les homonymes)</span></h3>
+            <div class="row">
+                <div class="col-md-3" th:insert="~{fragments/champs :: texte('prenomPere', 'Prénom du père', 'text', false)}"></div>
+                <div class="col-md-3" th:insert="~{fragments/champs :: texte('nomPere', 'Nom du père', 'text', false)}"></div>
+                <div class="col-md-3" th:insert="~{fragments/champs :: texte('prenomMere', 'Prénom de la mère', 'text', false)}"></div>
+                <div class="col-md-3" th:insert="~{fragments/champs :: texte('nomMere', 'Nom de la mère', 'text', false)}"></div>
+            </div>
+        </div></div>
+
+        <div class="card mb-3" th:if="${type.typeActe.concerneUnCouple()}"><div class="card-body">
+            <h2 class="h6 text-brun">Second conjoint</h2>
+            <div class="row">
+                <div class="col-md-6" th:insert="~{fragments/champs :: texte('prenomConjoint', 'Prénom(s)', 'text', true)}"></div>
+                <div class="col-md-6" th:insert="~{fragments/champs :: texte('nomConjoint', 'Nom', 'text', true)}"></div>
+                <div class="col-md-6" th:insert="~{fragments/champs :: texte('dateEvenement', 'Date du ' + ${#strings.toLowerCase(type.typeActe.libelle)} + ' (si connue)', 'date', false)}"></div>
+            </div>
+        </div></div>
+
+        <div class="card mb-3" th:if="${type.typeActe.name() == 'DECES'}"><div class="card-body">
+            <h2 class="h6 text-brun">Décès</h2>
+            <div class="row">
+                <div class="col-md-6" th:insert="~{fragments/champs :: texte('dateEvenement', 'Date du décès', 'date', true)}"></div>
+            </div>
+        </div></div>
+
+        <button class="btn btn-primary btn-lg" type="submit">Envoyer la demande</button>
+        <a class="btn btn-link" th:href="@{/documents}">Annuler</a>
+    </form>
+</main>
+</body>
+</html>

@@ -2,6 +2,7 @@ package sn.etatcivil.central.acte;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sn.etatcivil.central.numerotation.NumerotationService;
@@ -73,9 +74,23 @@ public class ActeService {
     }
 
     @Transactional(readOnly = true)
+    public ActeReponse parNumero(String numero) {
+        return repository.findByNumeroActe(numero.trim().toUpperCase())
+                .map(ActeReponse::de)
+                .orElseThrow(() -> new ActeIntrouvableException(numero));
+    }
+
+    @Transactional(readOnly = true)
     public Page<ActeReponse> lister(TypeActe type, StatutActe statut, String nom, Pageable pageable) {
-        String nomNormalise = nom == null || nom.isBlank() ? null : normaliser(nom);
-        return repository.lister(type, statut, nomNormalise, pageable).map(ActeReponse::de);
+        // Seuls les filtres renseignés sont ajoutés à la requête
+        Specification<Acte> filtre = (racine, requete, cb) -> cb.conjunction();
+        if (type != null) filtre = filtre.and((a, q, cb) -> cb.equal(a.get("typeActe"), type));
+        if (statut != null) filtre = filtre.and((a, q, cb) -> cb.equal(a.get("statut"), statut));
+        if (nom != null && !nom.isBlank()) {
+            String motif = "%" + normaliser(nom) + "%";
+            filtre = filtre.and((a, q, cb) -> cb.like(a.get("nomNormalise"), motif));
+        }
+        return repository.findAll(filtre, pageable).map(ActeReponse::de);
     }
 
     @Transactional(readOnly = true)
@@ -158,7 +173,7 @@ public class ActeService {
         LocalDate naissance = titulaire ? a.getDateNaissance() : a.getDateNaissanceConjoint();
         return concorde(naissance, r.dateNaissance())
                 && concorde(a.getDateEvenement(), r.dateEvenement())
-                && (!titulaire || texteConcorde(a.getLieuNaissance(), r.lieuNaissance()))
+                && (!titulaire || lieuConcorde(a.getLieuNaissance(), r.lieuNaissance()))
                 && (!titulaire || texteConcorde(a.getNomPere(), r.nomPere()))
                 && (!titulaire || texteConcorde(a.getPrenomPere(), r.prenomPere()))
                 && (!titulaire || texteConcorde(a.getNomMere(), r.nomMere()))
@@ -173,6 +188,14 @@ public class ActeService {
 
     private static boolean texteConcorde(String valeurActe, String critere) {
         return estVide(critere) || estVide(valeurActe) || Normalisation.equivalents(valeurActe, critere);
+    }
+
+    /** « Dakar » concorde avec « Hôpital Principal, Dakar » : un lieu peut être plus ou moins précis. */
+    private static boolean lieuConcorde(String valeurActe, String critere) {
+        if (estVide(critere) || estVide(valeurActe)) return true;
+        String acte = " " + normaliser(valeurActe) + " ";
+        String cherche = " " + normaliser(critere) + " ";
+        return acte.contains(cherche) || cherche.contains(acte);
     }
 
     private static boolean estVide(String s) {
