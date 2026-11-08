@@ -24,6 +24,9 @@
         <module>socle/socle-tests</module>
         <module>services/registre-service</module>
         <module>services/demande-service</module>
+        <module>services/paiement-service</module>
+        <module>services/document-service</module>
+        <module>services/notification-service</module>
     </modules>
 
     <properties>

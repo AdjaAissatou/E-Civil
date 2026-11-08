@@ -1,0 +1,42 @@
+spring:
+  application:
+    name: notification-service
+  config:
+    import: optional:file:.env[.properties],optional:file:../../.env[.properties]
+  datasource:
+    url: ${NOTIFICATION_DB_URL:jdbc:postgresql://localhost:5432/notification}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:}
+  flyway:
+    locations: classpath:db/socle
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    username: ${RABBITMQ_USER:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+    listener.simple:
+      default-requeue-rejected: false
+      retry:
+        enabled: true
+        max-attempts: 5
+        initial-interval: 5s
+        multiplier: 3
+  mail:
+    host: ${MAIL_HOST:}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties.mail.smtp:
+      auth: true
+      starttls.enable: true
+
+ecivil:
+  url-publique: ${ECIVIL_URL_PUBLIQUE:http://localhost:8080}
+  mail.expediteur: ${MAIL_EXPEDITEUR:${MAIL_USERNAME:}}
+
+server:
+  port: ${PORT:8085}
+
+management:
+  endpoints.web.exposure.include: health
+  endpoint.health.probes.enabled: true
+  health.mail.enabled: false
