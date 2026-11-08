@@ -1,0 +1,15 @@
+# Base PostgreSQL locale avec les deux bases (portail et registre central).
+# Lancement : docker compose up -d
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    ports:
+      - "5432:5432"
+    volumes:
+      - donnees:/var/lib/postgresql/data
+      - ./outils/creer-bases.sql:/docker-entrypoint-initdb.d/creer-bases.sql:ro
+volumes:
+  donnees:
