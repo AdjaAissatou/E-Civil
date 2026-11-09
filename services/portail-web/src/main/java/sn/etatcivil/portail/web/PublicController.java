@@ -11,7 +11,6 @@ import sn.etatcivil.portail.clients.Api;
 import sn.etatcivil.portail.clients.ApiException;
 import sn.etatcivil.portail.securite.Utilisateur;
 
-import java.util.List;
 import java.util.Locale;
 
 @Controller
@@ -25,11 +24,15 @@ class PublicController {
 
     @GetMapping("/")
     String accueil(Model model) {
+        // Prix « à partir de » par type d'acte, tirés du vrai catalogue
+        java.util.Map<String, Integer> aPartirDe = new java.util.HashMap<>();
         try {
-            model.addAttribute("documents", api.documents());
+            api.documents().forEach(d -> aPartirDe.merge(d.typeActe(), d.tarif(), Math::min));
         } catch (ApiException e) {
-            model.addAttribute("documents", List.of());
+            // catalogue indisponible : les cartes s'affichent sans prix
         }
+        model.addAttribute("aPartirDe", aPartirDe);
+        model.addAttribute("pageAccueil", true);
         return "accueil";
     }
 

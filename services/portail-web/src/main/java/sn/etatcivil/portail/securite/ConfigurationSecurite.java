@@ -37,7 +37,7 @@ class ConfigurationSecurite {
                                 @Value("${ecivil.url-publique}") String portail) throws Exception {
         return http
                 .authorizeHttpRequests(a -> a
-                        .requestMatchers("/", "/documents", "/inscription", "/verification/**", "/css/**", "/images/**",
+                        .requestMatchers("/", "/documents", "/inscription", "/verification/**", "/css/**", "/js/**", "/images/**",
                                 "/favicon_io/**", "/mairie.png", "/error", "/actuator/health/**").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/delegue/**").hasAnyRole("DELEGUE", "ADMIN")
@@ -47,7 +47,7 @@ class ConfigurationSecurite {
                         .anyRequest().authenticated())
                 .oauth2Login(o -> o
                         .loginPage("/oauth2/authorization/keycloak")
-                        .authorizationEndpoint(e -> e.authorizationRequestResolver(resolveur(enregistrements)))
+                        .authorizationEndpoint(e -> e.authorizationRequestResolver(resolveur(enregistrements, keycloak)))
                         .userInfoEndpoint(u -> u.userAuthoritiesMapper(rolesKeycloak()))
                         .defaultSuccessUrl("/espace", true))
                 .logout(l -> l.logoutUrl("/deconnexion").logoutSuccessHandler(deconnexionKeycloak(keycloak, portail)))
@@ -62,13 +62,16 @@ class ConfigurationSecurite {
                 .build();
     }
 
-    /** « Créer un compte » ouvre directement le formulaire d'inscription de Keycloak (prompt=create) et PKCE. */
-    private static OAuth2AuthorizationRequestResolver resolveur(ClientRegistrationRepository enregistrements) {
+    /**
+     * Connexion avec PKCE ; « Créer un compte » ouvre directement le formulaire d'inscription de Keycloak
+     * (point d'entrée « registrations », qui reconnecte ensuite l'utilisateur sur le portail).
+     */
+    private static OAuth2AuthorizationRequestResolver resolveur(ClientRegistrationRepository enregistrements, String keycloak) {
         var r = new DefaultOAuth2AuthorizationRequestResolver(enregistrements, "/oauth2/authorization");
         r.setAuthorizationRequestCustomizer(OAuth2AuthorizationRequestCustomizers.withPkce().andThen(b -> {
             HttpServletRequest requete = requeteCourante();
             if (requete != null && requete.getParameter("inscription") != null) {
-                b.additionalParameters(p -> p.put("prompt", "create"));
+                b.authorizationUri(keycloak + "/realms/ecivil/protocol/openid-connect/registrations");
             }
         }));
         return r;

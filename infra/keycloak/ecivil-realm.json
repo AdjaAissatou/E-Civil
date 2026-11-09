@@ -23,6 +23,14 @@
   "roles": {
     "realm": [
       {
+        "name": "offline_access",
+        "description": "${role_offline-access}"
+      },
+      {
+        "name": "uma_authorization",
+        "description": "${role_uma_authorization}"
+      },
+      {
         "name": "CITOYEN",
         "description": "Citoyen : dépose et suit ses demandes"
       },
@@ -45,19 +53,26 @@
       {
         "name": "SERVICE",
         "description": "Compte technique d'un microservice (appels entre services)"
+      },
+      {
+        "name": "default-roles-ecivil",
+        "description": "Rôles de tout nouveau compte (inscription comprise)",
+        "composite": true,
+        "composites": {
+          "realm": [
+            "CITOYEN",
+            "offline_access",
+            "uma_authorization"
+          ],
+          "client": {
+            "account": [
+              "view-profile",
+              "manage-account"
+            ]
+          }
+        }
       }
     ]
-  },
-  "defaultRole": {
-    "name": "default-roles-ecivil",
-    "composite": true,
-    "composites": {
-      "realm": [
-        "CITOYEN",
-        "offline_access",
-        "uma_authorization"
-      ]
-    }
   },
   "clients": [
     {
@@ -152,5 +167,8 @@
         "default-roles-ecivil"
       ]
     }
-  ]
+  ],
+  "defaultRole": {
+    "name": "default-roles-ecivil"
+  }
 }

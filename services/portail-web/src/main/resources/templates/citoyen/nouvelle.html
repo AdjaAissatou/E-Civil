@@ -21,7 +21,7 @@
                     </select>
                     <div class="invalid-feedback" th:errors="*{motifId}"></div>
                 </div>
-                <div class="col-md-6" th:insert="~{fragments/champs :: texte('motifPrecision', 'Précision (obligatoire si « Autre »)', 'text', false)}"></div>
+                <div class="col-md-6" th:insert="~{fragments/champs :: texte('precisionMotif', 'Précision (obligatoire si « Autre »)', 'text', false)}"></div>
                 <div class="col-md-6 mb-3">
                     <label class="form-label" for="lien">L'acte concerne<span class="text-danger"> *</span></label>
                     <select class="form-select" th:field="*{lien}">

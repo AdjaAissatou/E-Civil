@@ -21,11 +21,21 @@ class GestionErreursWeb {
         return utilisateur == null ? null : Utilisateur.depuis(utilisateur);
     }
 
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GestionErreursWeb.class);
+
     @ExceptionHandler(ApiException.class)
     String erreur(ApiException e, HttpServletRequest requete, RedirectAttributes flash,
-                  @AuthenticationPrincipal OidcUser utilisateur) {
+                  @AuthenticationPrincipal OidcUser utilisateur, org.springframework.ui.Model model) {
+        log.warn("{} {} : réponse {} d'un service ({})", requete.getMethod(), requete.getRequestURI(), e.statut(), e.getMessage());
+        String retour = pagePrecedente(requete, utilisateur);
+        if (retour.equals(requete.getRequestURI())) {
+            // la page d'arrivée elle-même est en erreur : on l'affiche au lieu de boucler
+            model.addAttribute("status", e.indisponible() ? 503 : e.statut());
+            model.addAttribute("message", e.getMessage());
+            return "error";
+        }
         flash.addFlashAttribute("erreur", e.getMessage());
-        return "redirect:" + pagePrecedente(requete, utilisateur);
+        return "redirect:" + retour;
     }
 
     static String pagePrecedente(HttpServletRequest requete, OidcUser utilisateur) {

@@ -43,7 +43,7 @@ class ConfigurationClients {
     }
 
     @Bean
-    RestClient api(RestClient.Builder builder, OAuth2AuthorizedClientManager jetons, ObjectMapper json,
+    RestClient clientHttpApi(RestClient.Builder builder, OAuth2AuthorizedClientManager jetons, ObjectMapper json,
                    @Value("${ecivil.api-url}") String url) {
         var fabrique = new SimpleClientHttpRequestFactory();
         fabrique.setConnectTimeout(Duration.ofSeconds(5));
