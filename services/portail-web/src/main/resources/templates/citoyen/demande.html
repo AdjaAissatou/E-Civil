@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: page(${d.reference}, ~{::main})}">
+<body>
+<main class="container py-4">
+    <a th:href="@{/demandes}" class="small"><i class="bi bi-arrow-left"></i> Mes demandes</a>
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 my-2">
+        <div>
+            <h1 class="h3 mb-0" th:text="${d.libelleDocument}">Document</h1>
+            <span class="text-muted" th:text="'Demande ' + ${d.reference} + ' du ' + ${@dates.jour(d.dateCreation)}"></span>
+        </div>
+        <span class="fs-5" th:insert="~{fragments/statut :: badge(${d.statut}, ${d.libelleStatut})}"></span>
+    </div>
+    <div class="alert alert-light border" th:text="${d.explicationStatut}"></div>
+    <div class="alert alert-danger" th:if="${d.motifRejet}" th:text="'Motif du rejet : ' + ${d.motifRejet}"></div>
+
+    <div class="row g-3">
+        <div class="col-lg-7">
+            <div class="card mb-3 border-warning" th:if="${d.statut == 'A_PAYER'}"><div class="card-body">
+                <h2 class="h5">Paiement</h2>
+                <p class="mb-3">Montant : <strong th:text="${#numbers.formatInteger(d.montant, 1, 'WHITESPACE')} + ' FCFA'"></strong>.
+                    Vous serez redirigé(e) vers la page sécurisée PayDunya (Wave, Orange Money, Free Money, carte bancaire).</p>
+                <form th:if="${paiementDisponible}" th:action="@{/paiements/demandes/{id}(id=${d.id})}" method="post">
+                    <button class="btn btn-warning btn-lg" type="submit"><i class="bi bi-credit-card me-2"></i>Payer en ligne</button>
+                </form>
+                <p th:unless="${paiementDisponible}" class="text-danger mb-0">Le paiement en ligne n'est pas disponible pour le moment.</p>
+            </div></div>
+
+            <div class="card mb-3 border-success" th:if="${d.documentDisponible and d.numerique}">
+                <div class="card-body">
+                    <h2 class="h5">Votre document est prêt</h2>
+                    <a class="btn btn-success" th:href="@{/demandes/{id}/document.pdf(id=${d.id})}" target="_blank">
+                        <i class="bi bi-file-earmark-pdf me-2"></i>Télécharger le PDF signé</a>
+                </div>
+            </div>
+
+            <div th:replace="~{fragments/demande :: resume(${d})}"></div>
+
+            <form th:if="${d.statut == 'SOUMISE' or d.statut == 'A_PAYER'}"
+                  th:action="@{/demandes/{id}/annulation(id=${d.id})}" method="post">
+                <button class="btn btn-outline-danger btn-sm" type="submit">Annuler cette demande</button>
+            </form>
+        </div>
+        <div class="col-lg-5">
+            <div th:replace="~{fragments/demande :: historique(${d.historique}, ${paiements})}"></div>
+        </div>
+    </div>
+</main>
+</body>
+</html>

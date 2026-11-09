@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: page('Mes demandes', ~{::main})}">
+<body>
+<main class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h3 mb-0">Mes demandes</h1>
+        <a class="btn btn-primary" th:href="@{/documents}"><i class="bi bi-plus-lg me-1"></i>Nouvelle demande</a>
+    </div>
+    <div th:if="${#lists.isEmpty(demandes)}" class="card"><div class="card-body text-center py-5 text-muted">
+        Vous n'avez encore fait aucune demande. <a th:href="@{/documents}">Choisissez un document</a> pour commencer.
+    </div></div>
+    <div class="card" th:unless="${#lists.isEmpty(demandes)}">
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead><tr><th>Référence</th><th>Document</th><th>Personne concernée</th><th>Date</th><th>Statut</th><th></th></tr></thead>
+                <tbody>
+                <tr th:each="d : ${demandes}">
+                    <td class="fw-semibold" th:text="${d.reference}"></td>
+                    <td th:text="${d.libelleDocument}"></td>
+                    <td th:text="${d.personneConcernee}"></td>
+                    <td th:text="${@dates.jour(d.dateCreation)}"></td>
+                    <td><span th:replace="~{fragments/statut :: badge(${d.statut}, ${d.libelleStatut})}"></span></td>
+                    <td class="text-end">
+                        <a th:if="${d.statut == 'A_PAYER'}" class="btn btn-warning btn-sm" th:href="@{/demandes/{id}(id=${d.id})}">Payer</a>
+                        <a th:unless="${d.statut == 'A_PAYER'}" class="btn btn-outline-primary btn-sm" th:href="@{/demandes/{id}(id=${d.id})}">Suivre</a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+</body>
+</html>

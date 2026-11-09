@@ -1,0 +1,51 @@
+<!-- Blocs communs à la fiche citoyen et à la fiche agent -->
+<div xmlns:th="http://www.thymeleaf.org" th:fragment="resume(d)" class="card mb-3"><div class="card-body">
+    <h2 class="h6 text-brun">Personne concernée</h2>
+    <dl class="row fiche mb-0">
+        <dt class="col-sm-4">Nom complet</dt><dd class="col-sm-8" th:text="${d.personneConcernee}"></dd>
+        <dt class="col-sm-4" th:if="${d.sexe}">Sexe</dt><dd class="col-sm-8" th:if="${d.sexe}" th:text="${d.sexe == 'M'} ? 'Masculin' : 'Féminin'"></dd>
+        <dt class="col-sm-4" th:if="${d.dateNaissance}">Né(e) le</dt>
+        <dd class="col-sm-8" th:if="${d.dateNaissance}" th:text="${#temporals.format(d.dateNaissance, 'dd/MM/yyyy')} + (${d.lieuNaissance} ? ' à ' + ${d.lieuNaissance} : '')"></dd>
+        <dt class="col-sm-4" th:if="${d.nomPere}">Père</dt><dd class="col-sm-8" th:if="${d.nomPere}" th:text="${d.prenomPere} + ' ' + ${d.nomPere}"></dd>
+        <dt class="col-sm-4" th:if="${d.nomMere}">Mère</dt><dd class="col-sm-8" th:if="${d.nomMere}" th:text="${d.prenomMere} + ' ' + ${d.nomMere}"></dd>
+        <dt class="col-sm-4" th:if="${d.nomConjoint}">Conjoint</dt><dd class="col-sm-8" th:if="${d.nomConjoint}" th:text="${d.prenomConjoint} + ' ' + ${d.nomConjoint}"></dd>
+        <dt class="col-sm-4" th:if="${d.dateEvenement}">Date de l'événement</dt>
+        <dd class="col-sm-8" th:if="${d.dateEvenement}" th:text="${#temporals.format(d.dateEvenement, 'dd/MM/yyyy')}"></dd>
+    </dl>
+    <hr>
+    <dl class="row fiche mb-0">
+        <dt class="col-sm-4">Motif</dt><dd class="col-sm-8" th:text="${d.motif}"></dd>
+        <dt class="col-sm-4">Lien</dt><dd class="col-sm-8" th:text="${d.libelleLien}"></dd>
+        <dt class="col-sm-4">Format</dt><dd class="col-sm-8" th:text="${d.libelleFormat}"></dd>
+        <dt class="col-sm-4" th:if="${d.adresseLivraison}">Livraison</dt>
+        <dd class="col-sm-8" th:if="${d.adresseLivraison}" th:text="${d.adresseLivraison} + ', ' + ${d.villeLivraison}"></dd>
+        <dt class="col-sm-4">Montant</dt><dd class="col-sm-8" th:text="${#numbers.formatInteger(d.montant, 1, 'WHITESPACE')} + ' FCFA'"></dd>
+        <dt class="col-sm-4" th:if="${d.numeroActe}">Acte</dt><dd class="col-sm-8" th:if="${d.numeroActe}" th:text="${d.numeroActe}"></dd>
+        <dt class="col-sm-4" th:if="${d.codeVerification}">Code de vérification</dt>
+        <dd class="col-sm-8" th:if="${d.codeVerification}"><a th:href="@{/verification/{c}(c=${d.codeVerification})}" th:text="${d.codeVerification}"></a></dd>
+    </dl>
+</div></div>
+
+<div xmlns:th="http://www.thymeleaf.org" th:fragment="historique(historique, paiements)">
+    <div class="card mb-3"><div class="card-body">
+        <h2 class="h6 text-brun">Historique</h2>
+        <ul class="timeline mb-0">
+            <li th:each="h : ${historique}">
+                <div class="fw-semibold" th:text="${h.libelle}"></div>
+                <div class="small text-muted" th:text="${@dates.heure(h.date)} + ' · ' + ${h.auteur}"></div>
+                <div class="small" th:if="${h.commentaire}" th:text="${h.commentaire}"></div>
+            </li>
+        </ul>
+    </div></div>
+    <div class="card mb-3" th:unless="${#lists.isEmpty(paiements)}"><div class="card-body">
+        <h2 class="h6 text-brun">Paiements</h2>
+        <ul class="list-unstyled small mb-0">
+            <li th:each="p : ${paiements}" class="mb-1">
+                <span th:text="${@dates.heure(p.dateCreation)}"></span> —
+                <span th:text="${p.montant} + ' FCFA'"></span> —
+                <strong th:text="${p.statut == 'PAYE'} ? 'confirmé' : (${p.statut == 'ANNULE'} ? 'annulé' : 'en attente')"></strong>
+                <a th:if="${p.urlRecu}" th:href="${p.urlRecu}" target="_blank" rel="noopener">reçu</a>
+            </li>
+        </ul>
+    </div></div>
+</div>

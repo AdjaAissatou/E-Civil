@@ -27,6 +27,8 @@
         <module>services/paiement-service</module>
         <module>services/document-service</module>
         <module>services/notification-service</module>
+        <module>services/gateway</module>
+        <module>services/portail-web</module>
     </modules>
 
     <properties>

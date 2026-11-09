@@ -1,0 +1,156 @@
+{
+  "realm": "ecivil",
+  "displayName": "E-Civil Sénégal",
+  "enabled": true,
+  "registrationAllowed": true,
+  "registrationEmailAsUsername": true,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "rememberMe": true,
+  "verifyEmail": false,
+  "bruteForceProtected": true,
+  "sslRequired": "external",
+  "passwordPolicy": "length(8) and notUsername",
+  "internationalizationEnabled": true,
+  "supportedLocales": [
+    "fr",
+    "en"
+  ],
+  "defaultLocale": "fr",
+  "accessTokenLifespan": 300,
+  "ssoSessionIdleTimeout": 1800,
+  "roles": {
+    "realm": [
+      {
+        "name": "CITOYEN",
+        "description": "Citoyen : dépose et suit ses demandes"
+      },
+      {
+        "name": "DELEGUE",
+        "description": "Délégué : examine les demandes et expédie les documents papier"
+      },
+      {
+        "name": "AGENT_REGISTRE",
+        "description": "Agent du registre : transcrit les actes des registres papier"
+      },
+      {
+        "name": "OFFICIER",
+        "description": "Officier de l'état civil : valide les actes et signe les documents"
+      },
+      {
+        "name": "ADMIN",
+        "description": "Administrateur de la plateforme"
+      },
+      {
+        "name": "SERVICE",
+        "description": "Compte technique d'un microservice (appels entre services)"
+      }
+    ]
+  },
+  "defaultRole": {
+    "name": "default-roles-ecivil",
+    "composite": true,
+    "composites": {
+      "realm": [
+        "CITOYEN",
+        "offline_access",
+        "uma_authorization"
+      ]
+    }
+  },
+  "clients": [
+    {
+      "clientId": "portail-web",
+      "name": "Portail E-Civil",
+      "enabled": true,
+      "publicClient": false,
+      "secret": "${PORTAIL_CLIENT_SECRET}",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "${ECIVIL_URL_PUBLIQUE}/login/oauth2/code/keycloak"
+      ],
+      "webOrigins": [
+        "${ECIVIL_URL_PUBLIQUE}"
+      ],
+      "attributes": {
+        "post.logout.redirect.uris": "${ECIVIL_URL_PUBLIQUE}/*",
+        "pkce.code.challenge.method": "S256"
+      },
+      "protocolMappers": [
+        {
+          "name": "roles du royaume dans le jeton d'identité",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "config": {
+            "claim.name": "realm_access.roles",
+            "multivalued": "true",
+            "jsonType.label": "String",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "demande-service",
+      "name": "demande-service (appels au registre et aux documents)",
+      "enabled": true,
+      "publicClient": false,
+      "secret": "${DEMANDE_SERVICE_SECRET}",
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true
+    },
+    {
+      "clientId": "document-service",
+      "name": "document-service (lecture des actes)",
+      "enabled": true,
+      "publicClient": false,
+      "secret": "${DOCUMENT_SERVICE_SECRET}",
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true
+    }
+  ],
+  "users": [
+    {
+      "username": "service-account-demande-service",
+      "enabled": true,
+      "serviceAccountClientId": "demande-service",
+      "realmRoles": [
+        "SERVICE"
+      ]
+    },
+    {
+      "username": "service-account-document-service",
+      "enabled": true,
+      "serviceAccountClientId": "document-service",
+      "realmRoles": [
+        "SERVICE"
+      ]
+    },
+    {
+      "username": "${ECIVIL_ADMIN_EMAIL}",
+      "email": "${ECIVIL_ADMIN_EMAIL}",
+      "emailVerified": true,
+      "enabled": true,
+      "firstName": "Administrateur",
+      "lastName": "E-Civil",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "${ECIVIL_ADMIN_MOT_DE_PASSE}",
+          "temporary": true
+        }
+      ],
+      "realmRoles": [
+        "ADMIN",
+        "default-roles-ecivil"
+      ]
+    }
+  ]
+}

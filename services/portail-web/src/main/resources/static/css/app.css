@@ -1,0 +1,32 @@
+:root {
+  --brun: #5c3d2e;
+  --brun-fonce: #3b2a1f;
+  --sable: #e0b084;
+  --fond: #f8f6f3;
+}
+body { background: var(--fond); color: var(--brun-fonce); font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; }
+main { min-height: 70vh; }
+.navbar { background: linear-gradient(135deg, var(--brun) 0%, var(--brun-fonce) 100%); }
+.navbar .navbar-brand, .navbar .nav-link { color: #f8f9fa; }
+.navbar .nav-link:hover, .navbar .nav-link.active { color: var(--sable); }
+.navbar .dropdown-menu { border: none; box-shadow: 0 4px 15px rgba(0,0,0,.12); }
+.btn-primary { background: var(--brun); border-color: var(--brun); }
+.btn-primary:hover, .btn-primary:focus { background: var(--brun-fonce); border-color: var(--brun-fonce); }
+.btn-outline-primary { color: var(--brun); border-color: var(--brun); }
+.btn-outline-primary:hover { background: var(--brun); border-color: var(--brun); }
+.text-brun { color: var(--brun); }
+.card { border: none; box-shadow: 0 2px 8px rgba(59,42,31,.08); }
+.hero { background: linear-gradient(rgba(59,42,31,.72), rgba(59,42,31,.72)), url("/images/hero-bg.png") center/cover; color: #fff; padding: 6rem 0 5rem; }
+.hero .lead { color: #f3e6d8; }
+.etape { width: 3rem; height: 3rem; border-radius: 50%; background: var(--sable); color: var(--brun-fonce); display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.25rem; }
+.chiffre { font-size: 2.25rem; font-weight: 700; color: var(--brun); }
+.doc-icone { width: 56px; height: 56px; object-fit: contain; }
+.timeline { list-style: none; padding-left: 1rem; border-left: 3px solid var(--sable); }
+.timeline li { position: relative; padding: 0 0 1rem 1rem; }
+.timeline li::before { content: ""; position: absolute; left: -1.55rem; top: .3rem; width: .9rem; height: .9rem; border-radius: 50%; background: var(--brun); }
+.fiche dt { color: #7a6a5e; font-weight: 500; }
+.fiche dd { font-weight: 600; }
+.table thead th { color: #7a6a5e; font-weight: 600; font-size: .85rem; text-transform: uppercase; letter-spacing: .03em; }
+footer { background: var(--brun-fonce); color: #d8c8b8; }
+footer a { color: var(--sable); }
+@media (max-width: 576px) { .hero { padding: 4rem 0 3rem; } }
