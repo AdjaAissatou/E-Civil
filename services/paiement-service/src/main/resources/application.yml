@@ -1,0 +1,51 @@
+spring:
+  application:
+    name: paiement-service
+  config:
+    import: optional:file:.env[.properties],optional:file:../../.env[.properties]
+  datasource:
+    url: ${PAIEMENT_DB_URL:jdbc:postgresql://localhost:5432/paiement}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:}
+  jpa:
+    hibernate.ddl-auto: validate
+    open-in-view: false
+  flyway:
+    locations: classpath:db/migration,classpath:db/socle
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    username: ${RABBITMQ_USER:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+    listener.simple:
+      default-requeue-rejected: false   # après les tentatives, le message part en file d'erreurs
+      retry:
+        enabled: true
+        max-attempts: 5
+        initial-interval: 2s
+        multiplier: 2
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_URL_PUBLIQUE:http://localhost:8180}/realms/ecivil
+          jwk-set-uri: ${KEYCLOAK_URL_INTERNE:http://localhost:8180}/realms/ecivil/protocol/openid-connect/certs
+
+ecivil:
+  url-publique: ${ECIVIL_URL_PUBLIQUE:http://localhost:8080}
+  paydunya:
+    mode: ${PAYDUNYA_MODE:test}
+    master-key: ${PAYDUNYA_MASTER_KEY:}
+    private-key: ${PAYDUNYA_PRIVATE_KEY:}
+    token: ${PAYDUNYA_TOKEN:}
+    nom-boutique: "E-Civil Sénégal"
+    url: ${PAYDUNYA_URL:}
+
+server:
+  port: ${PORT:8082}
+  error:
+    include-message: never
+    include-stacktrace: never
+
+management:
+  endpoints.web.exposure.include: health
+  endpoint.health.probes.enabled: true

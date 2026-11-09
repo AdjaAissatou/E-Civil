@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{fragments/layout :: page(${d.reference}, ~{::main})}">
+<body>
+<main class="container py-4" th:with="s=${d.statut}">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+        <div>
+            <h1 class="h3 mb-0" th:text="${d.reference} + ' — ' + ${d.libelleDocument}"></h1>
+            <span class="text-muted" th:text="'Déposée le ' + ${@dates.heure(d.dateCreation)}
+                + ' par ' + ${d.demandeurNom} + ' (' + ${d.demandeurEmail} + ')'"></span>
+        </div>
+        <span class="fs-5" th:insert="~{fragments/statut :: badge(${d.statut}, ${d.libelleStatut})}"></span>
+    </div>
+    <div class="alert alert-warning" th:if="${d.noteRecherche}" th:text="${d.noteRecherche}"></div>
+    <div class="alert alert-danger" th:if="${d.motifRejet}" th:text="'Motif du rejet : ' + ${d.motifRejet}"></div>
+
+    <div class="row g-3">
+        <div class="col-lg-7">
+            <div th:replace="~{fragments/demande :: resume(${d})}"></div>
+
+            <!-- Acte rattaché, relu dans le registre pour comparaison avant signature -->
+            <div class="card mb-3 border-info" th:if="${acte}"><div class="card-body">
+                <h2 class="h6 text-brun">Acte <span th:text="${acte.numeroActe}"></span> dans le registre national</h2>
+                <dl class="row fiche mb-0 small">
+                    <dt class="col-sm-4">Titulaire</dt><dd class="col-sm-8" th:text="${acte.prenom} + ' ' + ${acte.nom}"></dd>
+                    <dt class="col-sm-4">Événement</dt><dd class="col-sm-8" th:text="${#temporals.format(acte.dateEvenement, 'dd/MM/yyyy')} + ' à ' + ${acte.lieuEvenement}"></dd>
+                    <dt class="col-sm-4" th:if="${acte.nomPere}">Père</dt><dd class="col-sm-8" th:if="${acte.nomPere}" th:text="${acte.prenomPere} + ' ' + ${acte.nomPere}"></dd>
+                    <dt class="col-sm-4" th:if="${acte.nomMere}">Mère</dt><dd class="col-sm-8" th:if="${acte.nomMere}" th:text="${acte.prenomMere} + ' ' + ${acte.nomMere}"></dd>
+                    <dt class="col-sm-4" th:if="${acte.nomConjoint}">Conjoint</dt><dd class="col-sm-8" th:if="${acte.nomConjoint}" th:text="${acte.prenomConjoint} + ' ' + ${acte.nomConjoint}"></dd>
+                    <dt class="col-sm-4">Centre</dt><dd class="col-sm-8" th:text="${acte.centre}"></dd>
+                    <dt class="col-sm-4">Statut</dt><dd class="col-sm-8" th:text="${acte.statut}"></dd>
+                </dl>
+            </div></div>
+            <div class="alert alert-secondary" th:if="${registreIndisponible}">Le registre national ne répond pas : l'acte ne peut pas être affiché.</div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="card mb-3"><div class="card-body">
+                <h2 class="h6 text-brun">Actions</h2>
+
+                <div sec:authorize="hasAnyRole('DELEGUE','ADMIN')" th:if="${s == 'SOUMISE'}" class="mb-3">
+                    <form th:action="@{/delegue/demandes/{id}/validation(id=${d.id})}" method="post">
+                        <button class="btn btn-success w-100" type="submit"><i class="bi bi-check2 me-1"></i>Valider et ouvrir au paiement</button>
+                    </form>
+                </div>
+
+                <div sec:authorize="hasAnyRole('DELEGUE','ADMIN')" th:if="${s == 'SIGNEE' and !d.numerique}" class="mb-3">
+                    <a class="btn btn-outline-primary w-100 mb-2" th:href="@{/demandes/{id}/document.pdf(id=${d.id})}" target="_blank">Imprimer le document</a>
+                    <form th:action="@{/delegue/demandes/{id}/livraison(id=${d.id})}" method="post">
+                        <button class="btn btn-success w-100" type="submit">Marquer comme expédié</button>
+                    </form>
+                </div>
+
+                <div sec:authorize="hasAnyRole('AGENT_REGISTRE','OFFICIER','ADMIN')" th:if="${s == 'ACTE_INTROUVABLE' or s == 'PAYEE'}" class="mb-3">
+                    <a class="btn btn-outline-primary w-100 mb-2" th:href="@{/registre/actes/nouveau(type=${d.typeActe})}">
+                        <i class="bi bi-journal-plus me-1"></i>Transcrire l'acte depuis le registre papier</a>
+                    <form class="mb-2" th:action="@{/registre/demandes/{id}/recherche(id=${d.id})}" method="post">
+                        <button class="btn btn-primary w-100" type="submit"><i class="bi bi-search me-1"></i>Relancer la recherche</button>
+                    </form>
+                    <form th:if="${s == 'ACTE_INTROUVABLE'}" class="input-group" th:action="@{/registre/demandes/{id}/rattachement(id=${d.id})}" method="post">
+                        <input class="form-control" name="numeroActe" placeholder="N° d'acte (ex. N-1998-000042)" required>
+                        <button class="btn btn-outline-primary" type="submit">Rattacher</button>
+                    </form>
+                </div>
+
+                <div sec:authorize="hasAnyRole('OFFICIER','ADMIN')" th:if="${s == 'ACTE_TROUVE'}" class="mb-3">
+                    <p class="small">Vérifiez que l'acte du registre correspond bien à la demande, puis signez.</p>
+                    <form class="mb-2" th:action="@{/officier/demandes/{id}/signature(id=${d.id})}" method="post">
+                        <button class="btn btn-success w-100" type="submit"><i class="bi bi-pen me-1"></i>Signer et délivrer</button>
+                    </form>
+                    <form th:action="@{/officier/demandes/{id}/contestation(id=${d.id})}" method="post">
+                        <textarea class="form-control mb-2" name="raison" rows="2" required placeholder="Pourquoi cet acte ne correspond-il pas ?"></textarea>
+                        <button class="btn btn-outline-danger w-100" type="submit">Ce n'est pas le bon acte</button>
+                    </form>
+                </div>
+
+                <div th:if="${s == 'SOUMISE' or s == 'A_PAYER' or s == 'ACTE_INTROUVABLE'}"
+                     sec:authorize="hasAnyRole('DELEGUE','AGENT_REGISTRE','OFFICIER','ADMIN')">
+                    <hr>
+                    <form th:action="@{/back-office/demandes/{id}/rejet(id=${d.id})}" method="post">
+                        <label class="form-label small" for="motif">Rejeter la demande</label>
+                        <textarea class="form-control mb-2" id="motif" name="motif" rows="2" required maxlength="500"
+                                  placeholder="Motif communiqué au demandeur"></textarea>
+                        <button class="btn btn-outline-danger w-100" type="submit">Rejeter</button>
+                    </form>
+                    <p class="small text-muted mt-2 mb-0" th:if="${s == 'ACTE_INTROUVABLE'}">
+                        La demande a été payée : le remboursement est à traiter depuis le tableau de bord PayDunya.</p>
+                </div>
+
+                <a th:if="${s == 'SIGNEE' or s == 'LIVREE'}" class="btn btn-outline-success w-100"
+                   th:href="@{/demandes/{id}/document.pdf(id=${d.id})}" target="_blank">Voir le document signé</a>
+                <p th:if="${d.terminee and s != 'LIVREE'}" class="text-muted small mb-0">Aucune action possible.</p>
+            </div></div>
+            <div th:replace="~{fragments/demande :: historique(${d.historique}, ${paiements})}"></div>
+        </div>
+    </div>
+</main>
+</body>
+</html>

@@ -1,0 +1,9 @@
+<nav xmlns:th="http://www.thymeleaf.org" th:fragment="pages(page)" th:if="${page.totalPages > 1}" class="mt-3">
+    <ul class="pagination pagination-sm justify-content-center">
+        <li class="page-item" th:classappend="${page.first} ? 'disabled'">
+            <a class="page-link" th:href="@{''(page=${page.number - 1}, statut=${param.statut}, reference=${param.reference}, type=${param.type}, nom=${param.nom})}">Précédent</a></li>
+        <li class="page-item disabled"><span class="page-link" th:text="${page.number + 1} + ' / ' + ${page.totalPages}"></span></li>
+        <li class="page-item" th:classappend="${page.last} ? 'disabled'">
+            <a class="page-link" th:href="@{''(page=${page.number + 1}, statut=${param.statut}, reference=${param.reference}, type=${param.type}, nom=${param.nom})}">Suivant</a></li>
+    </ul>
+</nav>

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{fragments/layout :: page('Accueil', ~{::main})}">
+<body>
+<main>
+    <section class="hero text-center">
+        <div class="container">
+            <h1 class="display-5 fw-bold">Vos documents d'état civil, sans vous déplacer</h1>
+            <p class="lead mt-3 mb-4">Demandez un extrait ou une copie d'acte de naissance, de mariage, de divorce ou de décès,
+                payez par Wave, Orange Money, Free Money ou carte, et suivez votre demande en ligne.</p>
+            <a sec:authorize="isAnonymous()" class="btn btn-light btn-lg me-2" th:href="@{/inscription}">Créer un compte</a>
+            <a sec:authorize="isAuthenticated()" class="btn btn-light btn-lg me-2" th:href="@{/espace}">Mon espace</a>
+            <a class="btn btn-outline-light btn-lg" th:href="@{/documents}">Voir les documents</a>
+        </div>
+    </section>
+
+    <section class="container py-5">
+        <h2 class="h3 text-center mb-4">Comment ça marche ?</h2>
+        <div class="row g-4 text-center">
+            <div class="col-md-3"><span class="etape">1</span><h3 class="h6 mt-3">Demande</h3>
+                <p class="text-muted small">Choisissez le document et indiquez la personne concernée.</p></div>
+            <div class="col-md-3"><span class="etape">2</span><h3 class="h6 mt-3">Examen</h3>
+                <p class="text-muted small">Un délégué de l'état civil vérifie votre demande.</p></div>
+            <div class="col-md-3"><span class="etape">3</span><h3 class="h6 mt-3">Paiement</h3>
+                <p class="text-muted small">Réglez en ligne avec PayDunya ; l'acte est aussitôt recherché dans le registre national.</p></div>
+            <div class="col-md-3"><span class="etape">4</span><h3 class="h6 mt-3">Délivrance</h3>
+                <p class="text-muted small">L'officier signe : téléchargez votre PDF ou recevez-le par courrier.</p></div>
+        </div>
+    </section>
+
+    <section class="bg-white py-5">
+        <div class="container">
+            <h2 class="h3 text-center mb-4">Documents disponibles</h2>
+            <div class="row g-3">
+                <div class="col-md-6 col-lg-4" th:each="t : ${documents}">
+                    <div class="card h-100"><div class="card-body">
+                        <h3 class="h6" th:text="${t.libelle}">Document</h3>
+                        <p class="small text-muted" th:text="${t.description}"></p>
+                        <p class="mb-0 fw-semibold text-brun">
+                            <span th:text="${#numbers.formatInteger(t.tarif, 1, 'WHITESPACE')} + ' FCFA'">1 000 FCFA</span>
+                            <span class="text-muted fw-normal small" th:text="' · environ ' + ${t.delaiJours} + ' jour(s)'"></span>
+                        </p>
+                    </div></div>
+                </div>
+            </div>
+            <p class="text-center mt-4 text-muted" th:if="${delivres > 0}">
+                <span class="chiffre" th:text="${delivres}">0</span><br>documents délivrés via E-Civil
+            </p>
+        </div>
+    </section>
+
+    <section class="container py-5">
+        <h2 class="h3 text-center mb-4">Questions fréquentes</h2>
+        <div class="accordion" id="faq">
+            <div class="accordion-item">
+                <h3 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#q1">
+                    Puis-je demander l'acte d'un proche ?</button></h3>
+                <div id="q1" class="accordion-collapse collapse" data-bs-parent="#faq"><div class="accordion-body">
+                    Oui : indiquez votre lien avec la personne (enfant, parent, conjoint, mandataire). Le délégué vérifie la légitimité de la demande.</div></div>
+            </div>
+            <div class="accordion-item">
+                <h3 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#q2">
+                    Que se passe-t-il si mon acte n'est pas encore numérisé ?</button></h3>
+                <div id="q2" class="accordion-collapse collapse" data-bs-parent="#faq"><div class="accordion-body">
+                    Un agent du registre le recherche dans les registres papier, le transcrit dans le registre national, puis votre demande reprend son cours.</div></div>
+            </div>
+            <div class="accordion-item">
+                <h3 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#q3">
+                    Comment une administration vérifie-t-elle mon document ?</button></h3>
+                <div id="q3" class="accordion-collapse collapse" data-bs-parent="#faq"><div class="accordion-body">
+                    Chaque document porte un code de vérification et un QR code. Sur la page « Vérifier un document », n'importe qui peut contrôler qu'il a bien été délivré par E-Civil et en lire le contenu authentique.</div></div>
+            </div>
+        </div>
+    </section>
+</main>
+</body>
+</html>

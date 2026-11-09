@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: page('Erreur', ~{::main})}">
+<body>
+<main class="container py-5 text-center">
+    <h1 class="display-6" th:text="${status == 404} ? 'Page introuvable' : (${status == 403} ? 'Accès refusé' : 'Une erreur est survenue')">Erreur</h1>
+    <p class="text-muted" th:if="${message != null and status != 404 and status != 403}" th:text="${message}"></p>
+    <p class="text-muted" th:unless="${message != null and status != 404 and status != 403}" th:text="${status == 403} ? 'Votre compte ne donne pas accès à cette page.'
+        : (${status == 404} ? 'L\'adresse demandée n\'existe pas.' : 'Le problème a été enregistré. Réessayez dans quelques instants.')"></p>
+    <a class="btn btn-primary" th:href="@{/}">Retour à l'accueil</a>
+</main>
+</body>
+</html>

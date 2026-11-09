@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{fragments/layout :: page(${a.numeroActe}, ~{::main})}">
+<body>
+<main class="container py-4" style="max-width: 900px">
+    <a th:href="@{/registre/actes}" class="small"><i class="bi bi-arrow-left"></i> Registre</a>
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 my-2">
+        <h1 class="h3 mb-0" th:text="'Acte de ' + ${#strings.toLowerCase(a.typeActe.libelle)} + ' n° ' + ${a.numeroActe}"></h1>
+        <span th:class="${a.estValide()} ? 'badge text-bg-success fs-6' : 'badge text-bg-warning fs-6'"
+              th:text="${a.estValide()} ? 'Validé' : 'En attente de validation'"></span>
+    </div>
+    <div class="card mb-3"><div class="card-body">
+        <dl class="row fiche mb-0">
+            <dt class="col-sm-4">Centre</dt><dd class="col-sm-8" th:text="${a.centre} + (${a.commune} ? ' (' + ${a.commune} + ')' : '')"></dd>
+            <dt class="col-sm-4">Registre papier</dt><dd class="col-sm-8" th:text="'Année ' + ${a.annee} + (${a.volume} ? ', volume ' + ${a.volume} : '') + (${a.folio} ? ', folio ' + ${a.folio} : '')"></dd>
+            <dt class="col-sm-4">Événement</dt><dd class="col-sm-8" th:text="${#temporals.format(a.dateEvenement, 'dd/MM/yyyy')} + ' à ' + ${a.lieuEvenement}"></dd>
+            <dt class="col-sm-4">Titulaire</dt><dd class="col-sm-8" th:text="${a.prenom} + ' ' + ${a.nom} + (${a.sexe} ? ' (' + ${a.sexe} + ')' : '')"></dd>
+            <dt class="col-sm-4" th:if="${a.dateNaissance}">Naissance</dt>
+            <dd class="col-sm-8" th:if="${a.dateNaissance}" th:text="${#temporals.format(a.dateNaissance, 'dd/MM/yyyy')} + (${a.lieuNaissance} ? ' à ' + ${a.lieuNaissance} : '')"></dd>
+            <dt class="col-sm-4" th:if="${a.nomPere}">Père</dt><dd class="col-sm-8" th:if="${a.nomPere}" th:text="${a.prenomPere} + ' ' + ${a.nomPere}"></dd>
+            <dt class="col-sm-4" th:if="${a.nomMere}">Mère</dt><dd class="col-sm-8" th:if="${a.nomMere}" th:text="${a.prenomMere} + ' ' + ${a.nomMere}"></dd>
+            <dt class="col-sm-4" th:if="${a.nomConjoint}">Conjoint</dt><dd class="col-sm-8" th:if="${a.nomConjoint}" th:text="${a.prenomConjoint} + ' ' + ${a.nomConjoint}"></dd>
+            <dt class="col-sm-4" th:if="${a.heureDeces}">Heure du décès</dt><dd class="col-sm-8" th:if="${a.heureDeces}" th:text="${a.heureDeces}"></dd>
+            <dt class="col-sm-4" th:if="${a.causeDeces}">Cause</dt><dd class="col-sm-8" th:if="${a.causeDeces}" th:text="${a.causeDeces}"></dd>
+            <dt class="col-sm-4" th:if="${a.temoin1}">Témoins</dt><dd class="col-sm-8" th:if="${a.temoin1}" th:text="${a.temoin1} + (${a.temoin2} ? ', ' + ${a.temoin2} : '')"></dd>
+            <dt class="col-sm-4" th:if="${a.mentionsMarginales}">Mentions marginales</dt><dd class="col-sm-8" th:if="${a.mentionsMarginales}" th:text="${a.mentionsMarginales}"></dd>
+            <dt class="col-sm-4" th:if="${a.observations}">Observations</dt><dd class="col-sm-8" th:if="${a.observations}" th:text="${a.observations}"></dd>
+            <dt class="col-sm-4">Saisi par</dt><dd class="col-sm-8" th:text="${a.agentSaisie} + ' le ' + ${#temporals.format(a.dateSaisie, 'dd/MM/yyyy HH:mm')}"></dd>
+        </dl>
+    </div></div>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-primary" th:href="@{/registre/actes/{id}/modifier(id=${a.id})}"
+           th:text="${a.estValide()} ? 'Ajouter une mention marginale' : 'Corriger la saisie'"></a>
+        <form sec:authorize="hasAnyRole('OFFICIER','ADMIN')" th:unless="${a.estValide()}"
+              th:action="@{/officier/actes/{id}/validation(id=${a.id})}" method="post">
+            <button class="btn btn-success" type="submit">Valider cet acte</button>
+        </form>
+    </div>
+</main>
+</body>
+</html>

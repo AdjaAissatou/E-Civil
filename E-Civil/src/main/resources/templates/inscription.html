@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: page('Créer un compte', ~{::main})}">
+<body>
+<main class="container py-4" style="max-width: 760px">
+    <div class="card"><div class="card-body p-4">
+        <h1 class="h4 mb-1">Créer un compte citoyen</h1>
+        <p class="text-muted small">Ces informations pré-rempliront vos demandes. Les champs marqués * sont obligatoires.</p>
+        <form th:action="@{/inscription}" th:object="${inscription}" method="post" novalidate>
+            <div class="alert alert-danger small" th:if="${#fields.hasGlobalErrors()}">
+                <p class="mb-0" th:each="e : ${#fields.globalErrors()}" th:text="${e}"></p>
+            </div>
+            <div class="row">
+                <div class="col-md-6" th:insert="~{fragments/champs :: texte('prenom', 'Prénom(s)', 'text', true)}"></div>
+                <div class="col-md-6" th:insert="~{fragments/champs :: texte('nom', 'Nom', 'text', true)}"></div>
+                <div class="col-md-6" th:insert="~{fragments/champs :: texte('email', 'Email', 'email', true)}"></div>
+                <div class="col-md-6" th:insert="~{fragments/champs :: texte('telephone', 'Téléphone', 'tel', false)}"></div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label" for="sexe">Sexe</label>
+                    <select class="form-select" th:field="*{sexe}">
+                        <option value="">—</option><option value="F">Féminin</option><option value="M">Masculin</option>
+                    </select>
+                </div>
+                <div class="col-md-4" th:insert="~{fragments/champs :: texte('dateNaissance', 'Date de naissance', 'date', false)}"></div>
+                <div class="col-md-4" th:insert="~{fragments/champs :: texte('lieuNaissance', 'Lieu de naissance', 'text', false)}"></div>
+                <div class="col-12" th:insert="~{fragments/champs :: texte('adresse', 'Adresse postale', 'text', false)}"></div>
+                <div class="col-md-6" th:insert="~{fragments/champs :: texte('motDePasse', 'Mot de passe (8 caractères minimum)', 'password', true)}"></div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label" for="confirmation">Confirmation<span class="text-danger"> *</span></label>
+                    <input class="form-control" type="password" th:field="*{confirmation}" required
+                           th:classappend="${#fields.hasErrors('confirmationValide')} ? 'is-invalid'">
+                    <div class="invalid-feedback" th:errors="*{confirmationValide}"></div>
+                </div>
+            </div>
+            <button class="btn btn-primary" type="submit">Créer mon compte</button>
+        </form>
+    </div></div>
+</main>
+</body>
+</html>

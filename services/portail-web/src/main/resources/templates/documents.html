@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{fragments/layout :: page('Documents', ~{::main})}">
+<body>
+<main class="container py-4">
+    <div class="text-center mb-5" data-aos="fade-up">
+        <h1 class="display-4 fw-bold text-brown mb-3"><i class="bi bi-file-earmark-text me-2"></i>Documents d'État Civil</h1>
+        <p class="lead text-muted">Consultez les différents documents disponibles et leurs tarifs</p>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm border-0 bg-beige-light">
+                <div class="card-body py-3">
+                    <div class="input-group">
+                        <span class="input-group-text bg-brown text-light border-0"><i class="bi bi-search"></i></span>
+                        <input type="text" id="searchInput" class="form-control border-0 bg-beige-light"
+                               placeholder="Rechercher un document (naissance, mariage, copie…)" aria-label="Rechercher un document">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm border-0 bg-beige-light">
+                <div class="card-body">
+                    <h5 class="card-title text-brown"><i class="bi bi-filter me-2"></i>Filtrer par catégorie</h5>
+                    <div class="filtres d-flex flex-wrap" role="group">
+                        <button type="button" class="btn btn-brown-outline active" data-filter="all">Tous</button>
+                        <button type="button" class="btn btn-brown-outline" data-filter="NAISSANCE">Naissance</button>
+                        <button type="button" class="btn btn-brown-outline" data-filter="MARIAGE">Mariage</button>
+                        <button type="button" class="btn btn-brown-outline" data-filter="DIVORCE">Divorce</button>
+                        <button type="button" class="btn btn-brown-outline" data-filter="DECES">Décès</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-xl-4 col-lg-6 col-md-6 mb-4 document-card" th:each="t, i : ${documents}"
+             th:attr="data-category=${t.typeActe},data-texte=${t.libelle + ' ' + t.description + ' ' + t.libelleActe},data-aos-delay=${i.index * 50}"
+             data-aos="fade-up">
+            <div class="card h-100 shadow-sm border-0 document-card-inner">
+                <div class="card-header bg-brown text-light border-0 py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="badge bg-beige text-brown" th:text="'Acte de ' + ${t.libelleActe}"></span>
+                        <span class="badge bg-warning-brown" th:if="${t.delaiJours <= 2}"><i class="bi bi-lightning me-1"></i>Délivrance rapide</span>
+                        <span class="badge bg-warning-brown" th:if="${t.copieIntegrale}"><i class="bi bi-journal-text me-1"></i>Copie intégrale</span>
+                    </div>
+                </div>
+                <div class="card-body d-flex flex-column bg-beige-light">
+                    <h5 class="card-title text-brown mb-3"><i class="bi bi-file-earmark me-2"></i><span th:text="${t.libelle}"></span></h5>
+                    <p class="card-text text-brown-light flex-grow-1" th:text="${t.description}"></p>
+                    <div class="mt-auto">
+                        <div class="row text-center mb-3">
+                            <div class="col-4">
+                                <div class="border-brown rounded p-2 bg-white h-100">
+                                    <small class="text-brown-light d-block">Tarif</small>
+                                    <strong class="text-brown-dark" th:text="${#numbers.formatInteger(t.tarif, 1, 'POINT')} + ' FCFA'"></strong>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="border-brown rounded p-2 bg-white h-100">
+                                    <small class="text-brown-light d-block">Délai</small>
+                                    <strong class="text-brown-dark" th:text="${t.delaiJours} + ' jour(s)'"></strong>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="border-brown rounded p-2 bg-white h-100">
+                                    <small class="text-brown-light d-block">Format</small>
+                                    <strong class="text-brown-dark">PDF ou papier</strong>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <a sec:authorize="hasRole('CITOYEN')" th:href="@{/demandes/nouvelle(type=${t.id})}" class="btn btn-brown btn-sm">
+                                <i class="bi bi-cart-plus me-1"></i>Faire une demande</a>
+                            <a sec:authorize="isAnonymous()" th:href="@{/oauth2/authorization/keycloak}" class="btn btn-brown-outline btn-sm">
+                                <i class="bi bi-person me-1"></i>Se connecter pour demander</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="aucun-document" class="text-center py-5" th:classappend="${#lists.isEmpty(documents)} ? '' : 'd-none'">
+        <i class="bi bi-search display-1 text-brown-light"></i>
+        <h4 class="text-brown-light mt-3">Aucun document trouvé</h4>
+        <p class="text-brown-light">Modifiez votre recherche ou choisissez une autre catégorie.</p>
+    </div>
+</main>
+</body>
+</html>

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: page('Documents et tarifs', ~{::main})}">
+<body>
+<main class="container py-4">
+    <h1 class="h3">Documents et tarifs</h1>
+    <p class="text-muted">Le tarif est figé au dépôt de chaque demande : une modification ne s'applique qu'aux nouvelles demandes.</p>
+    <div class="card"><div class="table-responsive">
+        <table class="table align-middle mb-0">
+            <thead><tr><th>Document</th><th>Acte</th><th style="width:150px">Tarif (FCFA)</th><th style="width:120px">Délai (jours)</th><th>Proposé</th><th></th></tr></thead>
+            <tbody>
+            <tr th:each="t : ${documents}">
+                <td th:text="${t.libelle}"></td>
+                <td th:text="${t.typeActe.libelle}"></td>
+                <td colspan="4">
+                    <form class="row g-2 align-items-center" th:action="@{/admin/documents/{id}(id=${t.id})}" method="post">
+                        <div class="col-4"><input class="form-control form-control-sm" type="number" min="200" step="50" name="tarif" th:value="${t.tarif}"></div>
+                        <div class="col-3"><input class="form-control form-control-sm" type="number" min="1" max="60" name="delaiJours" th:value="${t.delaiJours}"></div>
+                        <div class="col-2"><input class="form-check-input" type="checkbox" name="actif" value="true" th:checked="${t.actif}"></div>
+                        <div class="col-3"><button class="btn btn-sm btn-outline-primary" type="submit">Enregistrer</button></div>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div></div>
+</main>
+</body>
+</html>

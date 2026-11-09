@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{fragments/layout :: page('Accueil', ~{::main})}">
+<body>
+<main>
+    <!-- Bandeau d'accueil -->
+    <section class="hero-accueil d-flex align-items-center text-center text-white">
+        <div class="container">
+            <div data-aos="fade-up" data-aos-duration="1000">
+                <h1 class="display-3 fw-bold mb-4">E-Civil Sénégal</h1>
+                <p class="lead mb-4 fs-5">Vos documents d'état civil en ligne, accessibles partout, en toute sécurité.</p>
+                <div class="d-flex gap-3 justify-content-center flex-wrap">
+                    <a sec:authorize="isAnonymous()" th:href="@{/inscription}" class="btn btn-success btn-lg rounded-pill shadow-lg hover-scale px-4">
+                        <i class="bi bi-person-plus me-2"></i>Créer un compte
+                    </a>
+                    <a sec:authorize="isAuthenticated()" th:href="@{/espace}" class="btn btn-success btn-lg rounded-pill shadow-lg hover-scale px-4">
+                        <i class="bi bi-person-check me-2"></i>Mon espace
+                    </a>
+                    <a href="#services" class="btn btn-outline-light btn-lg rounded-pill hover-scale px-4">
+                        <i class="bi bi-info-circle me-2"></i>Découvrir nos services
+                    </a>
+                </div>
+            </div>
+
+            <!-- Atouts du service -->
+            <div class="row mt-5 pt-5" data-aos="fade-up" data-aos-delay="300">
+                <div class="col-6 col-md-3 mb-3"><div class="atout-verre">
+                    <i class="bi bi-phone fs-2 text-warning"></i>
+                    <p class="small mb-0 mt-2">Wave, Orange Money, Free Money ou carte</p>
+                </div></div>
+                <div class="col-6 col-md-3 mb-3"><div class="atout-verre">
+                    <i class="bi bi-clock-history fs-2 text-warning"></i>
+                    <p class="small mb-0 mt-2">Suivi de chaque étape en ligne</p>
+                </div></div>
+                <div class="col-6 col-md-3 mb-3"><div class="atout-verre">
+                    <i class="bi bi-qr-code fs-2 text-warning"></i>
+                    <p class="small mb-0 mt-2">Documents vérifiables par QR code</p>
+                </div></div>
+                <div class="col-6 col-md-3 mb-3"><div class="atout-verre">
+                    <i class="bi bi-globe fs-2 text-warning"></i>
+                    <p class="small mb-0 mt-2">Accessible depuis la diaspora</p>
+                </div></div>
+            </div>
+        </div>
+
+        <div class="position-absolute bottom-0 start-50 translate-middle-x mb-4">
+            <a href="#services" class="text-white text-decoration-none">
+                <div class="d-flex flex-column align-items-center">
+                    <span class="small mb-2">Découvrir</span>
+                    <i class="bi bi-chevron-down fs-4 animate-bounce"></i>
+                </div>
+            </a>
+        </div>
+    </section>
+
+    <!-- Services -->
+    <section id="services" class="container py-5 my-5">
+        <div class="text-center mb-5" data-aos="fade-up">
+            <h2 class="fw-bold mb-3">Nos Services de Documents</h2>
+            <p class="text-muted lead">Obtenez vos documents officiels rapidement et facilement</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4" data-aos="fade-up" data-aos-delay="100">
+                <div class="card service-card text-center p-4 shadow rounded h-100 border-0">
+                    <div class="icone-service bg-success bg-opacity-10 rounded-circle mx-auto mb-4 d-flex align-items-center justify-content-center">
+                        <img th:src="@{/images/birth.png}" alt="Acte de naissance" class="img-fluid">
+                    </div>
+                    <h5 class="fw-semibold mb-3">Acte de Naissance</h5>
+                    <p class="text-muted small">Obtenez votre extrait d'acte de naissance en quelques clics, sans vous déplacer.</p>
+                    <div class="mt-auto" th:if="${aPartirDe['NAISSANCE']}">
+                        <span class="badge bg-success" th:text="'À partir de ' + ${#numbers.formatInteger(aPartirDe['NAISSANCE'], 1, 'POINT')} + ' FCFA'"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4" data-aos="fade-up" data-aos-delay="200">
+                <div class="card service-card text-center p-4 shadow rounded h-100 border-0">
+                    <div class="icone-service bg-primary bg-opacity-10 rounded-circle mx-auto mb-4 d-flex align-items-center justify-content-center">
+                        <img th:src="@{/images/marriage.png}" alt="Acte de mariage" class="img-fluid">
+                    </div>
+                    <h5 class="fw-semibold mb-3">Acte de Mariage</h5>
+                    <p class="text-muted small">Consultez et téléchargez vos actes de mariage rapidement et en toute sécurité.</p>
+                    <div class="mt-auto" th:if="${aPartirDe['MARIAGE']}">
+                        <span class="badge bg-primary" th:text="'À partir de ' + ${#numbers.formatInteger(aPartirDe['MARIAGE'], 1, 'POINT')} + ' FCFA'"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4" data-aos="fade-up" data-aos-delay="300">
+                <div class="card service-card text-center p-4 shadow rounded h-100 border-0">
+                    <div class="icone-service bg-warning bg-opacity-10 rounded-circle mx-auto mb-4 d-flex align-items-center justify-content-center">
+                        <img th:src="@{/images/death.png}" alt="Acte de décès" class="img-fluid">
+                    </div>
+                    <h5 class="fw-semibold mb-3">Acte de Décès</h5>
+                    <p class="text-muted small">Accédez facilement aux documents officiels en cas de décès d'un proche.</p>
+                    <div class="mt-auto" th:if="${aPartirDe['DECES']}">
+                        <span class="badge bg-warning text-dark" th:text="'À partir de ' + ${#numbers.formatInteger(aPartirDe['DECES'], 1, 'POINT')} + ' FCFA'"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="text-center mt-4" data-aos="fade-up">
+            <a th:href="@{/documents}" class="btn btn-primary rounded-pill px-4 hover-scale"><i class="bi bi-file-text me-2"></i>Voir tous les documents</a>
+        </div>
+    </section>
+
+    <!-- Étapes -->
+    <section class="bg-light py-5">
+        <div class="container">
+            <div class="text-center mb-5" data-aos="fade-up">
+                <h2 class="fw-bold mb-3">Comment ça marche ?</h2>
+                <p class="text-muted lead">3 étapes simples pour obtenir vos documents</p>
+            </div>
+            <div class="row g-4">
+                <div class="col-md-4 text-center" data-aos="fade-up" data-aos-delay="100">
+                    <div class="process-step bg-white rounded-circle shadow mx-auto mb-3 d-flex align-items-center justify-content-center">
+                        <span class="fs-2 fw-bold text-success">1</span>
+                    </div>
+                    <h5>Inscription</h5>
+                    <p class="text-muted small">Créez votre compte en 2 minutes avec vos informations personnelles</p>
+                </div>
+                <div class="col-md-4 text-center" data-aos="fade-up" data-aos-delay="200">
+                    <div class="process-step bg-white rounded-circle shadow mx-auto mb-3 d-flex align-items-center justify-content-center">
+                        <span class="fs-2 fw-bold text-success">2</span>
+                    </div>
+                    <h5>Demande &amp; Paiement</h5>
+                    <p class="text-muted small">Sélectionnez le document souhaité ; une fois la demande validée, payez en ligne de manière sécurisée</p>
+                </div>
+                <div class="col-md-4 text-center" data-aos="fade-up" data-aos-delay="300">
+                    <div class="process-step bg-white rounded-circle shadow mx-auto mb-3 d-flex align-items-center justify-content-center">
+                        <span class="fs-2 fw-bold text-success">3</span>
+                    </div>
+                    <h5>Récupération</h5>
+                    <p class="text-muted small">Téléchargez votre document signé depuis votre espace personnel, ou recevez-le par courrier</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- À propos -->
+    <section class="container my-5 py-5">
+        <div class="row align-items-center">
+            <div class="col-md-6 mb-4 mb-md-0" data-aos="fade-right">
+                <h2 class="fw-bold mb-4">Une révolution numérique pour l'état civil</h2>
+                <p class="text-muted mb-4">E-Civil Sénégal modernise l'accès aux documents officiels en offrant une plateforme digitale sécurisée, rapide et accessible à tous les Sénégalais.</p>
+                <div class="d-flex mb-3" data-aos="fade-right" data-aos-delay="100">
+                    <i class="bi bi-shield-check text-success fs-4 me-3"></i>
+                    <div>
+                        <h6 class="fw-bold">Sécurité garantie</h6>
+                        <p class="text-muted small mb-0">Vos données personnelles sont protégées ; chaque document porte un code de vérification</p>
+                    </div>
+                </div>
+                <div class="d-flex mb-3" data-aos="fade-right" data-aos-delay="200">
+                    <i class="bi bi-lightning-charge text-success fs-4 me-3"></i>
+                    <div>
+                        <h6 class="fw-bold">Rapidité d'exécution</h6>
+                        <p class="text-muted small mb-0">Votre acte est recherché dans le registre national dès votre paiement</p>
+                    </div>
+                </div>
+                <div class="d-flex mb-3" data-aos="fade-right" data-aos-delay="300">
+                    <i class="bi bi-globe text-success fs-4 me-3"></i>
+                    <div>
+                        <h6 class="fw-bold">Accessibilité totale</h6>
+                        <p class="text-muted small mb-0">Disponible partout, y compris pour la diaspora</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6" data-aos="fade-left">
+                <div class="position-relative">
+                    <img th:src="@{/images/hero-bg.png}" alt="Plateforme E-Civil" class="img-fluid rounded shadow-lg">
+                    <div class="position-absolute top-0 start-0 mt-3 ms-3">
+                        <span class="badge bg-success fs-6">Nouveau</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ -->
+    <section id="faq" class="bg-light py-5">
+        <div class="container">
+            <h2 class="text-center fw-bold mb-5" data-aos="fade-up">Questions fréquentes</h2>
+            <div class="accordion" id="faqAccordion">
+                <div class="accordion-item" data-aos="fade-up" data-aos-delay="100">
+                    <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#q1">
+                        Comment créer un compte ?</button></h2>
+                    <div id="q1" class="accordion-collapse collapse" data-bs-parent="#faqAccordion"><div class="accordion-body">
+                        Cliquez sur « Créer un compte » en haut de la page et remplissez le formulaire.</div></div>
+                </div>
+                <div class="accordion-item" data-aos="fade-up" data-aos-delay="150">
+                    <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#q2">
+                        Quels documents sont disponibles ?</button></h2>
+                    <div id="q2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion"><div class="accordion-body">
+                        Extraits et copies littérales d'actes de naissance, de mariage, de divorce et de décès. La liste complète et les tarifs sont sur la page <a th:href="@{/documents}">Documents</a>.</div></div>
+                </div>
+                <div class="accordion-item" data-aos="fade-up" data-aos-delay="200">
+                    <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#q3">
+                        Puis-je demander l'acte d'un proche ?</button></h2>
+                    <div id="q3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion"><div class="accordion-body">
+                        Oui : indiquez votre lien avec la personne (enfant, parent, conjoint, mandataire). Le délégué vérifie la légitimité de la demande.</div></div>
+                </div>
+                <div class="accordion-item" data-aos="fade-up" data-aos-delay="250">
+                    <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#q4">
+                        Comment une administration vérifie-t-elle mon document ?</button></h2>
+                    <div id="q4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion"><div class="accordion-body">
+                        Chaque document porte un code de vérification et un QR code. Sur la page <a th:href="@{/verification}">Vérifier un document</a>, n'importe qui peut contrôler qu'il a bien été délivré par E-Civil.</div></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Appel à l'action -->
+    <section class="cta-accueil text-center py-5 position-relative">
+        <div class="position-absolute top-0 start-0 w-100 h-100 opacity-10 pattern-dots"></div>
+        <div class="container position-relative" data-aos="zoom-in">
+            <h3 class="text-white fw-bold mb-4 display-6">Prêt à simplifier vos démarches ?</h3>
+            <p class="text-white mb-4 lead">Faites votre demande en ligne et suivez-la jusqu'à la délivrance</p>
+            <div class="d-flex gap-3 justify-content-center flex-wrap">
+                <a th:href="@{/inscription}" sec:authorize="isAnonymous()" class="btn btn-light btn-lg rounded-pill shadow-lg hover-scale px-5">
+                    <i class="bi bi-rocket-takeoff me-2"></i>Commencer maintenant
+                </a>
+                <a th:href="@{/documents}" class="btn btn-outline-light btn-lg rounded-pill hover-scale px-4">
+                    <i class="bi bi-file-text me-2"></i>Voir les documents
+                </a>
+            </div>
+            <p class="text-white mt-3 small">Inscription gratuite • Paiement sécurisé • Suivi en ligne</p>
+        </div>
+    </section>
+</main>
+</body>
+</html>

@@ -1,0 +1,187 @@
+:root {
+  --brun: #5c3d2e;
+  --brun-fonce: #3b2a1f;
+  --sable: #e0b084;
+  --fond: #f8f6f3;
+}
+body { background: var(--fond); color: var(--brun-fonce); font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; }
+main { min-height: 70vh; }
+.navbar { background: linear-gradient(135deg, var(--brun) 0%, var(--brun-fonce) 100%); }
+.navbar .navbar-brand, .navbar .nav-link { color: #f8f9fa; }
+.navbar .nav-link:hover, .navbar .nav-link.active { color: var(--sable); }
+.navbar .dropdown-menu { border: none; box-shadow: 0 4px 15px rgba(0,0,0,.12); }
+.btn-primary { background: var(--brun); border-color: var(--brun); }
+.btn-primary:hover, .btn-primary:focus { background: var(--brun-fonce); border-color: var(--brun-fonce); }
+.btn-outline-primary { color: var(--brun); border-color: var(--brun); }
+.btn-outline-primary:hover { background: var(--brun); border-color: var(--brun); }
+.text-brun { color: var(--brun); }
+.card { border: none; box-shadow: 0 2px 8px rgba(59,42,31,.08); }
+.hero { background: linear-gradient(rgba(59,42,31,.72), rgba(59,42,31,.72)), url("/images/hero-bg.png") center/cover; color: #fff; padding: 6rem 0 5rem; }
+.hero .lead { color: #f3e6d8; }
+.etape { width: 3rem; height: 3rem; border-radius: 50%; background: var(--sable); color: var(--brun-fonce); display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.25rem; }
+.chiffre { font-size: 2.25rem; font-weight: 700; color: var(--brun); }
+.doc-icone { width: 56px; height: 56px; object-fit: contain; }
+.timeline { list-style: none; padding-left: 1rem; border-left: 3px solid var(--sable); }
+.timeline li { position: relative; padding: 0 0 1rem 1rem; }
+.timeline li::before { content: ""; position: absolute; left: -1.55rem; top: .3rem; width: .9rem; height: .9rem; border-radius: 50%; background: var(--brun); }
+.fiche dt { color: #7a6a5e; font-weight: 500; }
+.fiche dd { font-weight: 600; }
+.table thead th { color: #7a6a5e; font-weight: 600; font-size: .85rem; text-transform: uppercase; letter-spacing: .03em; }
+footer { background: var(--brun-fonce); color: #d8c8b8; }
+footer a { color: var(--sable); }
+@media (max-width: 576px) { .hero { padding: 4rem 0 3rem; } }
+
+/* ===================================================================
+   Design d'origine d'E-Civil (repris des pages JSP de la version 1)
+   =================================================================== */
+:root {
+  --brown-dark: #3b2a1f;
+  --brown: #5c3d2e;
+  --brown-light: #7a5a48;
+  --beige: #e0b084;
+  --beige-light: #f8f4f0;
+  --beige-lighter: #fdfaf7;
+}
+html { scroll-behavior: smooth; }
+body { padding-top: 70px; background-color: #f8f9fa; color: #3b2a1f; display: flex; flex-direction: column; min-height: 100vh; }
+body.page-accueil { padding-top: 0; }
+main { flex: 1 0 auto; }
+.navbar { background: linear-gradient(135deg, #5c3d2e 0%, #3b2a1f 100%) !important; box-shadow: 0 2px 10px rgba(0,0,0,.1); }
+.navbar-brand, .navbar .nav-link { color: #f8f9fa !important; font-weight: 500; }
+.navbar-brand:hover, .navbar .nav-link:hover, .navbar .nav-link.active { color: #e0b084 !important; }
+.btn-outline-light { border: 1px solid #e0b084; color: #e0b084; }
+.btn-outline-light:hover { background-color: #e0b084; color: #3b2a1f; }
+.card { border: none; box-shadow: 0 4px 6px rgba(0,0,0,.1); transition: transform .2s; background-color: #fff; border-radius: 10px; }
+.dropdown-menu { border: none; box-shadow: 0 4px 15px rgba(0,0,0,.1); border-radius: 10px; }
+.dropdown-item { border-radius: 5px; margin: 2px 5px; padding: 8px 12px; }
+.dropdown-item.text-danger:hover { background-color: #fff5f5; color: #dc3545 !important; }
+.alert-success { background-color: #e0f7e9; color: #2e6049; border: none; }
+.alert-danger { background-color: #fce8e6; color: #7a1f1f; border: none; }
+footer { background-color: #2c2118 !important; color: #e8e6e1 !important; margin-top: auto; }
+footer a { color: #e0b084; text-decoration: none; }
+footer a:hover { text-decoration: underline; color: #fff; }
+footer hr { border-color: rgba(232,230,225,.25); }
+
+/* Accueil */
+.hero-accueil { min-height: 100vh; padding-top: 76px; position: relative;
+  background: linear-gradient(rgba(0,0,0,.7), rgba(0,0,0,.5)), url("/images/herobg.png") center/cover no-repeat; }
+.hover-scale { transition: transform .3s, box-shadow .3s; }
+.hover-scale:hover { transform: scale(1.05); box-shadow: 0 10px 20px rgba(0,0,0,.2); }
+.service-card { transition: transform .3s, box-shadow .3s; }
+.service-card:hover { transform: translateY(-10px); box-shadow: 0 15px 30px rgba(0,0,0,.15); }
+.animate-bounce { animation: rebond 2s infinite; }
+@keyframes rebond { 0%, 20%, 50%, 80%, 100% { transform: translateY(0); } 40% { transform: translateY(-10px); } 60% { transform: translateY(-5px); } }
+.pattern-dots { background-image: radial-gradient(#ffffff 1px, transparent 1px); background-size: 20px 20px; }
+.cta-accueil { background: linear-gradient(135deg, #00b894, #55efc4); overflow: hidden; }
+.process-step { width: 100px; height: 100px; }
+.icone-service { width: 80px; height: 80px; }
+.icone-service img { height: 50px; }
+
+/* Documents */
+.text-brown { color: var(--brown) !important; }
+.text-brown-dark { color: var(--brown-dark) !important; }
+.text-brown-light { color: var(--brown-light) !important; }
+.bg-brown { background: linear-gradient(135deg, var(--brown-dark) 0%, var(--brown) 100%) !important; }
+.bg-beige { background-color: var(--beige) !important; }
+.bg-beige-light { background-color: var(--beige-light) !important; }
+.btn-brown { background: linear-gradient(135deg, var(--brown) 0%, var(--brown-light) 100%); border: none; color: #fff !important; }
+.btn-brown:hover { background: linear-gradient(135deg, var(--brown-dark) 0%, var(--brown) 100%); color: #fff; }
+.btn-brown-outline { border: 1px solid var(--brown); color: var(--brown); background: transparent; }
+.btn-brown-outline:hover, .btn-brown-outline.active { background: var(--brown); color: #fff; }
+.border-brown { border: 1px solid var(--beige) !important; }
+.badge.bg-warning-brown { background: linear-gradient(135deg, #d4a574 0%, #e0b084 100%) !important; color: var(--brown-dark) !important; }
+.document-card { transition: transform .3s ease, box-shadow .3s ease; }
+.document-card:hover { transform: translateY(-5px); }
+.document-card-inner { background: linear-gradient(135deg, var(--beige-lighter) 0%, var(--beige-light) 100%); overflow: hidden; }
+.filtres .btn { border-radius: 20px; margin: 2px; }
+
+/* ===================================================================
+   Style « verre » (glassmorphism) : surfaces translucides et floutées
+   posées sur un fond chaud, dans la palette brun / sable d'E-Civil.
+   =================================================================== */
+:root {
+  --verre-clair: rgba(255, 255, 255, .55);
+  --verre-clair-fort: rgba(255, 255, 255, .72);
+  --verre-sombre: rgba(44, 33, 24, .55);
+  --verre-bord: rgba(255, 255, 255, .45);
+  --verre-flou: blur(16px) saturate(160%);
+  --verre-ombre: 0 8px 32px rgba(59, 42, 31, .18);
+}
+body {
+  background:
+    radial-gradient(circle at 12% 18%, rgba(224, 176, 132, .55) 0, transparent 38%),
+    radial-gradient(circle at 88% 12%, rgba(92, 61, 46, .35) 0, transparent 35%),
+    radial-gradient(circle at 75% 82%, rgba(0, 184, 148, .22) 0, transparent 40%),
+    radial-gradient(circle at 18% 88%, rgba(212, 165, 116, .45) 0, transparent 38%),
+    linear-gradient(135deg, #f6ede4 0%, #efe2d4 50%, #f8f4f0 100%);
+  background-attachment: fixed;
+}
+/* Barre de navigation et pied de page en verre fumé */
+.navbar {
+  background: var(--verre-sombre) !important;
+  backdrop-filter: var(--verre-flou); -webkit-backdrop-filter: var(--verre-flou);
+  border-bottom: 1px solid rgba(255, 255, 255, .15);
+}
+footer {
+  background: rgba(44, 33, 24, .82) !important;
+  backdrop-filter: var(--verre-flou); -webkit-backdrop-filter: var(--verre-flou);
+  border-top: 1px solid rgba(255, 255, 255, .12);
+}
+/* Cartes, menus, accordéons, alertes : verre clair */
+.card, .accordion-item, .dropdown-menu, .modal-content, .list-group-item {
+  background: var(--verre-clair) !important;
+  backdrop-filter: var(--verre-flou); -webkit-backdrop-filter: var(--verre-flou);
+  border: 1px solid var(--verre-bord) !important;
+  box-shadow: var(--verre-ombre);
+}
+.card { border-radius: 18px; }
+.dropdown-menu { background: var(--verre-clair-fort) !important; }
+.card-header { background: rgba(255, 255, 255, .25); border-bottom: 1px solid var(--verre-bord); }
+.card-header.bg-brown { background: linear-gradient(135deg, rgba(59, 42, 31, .85), rgba(92, 61, 46, .75)) !important; }
+.document-card-inner, .bg-beige-light, .card-body.bg-beige-light { background: transparent !important; }
+.accordion-button, .accordion-button:not(.collapsed) { background: transparent; color: var(--brown-dark); box-shadow: none; }
+.alert { backdrop-filter: var(--verre-flou); -webkit-backdrop-filter: var(--verre-flou); border: 1px solid var(--verre-bord) !important; border-radius: 14px; }
+.alert-success { background: rgba(224, 247, 233, .75); }
+.alert-danger { background: rgba(252, 232, 230, .78); }
+.alert-info, .alert-light { background: rgba(255, 255, 255, .6); }
+/* Tableaux et champs à l'intérieur du verre */
+.table { --bs-table-bg: transparent; --bs-table-hover-bg: rgba(255, 255, 255, .35); }
+.form-control, .form-select, .input-group-text:not(.bg-brown) {
+  background-color: rgba(255, 255, 255, .6); border: 1px solid rgba(92, 61, 46, .18);
+  backdrop-filter: blur(6px);
+}
+.form-control:focus, .form-select:focus { background-color: rgba(255, 255, 255, .85); border-color: var(--beige); box-shadow: 0 0 0 .2rem rgba(224, 176, 132, .35); }
+.border-brown.bg-white { background: rgba(255, 255, 255, .55) !important; }
+/* Sections de l'accueil : bandes de verre plutôt que fonds pleins */
+.bg-light { background: rgba(255, 255, 255, .35) !important; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+.process-step { background: var(--verre-clair-fort) !important; backdrop-filter: var(--verre-flou); border: 1px solid var(--verre-bord); }
+.atout-verre {
+  background: rgba(255, 255, 255, .12); border: 1px solid rgba(255, 255, 255, .25); border-radius: 16px;
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); padding: 1rem .75rem; height: 100%;
+}
+.btn-outline-light.rounded-pill, .hero-accueil .btn-outline-light { background: rgba(255, 255, 255, .12); backdrop-filter: blur(8px); }
+.cta-accueil { background: linear-gradient(135deg, rgba(0, 184, 148, .85), rgba(85, 239, 196, .8)); }
+.badge.bg-beige { background: rgba(224, 176, 132, .9) !important; }
+/* Navigateurs sans backdrop-filter : verre plus opaque pour rester lisible */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .card, .accordion-item, .dropdown-menu { background: rgba(255, 255, 255, .92) !important; }
+  .navbar { background: rgba(44, 33, 24, .95) !important; }
+}
+
+/* Fond du verre : la photo de la mairie, floutée et éclaircie, fixe derrière toute la page */
+body { background: #efe2d4; position: relative; }
+body::before {
+  content: ""; position: fixed; inset: -40px; z-index: -2;
+  background: url("/images/hero-bg.png") center / cover no-repeat;
+  filter: blur(22px) saturate(130%);
+}
+body::after {
+  content: ""; position: fixed; inset: 0; z-index: -1;
+  background:
+    radial-gradient(circle at 15% 20%, rgba(224, 176, 132, .45) 0, transparent 40%),
+    radial-gradient(circle at 85% 80%, rgba(0, 184, 148, .18) 0, transparent 40%),
+    rgba(248, 240, 230, .62);
+}
+.bg-light { background: rgba(255, 255, 255, .28) !important; }
+.cta-accueil .btn-outline-light { color: #fff; border-color: #fff; background: rgba(255, 255, 255, .22); }
+.cta-accueil .btn-outline-light:hover { background: #fff; color: #00866b; }

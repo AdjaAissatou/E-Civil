@@ -1,0 +1,138 @@
+# Plateforme E-Civil complète : infrastructure + 7 microservices.
+#   1. cp .env.example .env   (puis remplir les secrets)
+#   2. mvn -DskipTests package
+#   3. docker compose up --build
+# Portail : http://localhost:8080 · Keycloak : http://localhost:8180 · RabbitMQ : http://localhost:15672
+
+x-service: &service
+  restart: unless-stopped
+  env_file: .env
+  environment: &environnement
+    DB_USER: postgres
+    DB_PASSWORD: ${POSTGRES_PASSWORD}
+    RABBITMQ_HOST: rabbitmq
+    RABBITMQ_USER: ${RABBITMQ_USER:-ecivil}
+    RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+    KEYCLOAK_URL_PUBLIQUE: http://localhost:8180
+    KEYCLOAK_URL_INTERNE: http://keycloak:8080
+    REGISTRE_SERVICE_URL: http://registre-service:8083
+    DOCUMENT_SERVICE_URL: http://document-service:8084
+  depends_on:
+    postgres: { condition: service_healthy }
+    rabbitmq: { condition: service_healthy }
+    keycloak: { condition: service_healthy }
+
+services:
+  # ------------------------------------------------------------------ infrastructure
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - donnees-postgres:/var/lib/postgresql/data
+      - ./infra/postgres/creer-bases.sql:/docker-entrypoint-initdb.d/creer-bases.sql:ro
+    ports: [ "5432:5432" ]
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d keycloak" ]
+      interval: 5s
+      retries: 20
+
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-ecivil}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    ports: [ "5672:5672", "15672:15672" ]
+    healthcheck:
+      test: [ "CMD", "rabbitmq-diagnostics", "-q", "ping" ]
+      start_period: 60s
+      interval: 10s
+      retries: 20
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:25.0.6
+    restart: unless-stopped
+    command: [ "start-dev", "--import-realm" ]
+    env_file: .env
+    environment:
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_DB_USERNAME: postgres
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
+      # Adresse vue par le navigateur ; les services joignent Keycloak par le réseau interne
+      KC_HOSTNAME: http://localhost:8180
+      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "true"
+      KC_HEALTH_ENABLED: "true"
+    volumes:
+      - ./infra/keycloak:/opt/keycloak/data/import:ro
+    ports: [ "8180:8080" ]
+    depends_on:
+      postgres: { condition: service_healthy }
+    healthcheck:
+      test: [ "CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000 && printf 'GET /health/ready HTTP/1.0\\r\\n\\r\\n' >&3 && grep -q UP <&3" ]
+      start_period: 60s
+      interval: 10s
+      retries: 30
+
+  # ------------------------------------------------------------------ microservices
+  registre-service:
+    <<: *service
+    build: { context: ., args: { SERVICE: registre-service } }
+    environment:
+      <<: *environnement
+      REGISTRE_DB_URL: jdbc:postgresql://postgres:5432/registre
+
+  demande-service:
+    <<: *service
+    build: { context: ., args: { SERVICE: demande-service } }
+    environment:
+      <<: *environnement
+      DEMANDE_DB_URL: jdbc:postgresql://postgres:5432/demande
+
+  paiement-service:
+    <<: *service
+    build: { context: ., args: { SERVICE: paiement-service } }
+    environment:
+      <<: *environnement
+      PAIEMENT_DB_URL: jdbc:postgresql://postgres:5432/paiement
+
+  document-service:
+    <<: *service
+    build: { context: ., args: { SERVICE: document-service } }
+    environment:
+      <<: *environnement
+      DOCUMENT_DB_URL: jdbc:postgresql://postgres:5432/document
+
+  notification-service:
+    <<: *service
+    build: { context: ., args: { SERVICE: notification-service } }
+    environment:
+      <<: *environnement
+      NOTIFICATION_DB_URL: jdbc:postgresql://postgres:5432/notification
+
+  portail-web:
+    <<: *service
+    build: { context: ., args: { SERVICE: portail-web } }
+    environment:
+      <<: *environnement
+      ECIVIL_API_URL: http://gateway:8080
+
+  gateway:
+    build: { context: ., args: { SERVICE: gateway } }
+    restart: unless-stopped
+    environment:
+      DEMANDE_SERVICE_URL: http://demande-service:8081
+      PAIEMENT_SERVICE_URL: http://paiement-service:8082
+      REGISTRE_SERVICE_URL: http://registre-service:8083
+      DOCUMENT_SERVICE_URL: http://document-service:8084
+      PORTAIL_URL: http://portail-web:8090
+    ports: [ "8080:8080" ]
+    depends_on: [ portail-web, demande-service, paiement-service, registre-service, document-service ]
+
+volumes:
+  donnees-postgres:

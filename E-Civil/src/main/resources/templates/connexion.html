@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: page('Connexion', ~{::main})}">
+<body>
+<main class="container py-5" style="max-width: 460px">
+    <div class="card"><div class="card-body p-4">
+        <h1 class="h4 mb-3 text-center">Connexion</h1>
+        <div th:if="${param.erreur}" class="alert alert-danger small">Email ou mot de passe incorrect, ou compte désactivé.</div>
+        <form th:action="@{/connexion}" method="post">
+            <div class="mb-3">
+                <label class="form-label" for="email">Email</label>
+                <input class="form-control" type="email" id="email" name="email" required autofocus autocomplete="username">
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="motDePasse">Mot de passe</label>
+                <input class="form-control" type="password" id="motDePasse" name="motDePasse" required autocomplete="current-password">
+            </div>
+            <button class="btn btn-primary w-100" type="submit">Se connecter</button>
+        </form>
+        <p class="text-center small mt-3 mb-0">Pas encore de compte ? <a th:href="@{/inscription}">Créer un compte</a></p>
+    </div></div>
+</main>
+</body>
+</html>

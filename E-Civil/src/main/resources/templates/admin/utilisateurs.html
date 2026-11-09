@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: page('Comptes', ~{::main})}">
+<body>
+<main class="container py-4">
+    <h1 class="h3">Comptes</h1>
+    <div class="card mb-4"><div class="card-body">
+        <h2 class="h6 text-brun">Créer un compte agent</h2>
+        <form th:action="@{/admin/utilisateurs}" th:object="${nouveau}" method="post" novalidate>
+            <div class="row">
+                <div class="col-md-3" th:insert="~{fragments/champs :: texte('prenom', 'Prénom', 'text', true)}"></div>
+                <div class="col-md-3" th:insert="~{fragments/champs :: texte('nom', 'Nom', 'text', true)}"></div>
+                <div class="col-md-3" th:insert="~{fragments/champs :: texte('email', 'Email', 'email', true)}"></div>
+                <div class="col-md-3 mb-3">
+                    <label class="form-label" for="role">Rôle</label>
+                    <select class="form-select" th:field="*{role}">
+                        <option th:each="r : ${roles}" th:value="${r}" th:text="${r.libelle}"></option>
+                    </select>
+                </div>
+                <div class="col-md-4" th:insert="~{fragments/champs :: texte('motDePasse', 'Mot de passe provisoire', 'password', true)}"></div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label" for="confirmation">Confirmation</label>
+                    <input class="form-control" type="password" th:field="*{confirmation}"
+                           th:classappend="${#fields.hasErrors('confirmationValide')} ? 'is-invalid'">
+                    <div class="invalid-feedback" th:errors="*{confirmationValide}"></div>
+                </div>
+                <div class="col-md-4 d-flex align-items-end mb-3"><button class="btn btn-primary w-100" type="submit">Créer</button></div>
+            </div>
+        </form>
+    </div></div>
+
+    <div class="card"><div class="table-responsive">
+        <table class="table align-middle mb-0">
+            <thead><tr><th>Nom</th><th>Email</th><th>Rôle</th><th>Inscription</th><th>État</th></tr></thead>
+            <tbody>
+            <tr th:each="u : ${comptes}">
+                <td th:text="${u.nomComplet}"></td>
+                <td th:text="${u.email}"></td>
+                <td>
+                    <form class="d-flex gap-1" th:action="@{/admin/utilisateurs/{id}/role(id=${u.id})}" method="post">
+                        <select class="form-select form-select-sm" name="role" th:disabled="${u.id == moi.id}">
+                            <option th:each="r : ${roles}" th:value="${r}" th:text="${r.libelle}" th:selected="${r == u.role}"></option>
+                        </select>
+                        <button class="btn btn-sm btn-outline-primary" type="submit" th:disabled="${u.id == moi.id}">OK</button>
+                    </form>
+                </td>
+                <td class="small" th:text="${#temporals.format(u.dateInscription, 'dd/MM/yyyy')}"></td>
+                <td>
+                    <form th:action="@{/admin/utilisateurs/{id}/activation(id=${u.id})}" method="post">
+                        <input type="hidden" name="actif" th:value="${!u.actif}">
+                        <button class="btn btn-sm" type="submit" th:disabled="${u.id == moi.id}"
+                                th:classappend="${u.actif} ? 'btn-outline-danger' : 'btn-outline-success'"
+                                th:text="${u.actif} ? 'Désactiver' : 'Réactiver'"></button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div></div>
+</main>
+</body>
+</html>
