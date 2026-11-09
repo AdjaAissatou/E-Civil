@@ -167,3 +167,21 @@ footer {
   .card, .accordion-item, .dropdown-menu { background: rgba(255, 255, 255, .92) !important; }
   .navbar { background: rgba(44, 33, 24, .95) !important; }
 }
+
+/* Fond du verre : la photo de la mairie, floutée et éclaircie, fixe derrière toute la page */
+body { background: #efe2d4; position: relative; }
+body::before {
+  content: ""; position: fixed; inset: -40px; z-index: -2;
+  background: url("/images/hero-bg.png") center / cover no-repeat;
+  filter: blur(22px) saturate(130%);
+}
+body::after {
+  content: ""; position: fixed; inset: 0; z-index: -1;
+  background:
+    radial-gradient(circle at 15% 20%, rgba(224, 176, 132, .45) 0, transparent 40%),
+    radial-gradient(circle at 85% 80%, rgba(0, 184, 148, .18) 0, transparent 40%),
+    rgba(248, 240, 230, .62);
+}
+.bg-light { background: rgba(255, 255, 255, .28) !important; }
+.cta-accueil .btn-outline-light { color: #fff; border-color: #fff; background: rgba(255, 255, 255, .22); }
+.cta-accueil .btn-outline-light:hover { background: #fff; color: #00866b; }
