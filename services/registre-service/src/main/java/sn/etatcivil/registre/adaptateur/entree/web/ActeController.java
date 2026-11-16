@@ -7,7 +7,9 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import sn.etatcivil.registre.application.port.entree.*;
+import sn.etatcivil.registre.domaine.Personne;
 import sn.etatcivil.registre.domaine.ResultatRecherche;
+import sn.etatcivil.registre.domaine.SituationCivile;
 import sn.etatcivil.registre.domaine.StatutActe;
 import sn.etatcivil.registre.domaine.TypeActe;
 import sn.etatcivil.socle.securite.UtilisateurJwt;
@@ -84,6 +86,38 @@ class ActeController {
     ResultatRechercheReponse rechercher(@Valid @RequestBody RechercheRequete requete) {
         ResultatRecherche r = consultation.rechercher(requete.versDomaine());
         return new ResultatRechercheReponse(r.resultat(), r.actes().stream().map(ActeReponse::de).toList());
+    }
+
+    public record PersonneRequete(@jakarta.validation.constraints.NotBlank String nom,
+                                  @jakarta.validation.constraints.NotBlank String prenom, java.time.LocalDate dateNaissance) {
+        Personne versDomaine() { return new Personne(nom, prenom, dateNaissance); }
+    }
+
+    public record MariageReponse(ActeReponse acte, String nomConjoint, String prenomConjoint, boolean dissous,
+                                 ActeReponse dissolution) {}
+
+    public record SituationReponse(List<MariageReponse> mariages, List<ActeReponse> deces) {}
+
+    public record ParentsRequete(@Valid PersonneRequete pere, @Valid PersonneRequete mere) {}
+
+    @PostMapping("/situation")
+    @PreAuthorize(AGENTS_OU_SERVICES)
+    SituationReponse situation(@Valid @RequestBody PersonneRequete personne) {
+        SituationCivile s = consultation.situation(personne.versDomaine());
+        return new SituationReponse(
+                s.mariages().stream().map(m -> new MariageReponse(ActeReponse.de(m.acte()), m.conjoint().nom(),
+                        m.conjoint().prenom(), m.dissous(), m.dissous() ? ActeReponse.de(m.dissolution()) : null)).toList(),
+                s.deces().stream().map(ActeReponse::de).toList());
+    }
+
+    @PostMapping("/enfants")
+    @PreAuthorize(AGENTS_OU_SERVICES)
+    List<ActeReponse> enfants(@Valid @RequestBody ParentsRequete parents) {
+        if (parents.pere() == null || parents.mere() == null) {
+            throw new sn.etatcivil.registre.domaine.RegleMetierException("Le père et la mère sont obligatoires");
+        }
+        return consultation.enfants(parents.pere().versDomaine(), parents.mere().versDomaine()).stream()
+                .map(ActeReponse::de).toList();
     }
 
     @GetMapping("/statistiques")

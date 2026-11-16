@@ -43,7 +43,7 @@ class DocumentApiTest {
         UUID demande = UUID.randomUUID();
         String commande = """
                 {"demandeId":"%s","reference":"DEM-2026-000001","demandeurId":"fatou","libelleDocument":"Extrait d'acte de naissance",
-                 "copieIntegrale":false,"acteId":"%s","format":"NUMERIQUE","signataire":"Mariama Sow"}
+                 "modele":"EXTRAIT","acteId":"%s","format":"NUMERIQUE","signataire":"Mariama Sow"}
                 """.formatted(demande, UUID.randomUUID());
 
         mvc.perform(post("/api/documents").contentType(MediaType.APPLICATION_JSON).content(commande).with(qui("fatou", "CITOYEN")))
@@ -66,5 +66,32 @@ class DocumentApiTest {
                 .andExpect(jsonPath("$.acte.numeroActe").value("N-1998-000001"))
                 .andExpect(jsonPath("$.signataire").value("Mariama Sow"));
         mvc.perform(get("/api/verification/FAUX0-CODE0")).andExpect(status().isNotFound());
+    }
+
+    String delivrer(String modele, String libelle, String motif, String constat) throws Exception {
+        String commande = """
+                {"demandeId":"%s","reference":"DEM-2026-000002","demandeurId":"fatou","libelleDocument":"%s",
+                 "modele":"%s","acteId":"%s","format":"NUMERIQUE","signataire":"Mariama Sow","motif":%s,"constat":%s}
+                """.formatted(UUID.randomUUID(), libelle, modele, UUID.randomUUID(),
+                motif == null ? "null" : "\"" + motif + "\"", constat == null ? "null" : "\"" + constat + "\"");
+        return com.jayway.jsonpath.JsonPath.read(mvc.perform(post("/api/documents").contentType(MediaType.APPLICATION_JSON)
+                .content(commande).with(qui("demande-service", "SERVICE"))).andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString(), "$.codeVerification");
+    }
+
+    @Test
+    void certificatEtLivretDeFamille() throws Exception {
+        when(registre.contenu(any())).thenReturn(DocumentDelivreTest.acte("VALIDE"));
+        String certificat = delivrer("CERTIFICAT_CELIBAT", "Certificat de célibat", "Mariage",
+                "Aucun acte de mariage n'est inscrit au registre national au nom de cette personne.");
+        mvc.perform(get("/api/verification/" + certificat)).andExpect(jsonPath("$.complements.modele").value("CERTIFICAT_CELIBAT"))
+                .andExpect(jsonPath("$.complements.constat").value(org.hamcrest.Matchers.startsWith("Aucun acte de mariage")));
+
+        when(registre.contenu(any())).thenReturn(DocumentDelivreTest.mariage());
+        when(registre.enfants(any())).thenReturn(List.of(
+                new sn.etatcivil.document.domaine.Complements.Enfant("N-2002-000001", "Awa", "Mbaye", "F",
+                        java.time.LocalDate.of(2002, 5, 30), "Kaolack")));
+        String livret = delivrer("LIVRET_FAMILLE", "Duplicata de livret de famille", null, null);
+        mvc.perform(get("/api/verification/" + livret)).andExpect(jsonPath("$.complements.enfants[0].prenom").value("Awa"));
     }
 }

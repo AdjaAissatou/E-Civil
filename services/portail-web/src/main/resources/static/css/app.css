@@ -361,6 +361,8 @@ hr { border-color: var(--trait); opacity: 1; }
 .accent-mariage { --accent: var(--or-500); --fond-accent: var(--or-100); }
 .accent-divorce { --accent: var(--ciel); --fond-accent: var(--ciel-100); }
 .accent-deces { --accent: #667085; --fond-accent: var(--ardoise-100); }
+.accent-certificat { --accent: var(--or-600); --fond-accent: var(--or-100); }
+.pictogramme > .bi { font-size: 1.6rem; color: var(--accent); }
 
 /* ------------------------------------------------------------------ parcours en frise */
 .parcours { position: relative; display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; }

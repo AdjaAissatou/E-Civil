@@ -12,7 +12,9 @@ import org.springframework.web.client.RestClientException;
 import sn.etatcivil.demande.application.port.sortie.RegistreCivil;
 import sn.etatcivil.demande.application.port.sortie.RegistreIndisponibleException;
 import sn.etatcivil.demande.domaine.ActeRetrouve;
+import sn.etatcivil.demande.domaine.OrigineActe;
 import sn.etatcivil.demande.domaine.PersonneConcernee;
+import sn.etatcivil.demande.domaine.SituationCivile;
 import sn.etatcivil.demande.domaine.TypeActe;
 import sn.etatcivil.socle.securite.JetonServiceInterceptor;
 
@@ -47,15 +49,33 @@ class RegistreHttp implements RegistreCivil {
 
     record CriteresJson(TypeActe typeActe, String nom, String prenom, LocalDate dateNaissance, String lieuNaissance,
                         String nomPere, String prenomPere, String nomMere, String prenomMere,
-                        String nomConjoint, String prenomConjoint, LocalDate dateEvenement) {}
+                        String nomConjoint, String prenomConjoint, LocalDate dateEvenement, OrigineActe origine) {}
+
+    record PersonneJson(String nom, String prenom, LocalDate dateNaissance) {}
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    record MariageJson(ActeJson acte, String nomConjoint, String prenomConjoint, boolean dissous) {}
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    record SituationJson(List<MariageJson> mariages, List<ActeJson> deces) {}
 
     @Override
-    public ResultatRecherche rechercher(TypeActe type, PersonneConcernee p) {
+    public ResultatRecherche rechercher(TypeActe type, PersonneConcernee p, OrigineActe origine) {
         CriteresJson c = new CriteresJson(type, p.nom(), p.prenom(), p.dateNaissance(), p.lieuNaissance(), p.nomPere(),
-                p.prenomPere(), p.nomMere(), p.prenomMere(), p.nomConjoint(), p.prenomConjoint(), p.dateEvenement());
+                p.prenomPere(), p.nomMere(), p.prenomMere(), p.nomConjoint(), p.prenomConjoint(), p.dateEvenement(), origine);
         ResultatJson r = appeler(() -> http.post().uri("/recherche").contentType(MediaType.APPLICATION_JSON).body(c)
                 .retrieve().body(ResultatJson.class));
         return new ResultatRecherche(r.resultat(), r.actes().stream().map(ActeJson::versDomaine).toList());
+    }
+
+    @Override
+    public SituationCivile situation(String nom, String prenom, LocalDate dateNaissance) {
+        SituationJson s = appeler(() -> http.post().uri("/situation").contentType(MediaType.APPLICATION_JSON)
+                .body(new PersonneJson(nom, prenom, dateNaissance)).retrieve().body(SituationJson.class));
+        return new SituationCivile(
+                s.mariages().stream().map(m -> new SituationCivile.Mariage(m.acte().numeroActe(),
+                        (m.prenomConjoint() + " " + m.nomConjoint()).trim(), m.dissous())).toList(),
+                s.deces().stream().map(ActeJson::numeroActe).toList());
     }
 
     @Override

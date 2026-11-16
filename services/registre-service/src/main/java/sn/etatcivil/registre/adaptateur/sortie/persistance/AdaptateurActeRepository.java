@@ -53,6 +53,12 @@ class AdaptateurActeRepository implements ActeRepository {
     }
 
     @Override
+    public List<Acte> naissancesParNom(String nomNormalise) {
+        return jpa.findByTypeActeAndNomNormalise(TypeActe.NAISSANCE, nomNormalise).stream()
+                .map(CorrespondanceActe::versDomaine).toList();
+    }
+
+    @Override
     public PageResultat<Acte> lister(FiltreActes f, PageDemandee page) {
         // Seuls les critères renseignés sont ajoutés (pas de paramètre null dans la requête SQL)
         Specification<ActeEntite> spec = (r, q, cb) -> cb.conjunction();

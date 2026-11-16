@@ -1,7 +1,7 @@
 package sn.etatcivil.demande.domaine;
 
 public enum TypeActe {
-    NAISSANCE("Naissance"), MARIAGE("Mariage"), DIVORCE("Divorce"), DECES("Décès");
+    NAISSANCE("Naissance"), MARIAGE("Mariage"), DIVORCE("Divorce"), DECES("Décès"), RECONNAISSANCE("Reconnaissance");
 
     private final String libelle;
 

@@ -25,6 +25,9 @@ class ServiceActesTest {
         public List<Acte> candidats(TypeActe t, String nom, String prenom) {
             return actes.values().stream().filter(a -> a.typeActe() == t).toList();
         }
+        public List<Acte> naissancesParNom(String nom) {
+            return actes.values().stream().filter(a -> a.typeActe() == TypeActe.NAISSANCE && a.nomNormalise().equals(nom)).toList();
+        }
         public PageResultat<Acte> lister(FiltreActes f, PageDemandee p) { return new PageResultat<>(List.copyOf(actes.values()), 0, 20, actes.size()); }
         public long compter() { return actes.size(); }
         public long compterParStatut(StatutActe s) { return actes.values().stream().filter(a -> a.statut() == s).count(); }
@@ -55,5 +58,29 @@ class ServiceActesTest {
         assertThat(service.rechercher(ActeTest.criteres(null, null)).resultat())
                 .isEqualTo(ResultatRecherche.Resultat.AMBIGU);
         assertThat(service.statistiques().valides()).isEqualTo(2);
+    }
+
+    @Test
+    void situationEtEnfantsDUnCouple() {
+        java.time.LocalDate naissance = java.time.LocalDate.of(1972, 2, 14);
+        Acte mariage = service.transcrire(ActeTest.acte(TypeActe.MARIAGE, java.time.LocalDate.of(2000, 8, 12), "Mbaye",
+                "Babacar", naissance, "Diouf", "Seynabou", null, null), "agent");
+        Personne babacar = new Personne("MBAYE", "babacar", naissance);
+        assertThat(service.situation(babacar).mariages()).as("un acte non validé ne compte pas").isEmpty();
+        service.valider(mariage.id());
+        assertThat(service.situation(babacar).mariages()).hasSize(1);
+        assertThat(service.situation(babacar).mariages().get(0).dissous()).isFalse();
+
+        Acte deces = service.transcrire(ActeTest.acte(TypeActe.DECES, java.time.LocalDate.of(2019, 6, 1), "Diouf",
+                "Seynabou", null, null, null, null, null), "agent");
+        service.valider(deces.id());
+        assertThat(service.situation(babacar).mariages().get(0).dissous()).as("veuvage").isTrue();
+
+        DonneesActe enfant = new DonneesActe(TypeActe.NAISSANCE, "Kaolack", null, null, null, java.time.LocalDate.of(2003, 4, 5),
+                "Kaolack", "Mbaye", "Awa", "F", null, null, "Mbaye", "Babacar", "Diouf", "Seynabou",
+                null, null, null, null, null, null, null, null, null, null, null, null);
+        service.valider(service.transcrire(enfant, "agent").id());
+        assertThat(service.enfants(babacar, new Personne("Diouf", "Seynabou", null)))
+                .extracting(a -> a.donnees().prenom()).containsExactly("Awa");
     }
 }

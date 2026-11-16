@@ -18,6 +18,11 @@ public record PersonneConcernee(
                 type == TypeActe.NAISSANCE ? null : dateEvenement);
     }
 
+    /** Au moins un parent est indiqué (obligatoire pour une reconnaissance : le parent qui reconnaît). */
+    public boolean aUnParent() {
+        return !vide(nomPere) || !vide(nomMere);
+    }
+
     void verifier(TypeActe type, LocalDate aujourdhui) {
         if (vide(nom) || vide(prenom)) throw new RegleMetierException("Le nom et le prénom sont obligatoires");
         if (dateNaissance != null && (dateNaissance.isAfter(aujourdhui) || dateNaissance.isBefore(aujourdhui.minusYears(130)))) {
@@ -39,6 +44,9 @@ public record PersonneConcernee(
             }
             case DECES -> {
                 if (dateEvenement == null) throw new RegleMetierException("La date du décès est obligatoire");
+            }
+            case RECONNAISSANCE -> {
+                if (!aUnParent()) throw new RegleMetierException("Indiquez le parent qui a reconnu l'enfant");
             }
         }
     }

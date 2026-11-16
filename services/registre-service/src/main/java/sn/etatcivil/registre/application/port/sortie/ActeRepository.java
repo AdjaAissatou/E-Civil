@@ -21,6 +21,9 @@ public interface ActeRepository {
     /** Actes du type donné dont le titulaire ou le conjoint porte exactement ces nom et prénom normalisés. */
     List<Acte> candidats(TypeActe type, String nomNormalise, String prenomNormalise);
 
+    /** Actes de naissance dont le titulaire porte ce nom de famille normalisé. */
+    List<Acte> naissancesParNom(String nomNormalise);
+
     PageResultat<Acte> lister(FiltreActes filtre, PageDemandee page);
 
     long compter();

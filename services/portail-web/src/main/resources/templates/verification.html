@@ -23,11 +23,23 @@
                 <dt class="col-sm-4">Document</dt><dd class="col-sm-8" th:text="${document.libelleDocument}"></dd>
                 <dt class="col-sm-4">Numéro d'acte</dt><dd class="col-sm-8" th:text="${document.acte.numeroActe}"></dd>
                 <dt class="col-sm-4">Centre d'état civil</dt><dd class="col-sm-8" th:text="${document.acte.centre}"></dd>
-                <dt class="col-sm-4">Titulaire</dt><dd class="col-sm-8" th:text="${document.acte.prenom} + ' ' + ${document.acte.nom}"></dd>
+                <dt class="col-sm-4" th:text="${document.acte.typeActe == 'RECONNAISSANCE'} ? 'Enfant reconnu' : 'Titulaire'">Titulaire</dt><dd class="col-sm-8" th:text="${document.acte.prenom} + ' ' + ${document.acte.nom}"></dd>
                 <dt class="col-sm-4" th:if="${document.acte.nomConjoint}">Conjoint</dt>
                 <dd class="col-sm-8" th:if="${document.acte.nomConjoint}" th:text="${document.acte.prenomConjoint} + ' ' + ${document.acte.nomConjoint}"></dd>
                 <dt class="col-sm-4">Date de l'événement</dt>
                 <dd class="col-sm-8" th:text="${#temporals.format(document.acte.dateEvenement, 'dd/MM/yyyy')} + ' à ' + ${document.acte.lieuEvenement}"></dd>
+                <th:block th:if="${document.acte.libelleOrigine}">
+                    <dt class="col-sm-4" th:text="${document.acte.libelleOrigine}"></dt>
+                    <dd class="col-sm-8" th:text="${document.acte.referenceOrigine}"></dd>
+                </th:block>
+                <th:block th:if="${document.complements != null and document.complements.constat != null}">
+                    <dt class="col-sm-4">Constat</dt><dd class="col-sm-8" th:text="${document.complements.constat}"></dd>
+                </th:block>
+                <th:block th:if="${document.complements != null and !#lists.isEmpty(document.complements.enfants)}">
+                    <dt class="col-sm-4">Enfants inscrits</dt>
+                    <dd class="col-sm-8"><span th:each="e, i : ${document.complements.enfants}"
+                        th:text="${e.prenom} + ' ' + ${e.nom} + ' (' + ${e.numeroActe} + ')' + (${i.last} ? '' : ', ')"></span></dd>
+                </th:block>
                 <dt class="col-sm-4">Signé par</dt><dd class="col-sm-8" th:text="${document.signataire}"></dd>
                 <dt class="col-sm-4">Date de délivrance</dt><dd class="col-sm-8" th:text="${@dates.heure(document.dateSignature)}"></dd>
                 <dt class="col-sm-4">Empreinte SHA-256</dt><dd class="col-sm-8 small text-break" th:text="${document.empreinte}"></dd>

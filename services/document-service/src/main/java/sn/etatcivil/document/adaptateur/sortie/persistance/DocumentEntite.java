@@ -17,6 +17,7 @@ class DocumentEntite {
     String format;
     /** Contenu de l'acte figé, en JSON. */
     @Column(columnDefinition = "TEXT") String contenu;
+    @Column(columnDefinition = "TEXT") String complements;
     String signataire;
     @Column(name = "date_signature") Instant dateSignature;
     @Column(name = "code_verification") String codeVerification;

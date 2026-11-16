@@ -14,8 +14,11 @@ public final class Fixtures {
     public static final Acteur OFFICIER = new Acteur("u-off", "Mariama Sow", Role.OFFICIER);
 
     public static TypeDocument extraitNaissance() {
-        return new TypeDocument(1L, "EXTRAIT_NAISSANCE", "Extrait d'acte de naissance", "", TypeActe.NAISSANCE,
-                false, 1000, 2, true);
+        return document(ModeleDocument.EXTRAIT, "Extrait d'acte de naissance");
+    }
+
+    public static TypeDocument document(ModeleDocument modele, String libelle) {
+        return new TypeDocument(1L, modele.name(), libelle, "", TypeActe.NAISSANCE, modele, null, 1000, 2, true);
     }
 
     public static Motif motif() {

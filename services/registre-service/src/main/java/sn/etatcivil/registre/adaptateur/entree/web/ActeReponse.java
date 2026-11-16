@@ -2,6 +2,7 @@ package sn.etatcivil.registre.adaptateur.entree.web;
 
 import sn.etatcivil.registre.domaine.Acte;
 import sn.etatcivil.registre.domaine.DonneesActe;
+import sn.etatcivil.registre.domaine.OrigineActe;
 import sn.etatcivil.registre.domaine.StatutActe;
 import sn.etatcivil.registre.domaine.TypeActe;
 
@@ -17,7 +18,7 @@ public record ActeReponse(
         String nomPere, String prenomPere, String nomMere, String prenomMere,
         String nomConjoint, String prenomConjoint, LocalDate dateNaissanceConjoint, String lieuNaissanceConjoint,
         String heureDeces, String causeDeces, String temoin1, String temoin2,
-        String mentionsMarginales, String observations,
+        String mentionsMarginales, String observations, OrigineActe origine, String referenceOrigine,
         String agentSaisie, Instant dateSaisie, Instant dateModification) {
 
     static ActeReponse de(Acte a) {
@@ -28,6 +29,7 @@ public record ActeReponse(
                 d.nomPere(), d.prenomPere(), d.nomMere(), d.prenomMere(),
                 d.nomConjoint(), d.prenomConjoint(), d.dateNaissanceConjoint(), d.lieuNaissanceConjoint(),
                 d.heureDeces(), d.causeDeces(), d.temoin1(), d.temoin2(), d.mentionsMarginales(), d.observations(),
+                d.origine(), d.referenceOrigine(),
                 a.agentSaisie(), a.dateSaisie(), a.dateModification());
     }
 }

@@ -1,6 +1,7 @@
 package sn.etatcivil.registre.adaptateur.sortie.persistance;
 
 import jakarta.persistence.*;
+import sn.etatcivil.registre.domaine.OrigineActe;
 import sn.etatcivil.registre.domaine.StatutActe;
 import sn.etatcivil.registre.domaine.TypeActe;
 
@@ -78,6 +79,11 @@ class ActeEntite {
     String mentionsMarginales;
     @Column(name = "observations")
     String observations;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "origine")
+    OrigineActe origine;
+    @Column(name = "reference_origine")
+    String referenceOrigine;
     @Column(name = "nom_normalise")
     String nomNormalise;
     @Column(name = "prenom_normalise")

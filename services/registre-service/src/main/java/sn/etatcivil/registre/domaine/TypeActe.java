@@ -1,7 +1,7 @@
 package sn.etatcivil.registre.domaine;
 
 public enum TypeActe {
-    NAISSANCE("N"), MARIAGE("M"), DIVORCE("D"), DECES("DC");
+    NAISSANCE("N"), MARIAGE("M"), DIVORCE("D"), DECES("DC"), RECONNAISSANCE("R");
 
     private final String prefixe;
 

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Component;
 import sn.etatcivil.document.application.port.sortie.DocumentRepository;
+import sn.etatcivil.document.domaine.Complements;
 import sn.etatcivil.document.domaine.ContenuActe;
 import sn.etatcivil.document.domaine.DocumentDelivre;
 
@@ -33,6 +34,7 @@ class AdaptateurDocuments implements DocumentRepository {
         e.format = d.format();
         try {
             e.contenu = json.writeValueAsString(d.contenu());
+            e.complements = json.writeValueAsString(d.complements());
         } catch (JsonProcessingException ex) {
             throw new IllegalStateException(ex);
         }
@@ -56,7 +58,8 @@ class AdaptateurDocuments implements DocumentRepository {
     private DocumentDelivre versDomaine(DocumentEntite e) {
         try {
             return new DocumentDelivre(e.id, e.demandeId, e.reference, e.demandeurId, e.libelleDocument, e.copieIntegrale,
-                    e.format, json.readValue(e.contenu, ContenuActe.class), e.signataire, e.dateSignature,
+                    e.format, json.readValue(e.contenu, ContenuActe.class),
+                    e.complements == null ? null : json.readValue(e.complements, Complements.class), e.signataire, e.dateSignature,
                     e.codeVerification, e.empreinte);
         } catch (JsonProcessingException ex) {
             throw new IllegalStateException("Contenu illisible pour " + e.reference, ex);

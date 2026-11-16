@@ -8,7 +8,7 @@ final class CorrespondanceActe {
     private CorrespondanceActe() {}
 
     static Acte versDomaine(ActeEntite e) {
-        DonneesActe d = new DonneesActe(e.typeActe, e.centre, e.commune, e.volume, e.folio, e.dateEvenement, e.lieuEvenement, e.nom, e.prenom, e.sexe, e.dateNaissance, e.lieuNaissance, e.nomPere, e.prenomPere, e.nomMere, e.prenomMere, e.nomConjoint, e.prenomConjoint, e.dateNaissanceConjoint, e.lieuNaissanceConjoint, e.heureDeces, e.causeDeces, e.temoin1, e.temoin2, e.mentionsMarginales, e.observations);
+        DonneesActe d = new DonneesActe(e.typeActe, e.centre, e.commune, e.volume, e.folio, e.dateEvenement, e.lieuEvenement, e.nom, e.prenom, e.sexe, e.dateNaissance, e.lieuNaissance, e.nomPere, e.prenomPere, e.nomMere, e.prenomMere, e.nomConjoint, e.prenomConjoint, e.dateNaissanceConjoint, e.lieuNaissanceConjoint, e.heureDeces, e.causeDeces, e.temoin1, e.temoin2, e.mentionsMarginales, e.observations, e.origine, e.referenceOrigine);
         return new Acte(e.id, e.numeroActe, e.annee, e.statut, d, e.agentSaisie, e.dateSaisie,
                 e.dateModification, e.version);
     }
@@ -45,6 +45,8 @@ final class CorrespondanceActe {
         e.temoin2 = d.temoin2();
         e.mentionsMarginales = d.mentionsMarginales();
         e.observations = d.observations();
+        e.origine = d.origine();
+        e.referenceOrigine = d.referenceOrigine();
         e.nomNormalise = a.nomNormalise();
         e.prenomNormalise = a.prenomNormalise();
         e.nomConjointNormalise = a.nomConjointNormalise();

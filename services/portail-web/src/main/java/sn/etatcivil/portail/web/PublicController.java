@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import sn.etatcivil.portail.clients.Api;
+import sn.etatcivil.portail.clients.Vues;
 import sn.etatcivil.portail.clients.ApiException;
 import sn.etatcivil.portail.securite.Utilisateur;
 
@@ -38,7 +39,9 @@ class PublicController {
 
     @GetMapping("/documents")
     String documents(Model model) {
-        model.addAttribute("documents", api.documents());
+        model.addAttribute("documents", api.documents().stream()
+                .sorted(java.util.Comparator.comparingInt(Vues.TypeDocument::rangFamille))
+                .toList());
         return "documents";
     }
 

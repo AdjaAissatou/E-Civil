@@ -20,13 +20,51 @@ public final class Vues {
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record TypeDocument(Long id, String code, String libelle, String description, String typeActe,
-                               boolean concerneUnCouple, boolean copieIntegrale, int tarif, int delaiJours, boolean actif) {
+                               boolean concerneUnCouple, boolean copieIntegrale, String modele, String origine,
+                               int tarif, int delaiJours, boolean actif) {
+
+        /** Ordre d'affichage des familles dans le catalogue. */
+        public static final List<String> FAMILLES = List.of("NAISSANCE", "RECONNAISSANCE", "MARIAGE", "DIVORCE", "DECES", "CERTIFICAT");
+
         public String libelleActe() {
             return switch (typeActe) {
                 case "NAISSANCE" -> "naissance";
                 case "MARIAGE" -> "mariage";
                 case "DIVORCE" -> "divorce";
+                case "RECONNAISSANCE" -> "reconnaissance";
                 default -> "décès";
+            };
+        }
+
+        public boolean estCertificat() { return modele != null && modele.startsWith("CERTIFICAT_"); }
+
+        public boolean estLivret() { return "LIVRET_FAMILLE".equals(modele); }
+
+        /** Famille du catalogue : les certificats sont regroupés, les autres documents suivent leur type d'acte. */
+        public String famille() { return estCertificat() ? "CERTIFICAT" : typeActe; }
+
+        public int rangFamille() { return FAMILLES.indexOf(famille()); }
+
+        public String etiquette() {
+            if ("JUGEMENT_SUPPLETIF".equals(origine)) return "Jugement supplétif";
+            if ("TRANSCRIPTION".equals(origine)) return "Transcription";
+            if (modele == null) return copieIntegrale ? "Copie intégrale" : "Extrait";
+            return switch (modele) {
+                case "COPIE_INTEGRALE" -> "Copie intégrale";
+                case "EXTRAIT_SANS_FILIATION" -> "Extrait sans filiation";
+                case "LIVRET_FAMILLE" -> "Duplicata";
+                case "EXTRAIT" -> "Extrait";
+                default -> "Certificat";
+            };
+        }
+
+        public String accent() {
+            return switch (famille()) {
+                case "NAISSANCE", "RECONNAISSANCE" -> "accent-naissance";
+                case "MARIAGE" -> "accent-mariage";
+                case "DIVORCE" -> "accent-divorce";
+                case "CERTIFICAT" -> "accent-certificat";
+                default -> "accent-deces";
             };
         }
     }
@@ -117,15 +155,21 @@ public final class Vues {
                        String nomPere, String prenomPere, String nomMere, String prenomMere,
                        String nomConjoint, String prenomConjoint, LocalDate dateNaissanceConjoint, String lieuNaissanceConjoint,
                        String heureDeces, String causeDeces, String temoin1, String temoin2,
-                       String mentionsMarginales, String observations,
+                       String mentionsMarginales, String observations, String origine, String referenceOrigine,
                        String agentSaisie, Instant dateSaisie, Instant dateModification) {
         public boolean estValide() { return "VALIDE".equals(statut); }
+
+        public String libelleOrigine() {
+            return "JUGEMENT_SUPPLETIF".equals(origine) ? "Jugement supplétif"
+                    : "TRANSCRIPTION".equals(origine) ? "Transcription d'un acte étranger" : null;
+        }
 
         public String libelleType() {
             return switch (typeActe) {
                 case "NAISSANCE" -> "Naissance";
                 case "MARIAGE" -> "Mariage";
                 case "DIVORCE" -> "Divorce";
+                case "RECONNAISSANCE" -> "Reconnaissance";
                 default -> "Décès";
             };
         }
@@ -135,6 +179,13 @@ public final class Vues {
     public record StatistiquesRegistre(long total, long saisis, long valides) {}
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public record Verification(String libelleDocument, Acte acte, String signataire, Instant dateSignature,
-                               String codeVerification, String empreinte) {}
+    public record Enfant(String numeroActe, String prenom, String nom, String sexe, LocalDate dateNaissance,
+                         String lieuNaissance) {}
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record Complements(String modele, String motif, String constat, List<Enfant> enfants) {}
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record Verification(String libelleDocument, Acte acte, Complements complements, String signataire,
+                               Instant dateSignature, String codeVerification, String empreinte) {}
 }

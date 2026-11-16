@@ -13,6 +13,9 @@
         <dl class="row fiche mb-0">
             <dt class="col-sm-4">Centre</dt><dd class="col-sm-8" th:text="${a.centre} + (${a.commune} ? ' (' + ${a.commune} + ')' : '')"></dd>
             <dt class="col-sm-4">Registre papier</dt><dd class="col-sm-8" th:text="'Année ' + ${a.annee} + (${a.volume} ? ', volume ' + ${a.volume} : '') + (${a.folio} ? ', folio ' + ${a.folio} : '')"></dd>
+            <th:block th:if="${a.libelleOrigine}">
+                <dt class="col-sm-4">Origine</dt><dd class="col-sm-8" th:text="${a.libelleOrigine} + ' — ' + ${a.referenceOrigine}"></dd>
+            </th:block>
             <dt class="col-sm-4">Événement</dt><dd class="col-sm-8" th:text="${#temporals.format(a.dateEvenement, 'dd/MM/yyyy')} + ' à ' + ${a.lieuEvenement}"></dd>
             <dt class="col-sm-4">Titulaire</dt><dd class="col-sm-8" th:text="${a.prenom} + ' ' + ${a.nom} + (${a.sexe} ? ' (' + ${a.sexe} + ')' : '')"></dd>
             <dt class="col-sm-4" th:if="${a.dateNaissance}">Naissance</dt>

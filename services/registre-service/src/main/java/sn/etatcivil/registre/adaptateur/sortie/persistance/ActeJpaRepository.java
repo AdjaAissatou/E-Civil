@@ -22,6 +22,8 @@ interface ActeJpaRepository extends JpaRepository<ActeEntite, UUID>, JpaSpecific
             """)
     List<ActeEntite> candidats(@Param("type") TypeActe type, @Param("nom") String nom, @Param("prenom") String prenom);
 
+    List<ActeEntite> findByTypeActeAndNomNormalise(TypeActe type, String nomNormalise);
+
     long countByStatut(StatutActe statut);
 
     long countByTypeActe(TypeActe type);

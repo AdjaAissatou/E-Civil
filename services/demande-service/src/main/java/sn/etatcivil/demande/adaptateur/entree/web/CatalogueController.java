@@ -6,7 +6,9 @@ import jakarta.validation.constraints.Min;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import sn.etatcivil.demande.application.port.entree.GererCatalogue;
+import sn.etatcivil.demande.domaine.ModeleDocument;
 import sn.etatcivil.demande.domaine.Motif;
+import sn.etatcivil.demande.domaine.OrigineActe;
 import sn.etatcivil.demande.domaine.TypeActe;
 import sn.etatcivil.demande.domaine.TypeDocument;
 
@@ -24,10 +26,12 @@ class CatalogueController {
     }
 
     public record DocumentReponse(Long id, String code, String libelle, String description, TypeActe typeActe,
-                                  boolean concerneUnCouple, boolean copieIntegrale, int tarif, int delaiJours, boolean actif) {
+                                  boolean concerneUnCouple, boolean copieIntegrale, ModeleDocument modele,
+                                  OrigineActe origine, int tarif, int delaiJours, boolean actif) {
         static DocumentReponse de(TypeDocument t) {
             return new DocumentReponse(t.id(), t.code(), t.libelle(), t.description(), t.typeActe(),
-                    t.typeActe().concerneUnCouple(), t.copieIntegrale(), t.tarif(), t.delaiJours(), t.actif());
+                    t.typeActe().concerneUnCouple(), t.copieIntegrale(), t.modele(), t.origine(), t.tarif(),
+                    t.delaiJours(), t.actif());
         }
     }
 

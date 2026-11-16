@@ -7,20 +7,22 @@
         <div class="container">
             <span class="surtitre reveler">Catalogue</span>
             <h1 class="mt-3 mb-3 reveler" style="--delai: 60ms">Quel document vous faut-il ?</h1>
-            <p class="lead mb-4 reveler" style="--delai: 120ms; max-width: 620px">Chaque document est délivré à partir du registre national,
-                signé par un officier de l'état civil et vérifiable par QR code.</p>
+            <p class="lead mb-4 reveler" style="--delai: 120ms; max-width: 620px"><span th:text="${#lists.size(documents)}">19</span>
+                documents, délivrés à partir du registre national, signés par un officier de l'état civil et vérifiables par QR code.</p>
             <div class="d-flex flex-column flex-lg-row gap-3 align-items-lg-center justify-content-between reveler" style="--delai: 180ms">
                 <div class="barre-recherche flex-grow-1">
                     <i class="bi bi-search" aria-hidden="true"></i>
                     <input type="search" id="searchInput" class="form-control" placeholder="Rechercher : naissance, copie, mariage…"
                            aria-label="Rechercher un document">
                 </div>
-                <div class="filtres" role="group" aria-label="Filtrer par type d'acte">
+                <div class="filtres" role="group" aria-label="Filtrer par famille de documents">
                     <button type="button" class="btn btn-brown-outline active" aria-pressed="true" data-filter="all">Tous</button>
                     <button type="button" class="btn btn-brown-outline" aria-pressed="false" data-filter="NAISSANCE">Naissance</button>
+                    <button type="button" class="btn btn-brown-outline" aria-pressed="false" data-filter="RECONNAISSANCE">Reconnaissance</button>
                     <button type="button" class="btn btn-brown-outline" aria-pressed="false" data-filter="MARIAGE">Mariage</button>
                     <button type="button" class="btn btn-brown-outline" aria-pressed="false" data-filter="DIVORCE">Divorce</button>
                     <button type="button" class="btn btn-brown-outline" aria-pressed="false" data-filter="DECES">Décès</button>
+                    <button type="button" class="btn btn-brown-outline" aria-pressed="false" data-filter="CERTIFICAT">Certificats</button>
                 </div>
             </div>
         </div>
@@ -30,18 +32,23 @@
         <p class="text-muted small mb-4" id="compteur-documents" aria-live="polite"></p>
         <div class="row g-4">
             <div class="col-md-6 col-xl-4 document-card reveler" th:each="t, i : ${documents}"
-                 th:attr="data-category=${t.typeActe},data-texte=${t.libelle + ' ' + t.description + ' ' + t.libelleActe}"
-                 th:style="'--delai: ' + ${i.index * 70} + 'ms'"
-                 th:classappend="${t.typeActe == 'NAISSANCE'} ? 'accent-naissance' : (${t.typeActe == 'MARIAGE'} ? 'accent-mariage' : (${t.typeActe == 'DIVORCE'} ? 'accent-divorce' : 'accent-deces'))">
+                 th:attr="data-category=${t.famille},data-texte=${t.libelle + ' ' + t.description + ' ' + t.libelleActe + ' ' + t.etiquette}"
+                 th:style="'--delai: ' + ${(i.index % 6) * 70} + 'ms'"
+                 th:classappend="${t.accent}">
                 <article class="carte-service carte-document">
                     <div class="entete">
-                        <div class="pictogramme">
-                            <img th:if="${t.typeActe == 'NAISSANCE'}" th:src="@{/images/birth.png}" alt="">
-                            <img th:if="${t.typeActe == 'MARIAGE'}" th:src="@{/images/marriage.png}" alt="">
-                            <img th:if="${t.typeActe == 'DECES'}" th:src="@{/images/death.png}" alt="">
-                            <i th:if="${t.typeActe == 'DIVORCE'}" class="bi bi-file-earmark-break" style="font-size: 1.6rem; color: var(--ciel)"></i>
+                        <div class="pictogramme" th:switch="${t.famille}">
+                            <i th:case="'CERTIFICAT'" class="bi bi-patch-check"></i>
+                            <i th:case="'RECONNAISSANCE'" class="bi bi-person-hearts"></i>
+                            <i th:case="'DIVORCE'" class="bi bi-file-earmark-break"></i>
+                            <th:block th:case="*">
+                                <i th:if="${t.estLivret}" class="bi bi-journal-richtext"></i>
+                                <img th:if="${!t.estLivret and t.typeActe == 'NAISSANCE'}" th:src="@{/images/birth.png}" alt="">
+                                <img th:if="${!t.estLivret and t.typeActe == 'MARIAGE'}" th:src="@{/images/marriage.png}" alt="">
+                                <img th:if="${!t.estLivret and t.typeActe == 'DECES'}" th:src="@{/images/death.png}" alt="">
+                            </th:block>
                         </div>
-                        <span class="etiquette" th:text="${t.copieIntegrale} ? 'Copie intégrale' : 'Extrait'"></span>
+                        <span class="etiquette" th:text="${t.etiquette}"></span>
                     </div>
                     <h3 th:text="${t.libelle}">Document</h3>
                     <p th:text="${t.description}"></p>

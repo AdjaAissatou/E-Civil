@@ -13,16 +13,27 @@ public record ContenuActe(
         String nomPere, String prenomPere, String nomMere, String prenomMere,
         String nomConjoint, String prenomConjoint, LocalDate dateNaissanceConjoint, String lieuNaissanceConjoint,
         String heureDeces, String causeDeces, String temoin1, String temoin2,
-        String mentionsMarginales, String observations) {
+        String mentionsMarginales, String observations,
+        String origine, String referenceOrigine) {
 
     public boolean estValide() { return "VALIDE".equals(statut); }
 
-    /** Représentation textuelle stable, base du calcul de l'empreinte. */
+    /** Acte dressé par jugement supplétif ou transcrit d'un acte étranger. */
+    public boolean origineParticuliere() {
+        return origine != null && !"ORDINAIRE".equals(origine);
+    }
+
+    /**
+     * Représentation textuelle stable, base du calcul de l'empreinte. L'origine n'y est ajoutée que lorsqu'elle
+     * est connue, pour que l'empreinte des documents signés avant son introduction reste identique.
+     */
     String texteCanonique() {
-        return String.join("|", Stream.of(typeActe, numeroActe, annee, centre, commune, volume, folio, dateEvenement,
+        String base = String.join("|", Stream.of(typeActe, numeroActe, annee, centre, commune, volume, folio, dateEvenement,
                         lieuEvenement, nom, prenom, sexe, dateNaissance, lieuNaissance, nomPere, prenomPere, nomMere,
                         prenomMere, nomConjoint, prenomConjoint, dateNaissanceConjoint, lieuNaissanceConjoint, heureDeces,
                         causeDeces, temoin1, temoin2, mentionsMarginales, observations)
                 .map(v -> Objects.toString(v, "")).toList());
+        return origine == null && referenceOrigine == null ? base
+                : base + "|" + Objects.toString(origine, "") + "|" + Objects.toString(referenceOrigine, "");
     }
 }

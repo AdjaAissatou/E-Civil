@@ -11,19 +11,22 @@ public class TypeDocument {
     private final String libelle;
     private final String description;
     private final TypeActe typeActe;
-    private final boolean copieIntegrale;
+    private final ModeleDocument modele;
+    private final OrigineActe origine;
     private int tarif;
     private int delaiJours;
     private boolean actif;
 
+    /** @param origine origine exigée de l'acte (jugement supplétif, transcription), ou {@code null} : toute origine */
     public TypeDocument(Long id, String code, String libelle, String description, TypeActe typeActe,
-                        boolean copieIntegrale, int tarif, int delaiJours, boolean actif) {
+                        ModeleDocument modele, OrigineActe origine, int tarif, int delaiJours, boolean actif) {
         this.id = id;
         this.code = code;
         this.libelle = libelle;
         this.description = description;
         this.typeActe = typeActe;
-        this.copieIntegrale = copieIntegrale;
+        this.modele = modele;
+        this.origine = origine;
         this.tarif = tarif;
         this.delaiJours = delaiJours;
         this.actif = actif;
@@ -43,7 +46,9 @@ public class TypeDocument {
     public String libelle() { return libelle; }
     public String description() { return description; }
     public TypeActe typeActe() { return typeActe; }
-    public boolean copieIntegrale() { return copieIntegrale; }
+    public ModeleDocument modele() { return modele; }
+    public OrigineActe origine() { return origine; }
+    public boolean copieIntegrale() { return modele == ModeleDocument.COPIE_INTEGRALE; }
     public int tarif() { return tarif; }
     public int delaiJours() { return delaiJours; }
     public boolean actif() { return actif; }

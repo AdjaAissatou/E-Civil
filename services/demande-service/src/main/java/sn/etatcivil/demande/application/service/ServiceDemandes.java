@@ -119,10 +119,16 @@ public class ServiceDemandes implements GererMesDemandes, ConsulterDemandes, Ins
     public Demande rechercher(UUID id, Acteur auteur) {
         Demande d = trouver(id);
         if (!d.enAttenteDeRecherche()) throw new RegleMetierException("Cette demande n'est pas en attente de recherche");
-        RegistreCivil.ResultatRecherche r = registre.rechercher(d.typeActe(), d.personne());
+        RegistreCivil.ResultatRecherche r = registre.rechercher(d.typeActe(), d.personne(), d.origine());
         Instant maintenant = horloge.maintenant();
         switch (r.resultat()) {
-            case TROUVE -> d.rattacherActe(r.actes().get(0), auteur, "Acte retrouvé dans le registre national", maintenant);
+            case TROUVE -> {
+                Optional<String> obstacle = obstacle(d);
+                if (obstacle.isPresent()) d.marquerIntrouvable(obstacle.get(), auteur, maintenant);
+                else d.rattacherActe(r.actes().get(0), auteur, d.modele().estCertificat()
+                        ? "Acte de naissance retrouvé ; " + situation(d).constat(d.modele()).toLowerCase()
+                        : "Acte retrouvé dans le registre national", maintenant);
+            }
             case AMBIGU -> d.marquerIntrouvable("Plusieurs actes correspondent : "
                     + r.actes().stream().map(ActeRetrouve::numero).collect(Collectors.joining(", "))
                     + ". Un agent doit choisir le bon.", auteur, maintenant);
@@ -174,8 +180,19 @@ public class ServiceDemandes implements GererMesDemandes, ConsulterDemandes, Ins
         ActeRetrouve acte = registre.parId(d.acteId())
                 .orElseThrow(() -> new RegleMetierException("L'acte rattaché n'existe plus dans le registre"));
         if (!acte.valide()) throw new RegleMetierException("L'acte " + acte.numero() + " n'est plus validé dans le registre");
+        String constat = null;
+        if (d.modele().estCertificat()) {
+            SituationCivile situation = situation(d);
+            // le célibat et la vie sont des constats stricts ; la capacité matrimoniale relève de l'officier
+            Optional<String> obstacle = situation.obstacle(d.modele());
+            if (obstacle.isPresent() && d.modele() != ModeleDocument.CERTIFICAT_CAPACITE_MATRIMONIALE) {
+                throw new RegleMetierException(obstacle.get());
+            }
+            constat = situation.constat(d.modele());
+        }
         String code = documents.delivrer(new ServiceDocuments.DocumentADelivrer(d.id(), d.reference(), d.demandeur().id(),
-                d.libelleDocument(), d.copieIntegrale(), d.acteId(), d.format().name(), officier.nomComplet()));
+                d.libelleDocument(), d.modele().name(), d.acteId(), d.format().name(), officier.nomComplet(),
+                d.libelleMotif(), constat));
         d.signer(code, officier, horloge.maintenant());
         return sauver(d);
     }
@@ -206,6 +223,16 @@ public class ServiceDemandes implements GererMesDemandes, ConsulterDemandes, Ins
     }
 
     // ---------------------------------------------------------------- interne
+
+    /** Pour un certificat : ce que la situation de la personne dans le registre empêche de délivrer. */
+    private Optional<String> obstacle(Demande d) {
+        return d.modele().estCertificat() ? situation(d).obstacle(d.modele()) : Optional.empty();
+    }
+
+    private SituationCivile situation(Demande d) {
+        PersonneConcernee p = d.personne();
+        return registre.situation(p.nom(), p.prenom(), p.dateNaissance());
+    }
 
     private Demande trouver(UUID id) {
         return demandes.parId(id).orElseThrow(DemandeIntrouvableException::new);

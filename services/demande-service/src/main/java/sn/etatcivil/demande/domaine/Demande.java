@@ -21,7 +21,8 @@ public class Demande {
     private final Long typeDocumentId;
     private final String libelleDocument;
     private final TypeActe typeActe;
-    private final boolean copieIntegrale;
+    private final ModeleDocument modele;
+    private final OrigineActe origine;
     private final int montant;
     private final Long motifId;
     private final String libelleMotif;
@@ -47,7 +48,7 @@ public class Demande {
 
     /** Reconstitution depuis le stockage. */
     public Demande(UUID id, String reference, Demandeur demandeur, Long typeDocumentId, String libelleDocument,
-                   TypeActe typeActe, boolean copieIntegrale, int montant, Long motifId, String libelleMotif,
+                   TypeActe typeActe, ModeleDocument modele, OrigineActe origine, int montant, Long motifId, String libelleMotif,
                    LienDemandeur lien, FormatDocument format, String adresseLivraison, String villeLivraison,
                    PersonneConcernee personne, Instant dateCreation, StatutDemande statut, UUID acteId,
                    String numeroActe, String noteRecherche, String signataire, Instant dateSignature,
@@ -59,7 +60,8 @@ public class Demande {
         this.typeDocumentId = typeDocumentId;
         this.libelleDocument = libelleDocument;
         this.typeActe = typeActe;
-        this.copieIntegrale = copieIntegrale;
+        this.modele = modele;
+        this.origine = origine;
         this.montant = montant;
         this.motifId = motifId;
         this.libelleMotif = libelleMotif;
@@ -98,7 +100,7 @@ public class Demande {
         p.verifier(type.typeActe(), LocalDate.ofInstant(maintenant, ZoneId.of("Africa/Dakar")));
 
         Demande d = new Demande(UUID.randomUUID(), reference, demandeur, type.id(), type.libelle(), type.typeActe(),
-                type.copieIntegrale(), type.tarif(), motif.id(),
+                type.modele(), type.origine(), type.tarif(), motif.id(),
                 motif.estAutre() ? precision : motif.libelle(), lien, format,
                 papier ? adresse.trim() : null, papier ? ville.trim() : null, p, maintenant, SOUMISE,
                 null, null, null, null, null, null, null, maintenant, null, List.of());
@@ -253,7 +255,9 @@ public class Demande {
     public Long typeDocumentId() { return typeDocumentId; }
     public String libelleDocument() { return libelleDocument; }
     public TypeActe typeActe() { return typeActe; }
-    public boolean copieIntegrale() { return copieIntegrale; }
+    public ModeleDocument modele() { return modele; }
+    public OrigineActe origine() { return origine; }
+    public boolean copieIntegrale() { return modele == ModeleDocument.COPIE_INTEGRALE; }
     public int montant() { return montant; }
     public Long motifId() { return motifId; }
     public String libelleMotif() { return libelleMotif; }

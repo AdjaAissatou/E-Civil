@@ -11,7 +11,7 @@ import java.util.UUID;
 public record DemandeReponse(
         UUID id, String reference, String statut, String libelleStatut, String explicationStatut, boolean terminee,
         String demandeurId, String demandeurNom, String demandeurEmail,
-        Long typeDocumentId, String libelleDocument, TypeActe typeActe, boolean copieIntegrale, int montant,
+        Long typeDocumentId, String libelleDocument, TypeActe typeActe, boolean copieIntegrale, ModeleDocument modele, int montant,
         String motif, LienDemandeur lien, FormatDocument format, String adresseLivraison, String villeLivraison,
         String nom, String prenom, String sexe, LocalDate dateNaissance, String lieuNaissance,
         String nomPere, String prenomPere, String nomMere, String prenomMere,
@@ -30,7 +30,7 @@ public record DemandeReponse(
                 : List.of();
         return new DemandeReponse(d.id(), d.reference(), d.statut().name(), d.statut().libelle(),
                 d.statut().explication(), d.statut().estTerminal(), d.demandeur().id(), d.demandeur().nomComplet(),
-                d.demandeur().email(), d.typeDocumentId(), d.libelleDocument(), d.typeActe(), d.copieIntegrale(),
+                d.demandeur().email(), d.typeDocumentId(), d.libelleDocument(), d.typeActe(), d.copieIntegrale(), d.modele(),
                 d.montant(), d.libelleMotif(), d.lien(), d.format(), d.adresseLivraison(), d.villeLivraison(),
                 p.nom(), p.prenom(), p.sexe(), p.dateNaissance(), p.lieuNaissance(), p.nomPere(), p.prenomPere(),
                 p.nomMere(), p.prenomMere(), p.nomConjoint(), p.prenomConjoint(), p.dateEvenement(),

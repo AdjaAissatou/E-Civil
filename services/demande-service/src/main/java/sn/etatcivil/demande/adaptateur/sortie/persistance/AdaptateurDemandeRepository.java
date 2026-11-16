@@ -94,6 +94,8 @@ class AdaptateurDemandeRepository implements DemandeRepository {
         e.libelleDocument = d.libelleDocument();
         e.typeActe = d.typeActe();
         e.copieIntegrale = d.copieIntegrale();
+        e.modele = d.modele();
+        e.origine = d.origine();
         e.montant = d.montant();
         e.motifId = d.motifId();
         e.libelleMotif = d.libelleMotif();
@@ -131,7 +133,7 @@ class AdaptateurDemandeRepository implements DemandeRepository {
         List<ChangementStatut> historique = h.stream().map(x -> new ChangementStatut(x.id, x.ancienStatut,
                 x.nouveauStatut, x.auteur, x.commentaire, x.dateChangement)).toList();
         return new Demande(e.id, e.reference, new Demandeur(e.demandeurId, e.demandeurEmail, e.demandeurPrenom, e.demandeurNom),
-                e.typeDocumentId, e.libelleDocument, e.typeActe, e.copieIntegrale, e.montant, e.motifId, e.libelleMotif,
+                e.typeDocumentId, e.libelleDocument, e.typeActe, e.modele, e.origine, e.montant, e.motifId, e.libelleMotif,
                 e.lien, e.format, e.adresseLivraison, e.villeLivraison, p, e.dateCreation, e.statut, e.acteId,
                 e.numeroActe, e.noteRecherche, e.signataire, e.dateSignature, e.codeVerification, e.motifRejet,
                 e.dateModification, e.version, historique);

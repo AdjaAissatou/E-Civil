@@ -45,7 +45,7 @@ class EcouteurEvenementsTest {
         Demande d = citoyen.deposer(new DemandeADeposer(1L, 1L, null, LienDemandeur.MOI_MEME, FormatDocument.NUMERIQUE,
                 null, null, Fixtures.fatou()), Fixtures.FATOU);
         instruction.valider(d.id(), Fixtures.DELEGUE);
-        when(registre.rechercher(any(), any())).thenReturn(new RegistreCivil.ResultatRecherche(
+        when(registre.rechercher(any(), any(), any())).thenReturn(new RegistreCivil.ResultatRecherche(
                 RegistreCivil.Resultat.TROUVE, List.of(Fixtures.acte(true, TypeActe.NAISSANCE))));
 
         EnveloppeEvenement e = new EnveloppeEvenement(UUID.randomUUID(), Routages.PAIEMENT_CONFIRME, "paiement-service",
@@ -55,7 +55,7 @@ class EcouteurEvenementsTest {
 
         Demande apres = consultation.consulter(d.id(), "x", true);
         assertThat(apres.statut()).isEqualTo(StatutDemande.ACTE_TROUVE);
-        verify(registre, times(1)).rechercher(any(), any());
+        verify(registre, times(1)).rechercher(any(), any(), any());
         assertThat(jdbc.queryForList("SELECT contenu FROM evenement_sortant ORDER BY date_creation", String.class))
                 .hasSize(4).allMatch(c -> c.contains("\"type\":\"demande.statut\""))
                 .anyMatch(c -> c.contains("\"nouveauStatut\":\"ACTE_TROUVE\""));

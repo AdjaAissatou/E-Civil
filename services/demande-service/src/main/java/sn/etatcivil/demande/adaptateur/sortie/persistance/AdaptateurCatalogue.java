@@ -49,7 +49,7 @@ class AdaptateurCatalogue implements CatalogueRepository {
     }
 
     private static TypeDocument versDomaine(TypeDocumentEntite e) {
-        return new TypeDocument(e.id, e.code, e.libelle, e.description, e.typeActe, e.copieIntegrale, e.tarif,
+        return new TypeDocument(e.id, e.code, e.libelle, e.description, e.typeActe, e.modele, e.origine, e.tarif,
                 e.delaiJours, e.actif);
     }
 }

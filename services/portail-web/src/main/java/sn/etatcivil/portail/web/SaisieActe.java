@@ -34,6 +34,8 @@ public class SaisieActe {
     @Size(max = 200) private String temoin2;
     @Size(max = 2000) private String mentionsMarginales;
     @Size(max = 2000) private String observations;
+    private String origine = "ORDINAIRE";
+    @Size(max = 500) private String referenceOrigine;
 
     public static SaisieActe depuis(Vues.Acte a) {
         SaisieActe s = new SaisieActe();
@@ -46,6 +48,7 @@ public class SaisieActe {
         s.lieuNaissanceConjoint = a.lieuNaissanceConjoint(); s.heureDeces = a.heureDeces();
         s.causeDeces = a.causeDeces(); s.temoin1 = a.temoin1(); s.temoin2 = a.temoin2();
         s.mentionsMarginales = a.mentionsMarginales(); s.observations = a.observations();
+        s.origine = a.origine() == null ? "ORDINAIRE" : a.origine(); s.referenceOrigine = a.referenceOrigine();
         return s;
     }
 
@@ -57,6 +60,8 @@ public class SaisieActe {
         prenomConjoint = v(prenomConjoint); lieuNaissanceConjoint = v(lieuNaissanceConjoint);
         heureDeces = v(heureDeces); causeDeces = v(causeDeces); temoin1 = v(temoin1); temoin2 = v(temoin2);
         mentionsMarginales = v(mentionsMarginales); observations = v(observations);
+        origine = v(origine) == null ? "ORDINAIRE" : origine.trim();
+        referenceOrigine = "ORDINAIRE".equals(origine) ? null : v(referenceOrigine);
     }
 
     private static String v(String s) { return s == null || s.isBlank() ? null : s.trim(); }
@@ -112,5 +117,9 @@ public class SaisieActe {
     public String getMentionsMarginales() { return mentionsMarginales; }
     public void setMentionsMarginales(String m) { this.mentionsMarginales = m; }
     public String getObservations() { return observations; }
+    public String getOrigine() { return origine; }
+    public void setOrigine(String origine) { this.origine = origine; }
+    public String getReferenceOrigine() { return referenceOrigine; }
+    public void setReferenceOrigine(String referenceOrigine) { this.referenceOrigine = referenceOrigine; }
     public void setObservations(String observations) { this.observations = observations; }
 }

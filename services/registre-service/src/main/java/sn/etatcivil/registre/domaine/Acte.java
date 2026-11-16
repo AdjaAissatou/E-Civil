@@ -70,6 +70,7 @@ public class Acte {
      */
     public boolean correspond(CriteresRecherche r) {
         if (statut != StatutActe.VALIDE || r.typeActe() != donnees.typeActe()) return false;
+        if (r.origine() != null && r.origine() != donnees.origine()) return false;
         DonneesActe a = donnees;
         boolean titulaire = equivalents(a.nom(), r.nom()) && equivalents(a.prenom(), r.prenom());
         boolean conjoint = a.typeActe().concerneUnCouple()
@@ -86,6 +87,41 @@ public class Acte {
                 && (!titulaire || texte(a.prenomMere(), r.prenomMere()))
                 && texte(titulaire ? a.nomConjoint() : a.nom(), r.nomConjoint())
                 && texte(titulaire ? a.prenomConjoint() : a.prenom(), r.prenomConjoint());
+    }
+
+    /**
+     * La personne désignée par ces nom, prénom et date de naissance figure-t-elle dans l'acte, comme titulaire
+     * ou comme conjoint ? Une date absente de l'acte ou de la demande ne permet pas d'écarter l'acte.
+     */
+    public boolean designe(String nom, String prenom, LocalDate dateNaissance) {
+        DonneesActe a = donnees;
+        boolean titulaire = equivalents(a.nom(), nom) && equivalents(a.prenom(), prenom)
+                && concorde(a.dateNaissance(), dateNaissance);
+        boolean conjoint = a.typeActe().concerneUnCouple()
+                && equivalents(a.nomConjoint(), nom) && equivalents(a.prenomConjoint(), prenom)
+                && concorde(a.dateNaissanceConjoint(), dateNaissance);
+        return titulaire || conjoint;
+    }
+
+    /** Pour un mariage ou un divorce : l'autre membre du couple que la personne désignée. */
+    public Personne autreConjoint(String nom, String prenom) {
+        DonneesActe a = donnees;
+        boolean estTitulaire = equivalents(a.nom(), nom) && equivalents(a.prenom(), prenom);
+        return estTitulaire ? new Personne(a.nomConjoint(), a.prenomConjoint(), a.dateNaissanceConjoint())
+                : new Personne(a.nom(), a.prenom(), a.dateNaissance());
+    }
+
+    /** L'acte concerne-t-il ce couple, dans un sens ou dans l'autre ? */
+    public boolean concerneLeCouple(Personne x, Personne y) {
+        return designe(x.nom(), x.prenom(), x.dateNaissance()) && designe(y.nom(), y.prenom(), y.dateNaissance());
+    }
+
+    /** Naissance d'un enfant de ces deux parents. */
+    public boolean estEnfantDe(Personne pere, Personne mere) {
+        DonneesActe a = donnees;
+        return statut == StatutActe.VALIDE && a.typeActe() == TypeActe.NAISSANCE
+                && equivalents(a.nomPere(), pere.nom()) && equivalents(a.prenomPere(), pere.prenom())
+                && equivalents(a.nomMere(), mere.nom()) && equivalents(a.prenomMere(), mere.prenom());
     }
 
     private static boolean concorde(Object valeurActe, Object critere) {

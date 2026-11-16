@@ -8,7 +8,9 @@ import sn.etatcivil.registre.application.port.sortie.Horloge;
 import sn.etatcivil.registre.application.port.sortie.Numerotation;
 import sn.etatcivil.registre.domaine.*;
 
+import java.util.Comparator;
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -73,6 +75,28 @@ public class ServiceActes implements TranscrireActe, ConsulterActes {
     public ResultatRecherche rechercher(CriteresRecherche c) {
         return ResultatRecherche.de(actes.candidats(c.typeActe(), normaliser(c.nom()), normaliser(c.prenom()))
                 .stream().filter(a -> a.correspond(c)).toList());
+    }
+
+    @Override
+    public SituationCivile situation(Personne p) {
+        return SituationCivile.etablir(p, valides(TypeActe.MARIAGE, p), valides(TypeActe.DIVORCE, p),
+                valides(TypeActe.DECES, p), conjoint -> valides(TypeActe.DECES, conjoint));
+    }
+
+    @Override
+    public List<Acte> enfants(Personne pere, Personne mere) {
+        return actes.naissancesParNom(normaliser(pere.nom())).stream()
+                .filter(a -> a.estEnfantDe(pere, mere))
+                .sorted(Comparator.comparing(a -> a.donnees().dateEvenement()))
+                .toList();
+    }
+
+    /** Actes validés du type donné où cette personne figure (titulaire ou conjoint). */
+    private List<Acte> valides(TypeActe type, Personne p) {
+        return actes.candidats(type, normaliser(p.nom()), normaliser(p.prenom())).stream()
+                .filter(a -> a.statut() == StatutActe.VALIDE)
+                .filter(a -> a.designe(p.nom(), p.prenom(), p.dateNaissance()))
+                .toList();
     }
 
     @Override

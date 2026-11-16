@@ -6,11 +6,13 @@ import sn.etatcivil.document.application.port.sortie.DocumentRepository;
 import sn.etatcivil.document.application.port.sortie.Horloge;
 import sn.etatcivil.document.application.port.sortie.RegistreActes;
 import sn.etatcivil.document.application.port.sortie.RenduPdf;
+import sn.etatcivil.document.domaine.Complements;
 import sn.etatcivil.document.domaine.ContenuActe;
 import sn.etatcivil.document.domaine.DocumentDelivre;
 import sn.etatcivil.document.domaine.DocumentIntrouvableException;
 
 import java.security.SecureRandom;
+import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
@@ -36,12 +38,16 @@ public class ServiceDocuments implements DelivrerDocuments {
         Optional<DocumentDelivre> existant = documents.parDemande(c.demandeId());
         if (existant.isPresent()) return existant.get();
         ContenuActe contenu = registre.contenu(c.acteId());   // relu au moment même de la signature
+        String modele = c.modele() == null ? "EXTRAIT" : c.modele();
+        List<Complements.Enfant> enfants = "LIVRET_FAMILLE".equals(modele) && "MARIAGE".equals(contenu.typeActe())
+                ? registre.enfants(contenu) : List.of();
+        Complements complements = new Complements(modele, c.motif(), c.constat(), enfants);
         String code;
         do {
             code = DocumentDelivre.nouveauCode(aleatoire);
         } while (documents.parCode(code).isPresent());
         DocumentDelivre d = DocumentDelivre.delivrer(c.demandeId(), c.reference(), c.demandeurId(), c.libelleDocument(),
-                c.copieIntegrale(), c.format(), contenu, c.signataire(), code, horloge.maintenant());
+                c.format(), contenu, complements, c.signataire(), code, horloge.maintenant());
         documents.enregistrer(d);
         return d;
     }

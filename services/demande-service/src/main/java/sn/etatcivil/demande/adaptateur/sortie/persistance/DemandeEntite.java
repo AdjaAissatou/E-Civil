@@ -33,6 +33,12 @@ class DemandeEntite {
     TypeActe typeActe;
     @Column(name = "copie_integrale")
     boolean copieIntegrale;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "modele")
+    ModeleDocument modele;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "origine_acte")
+    OrigineActe origine;
     @Column(name = "montant")
     int montant;
     @Column(name = "motif_id")

@@ -25,14 +25,15 @@ public class DocumentDelivre {
     private final boolean copieIntegrale;
     private final String format;
     private final ContenuActe contenu;
+    private final Complements complements;
     private final String signataire;
     private final Instant dateSignature;
     private final String codeVerification;
     private final String empreinte;
 
     public DocumentDelivre(UUID id, UUID demandeId, String reference, String demandeurId, String libelleDocument,
-                           boolean copieIntegrale, String format, ContenuActe contenu, String signataire,
-                           Instant dateSignature, String codeVerification, String empreinte) {
+                           boolean copieIntegrale, String format, ContenuActe contenu, Complements complements,
+                           String signataire, Instant dateSignature, String codeVerification, String empreinte) {
         this.id = id;
         this.demandeId = demandeId;
         this.reference = reference;
@@ -41,6 +42,7 @@ public class DocumentDelivre {
         this.copieIntegrale = copieIntegrale;
         this.format = format;
         this.contenu = contenu;
+        this.complements = complements;
         this.signataire = signataire;
         this.dateSignature = dateSignature;
         this.codeVerification = codeVerification;
@@ -48,14 +50,24 @@ public class DocumentDelivre {
     }
 
     public static DocumentDelivre delivrer(UUID demandeId, String reference, String demandeurId, String libelleDocument,
-                                           boolean copieIntegrale, String format, ContenuActe contenu, String signataire,
+                                           String format, ContenuActe contenu, Complements complements, String signataire,
                                            String code, Instant maintenant) {
         if (!contenu.estValide()) throw new RegleMetierException("L'acte " + contenu.numeroActe() + " n'est pas validé : il ne peut pas être délivré");
         if (signataire == null || signataire.isBlank()) throw new RegleMetierException("Le signataire est obligatoire");
+        if (complements.estCertificat() && (complements.constat() == null || complements.constat().isBlank())) {
+            throw new RegleMetierException("Un certificat ne peut être délivré sans le constat fait dans le registre");
+        }
+        if (complements.estCertificat() && !"NAISSANCE".equals(contenu.typeActe())) {
+            throw new RegleMetierException("Un certificat s'établit à partir de l'acte de naissance");
+        }
+        if (complements.estLivret() && !"MARIAGE".equals(contenu.typeActe())) {
+            throw new RegleMetierException("Le livret de famille s'établit à partir de l'acte de mariage");
+        }
+        boolean integrale = Complements.COPIE_INTEGRALE.equals(complements.modele());
         Instant date = maintenant.truncatedTo(ChronoUnit.SECONDS);
-        return new DocumentDelivre(UUID.randomUUID(), demandeId, reference, demandeurId, libelleDocument, copieIntegrale,
-                format, contenu, signataire, date, code,
-                calculerEmpreinte(reference, libelleDocument, copieIntegrale, contenu, signataire, date, code));
+        return new DocumentDelivre(UUID.randomUUID(), demandeId, reference, demandeurId, libelleDocument, integrale,
+                format, contenu, complements, signataire, date, code,
+                calculerEmpreinte(reference, libelleDocument, integrale, contenu, complements, signataire, date, code));
     }
 
     /** Code lisible, sans caractères ambigus (0/O, 1/I) : ABCDE-23456. */
@@ -70,8 +82,8 @@ public class DocumentDelivre {
 
     /** Recalcule l'empreinte : toute modification du contenu en base serait détectée. */
     public boolean integre() {
-        return empreinte.equals(calculerEmpreinte(reference, libelleDocument, copieIntegrale, contenu, signataire,
-                dateSignature, codeVerification));
+        return empreinte.equals(calculerEmpreinte(reference, libelleDocument, copieIntegrale, contenu, complements,
+                signataire, dateSignature, codeVerification));
     }
 
     /** Le demandeur télécharge son document numérique ; les agents peuvent l'imprimer (format papier). */
@@ -79,10 +91,12 @@ public class DocumentDelivre {
         return estAgent || (demandeurId.equals(utilisateurId) && "NUMERIQUE".equals(format));
     }
 
+    /** Les documents signés avant l'ajout des compléments n'en ont pas : leur empreinte est calculée comme avant. */
     private static String calculerEmpreinte(String reference, String libelle, boolean integrale, ContenuActe contenu,
-                                            String signataire, Instant date, String code) {
+                                            Complements complements, String signataire, Instant date, String code) {
         String texte = String.join("\n", reference, libelle, String.valueOf(integrale), signataire, date.toString(), code,
                 contenu.texteCanonique());
+        if (complements != null) texte = texte + "\n" + complements.texteCanonique();
         try {
             return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(texte.getBytes(StandardCharsets.UTF_8)));
         } catch (NoSuchAlgorithmException e) {
@@ -98,6 +112,11 @@ public class DocumentDelivre {
     public boolean copieIntegrale() { return copieIntegrale; }
     public String format() { return format; }
     public ContenuActe contenu() { return contenu; }
+    /** Compléments du document ; pour un document signé avant leur introduction, déduits de l'ancien indicateur. */
+    public Complements complements() {
+        return complements != null ? complements
+                : new Complements(copieIntegrale ? Complements.COPIE_INTEGRALE : "EXTRAIT", null, null, null);
+    }
     public String signataire() { return signataire; }
     public Instant dateSignature() { return dateSignature; }
     public String codeVerification() { return codeVerification; }

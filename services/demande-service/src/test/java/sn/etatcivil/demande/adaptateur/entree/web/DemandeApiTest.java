@@ -64,8 +64,13 @@ class DemandeApiTest {
 
     @Test
     void catalogueEtSecurite() throws Exception {
-        mvc.perform(get("/api/catalogue/documents")).andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(6));
-        mvc.perform(get("/api/catalogue/motifs")).andExpect(jsonPath("$[8].autre").value(true));
+        mvc.perform(get("/api/catalogue/documents")).andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(19))
+                .andExpect(jsonPath("$[?(@.code == 'COPIE_NAISSANCE')].modele").value("COPIE_INTEGRALE"))
+                .andExpect(jsonPath("$[?(@.code == 'TRANSCRIPTION_MARIAGE')].origine").value("TRANSCRIPTION"))
+                .andExpect(jsonPath("$[?(@.code == 'CERTIFICAT_CELIBAT')].typeActe").value("NAISSANCE"))
+                .andExpect(jsonPath("$[?(@.code == 'COPIE_RECONNAISSANCE')].typeActe").value("RECONNAISSANCE"));
+        mvc.perform(get("/api/catalogue/motifs")).andExpect(jsonPath("$.length()").value(11))
+                .andExpect(jsonPath("$[10].autre").value(true));
         mvc.perform(get("/api/demandes/mes-demandes")).andExpect(status().isUnauthorized());
         mvc.perform(get("/api/demandes").with(FATOU)).andExpect(status().isForbidden());
         mvc.perform(put("/api/catalogue/documents/1").contentType(MediaType.APPLICATION_JSON)
@@ -107,7 +112,7 @@ class DemandeApiTest {
         mvc.perform(post("/api/demandes/" + id + "/validation").with(DELEGUE));
         // la demande n'est pas payée : la recherche est refusée avant tout appel au registre
         mvc.perform(post("/api/demandes/" + id + "/recherche").with(AGENT)).andExpect(status().isUnprocessableEntity());
-        when(registre.rechercher(any(), any())).thenThrow(
+        when(registre.rechercher(any(), any(), any())).thenThrow(
                 new sn.etatcivil.demande.application.port.sortie.RegistreIndisponibleException("panne", null));
         when(registre.parNumero(any())).thenReturn(java.util.Optional.of(Fixtures.acte(true, TypeActe.NAISSANCE)));
         mvc.perform(post("/api/demandes/" + id + "/signature").with(OFFICIER)).andExpect(status().isUnprocessableEntity());

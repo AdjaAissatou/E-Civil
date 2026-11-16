@@ -111,6 +111,30 @@ stateDiagram-v2
 | `ADMIN` | Tarifs et catalogue ; les comptes et les rôles se gèrent dans la console Keycloak |
 | `SERVICE` | Comptes techniques des services qui en appellent d'autres |
 
+## Catalogue des documents
+
+19 documents, repris du catalogue de la version d'origine et limités à ce que délivre l'état civil. Chacun a
+un **modèle** (ce qu'il contient) et, pour certains, une **origine exigée** de l'acte :
+
+| Famille | Documents | Comment ils sont établis |
+|---|---|---|
+| Naissance | Extrait (avec ou sans filiation), copie littérale, jugement supplétif, transcription d'acte étranger | à partir de l'acte de naissance |
+| Reconnaissance | Copie d'acte de reconnaissance (paternelle, maternelle, anticipée) | à partir de l'acte de reconnaissance |
+| Mariage | Extrait, copie littérale, jugement supplétif, transcription, duplicata de livret de famille | le livret reprend l'acte de mariage et les naissances des enfants du couple |
+| Divorce | Extrait d'acte de divorce | à partir de l'acte de divorce |
+| Décès | Extrait, copie littérale, jugement supplétif, transcription | à partir de l'acte de décès |
+| Certificats | Célibat, capacité matrimoniale, vie | à partir de l'acte de naissance **et** de la situation de la personne dans le registre |
+
+- **Origine de l'acte.** Un acte est dressé sur déclaration ordinaire, en exécution d'un **jugement supplétif**
+  ou par **transcription** d'un acte étranger ; l'agent en saisit les références. Les documents « jugement
+  supplétif » et « transcription » ne retrouvent que les actes de cette origine.
+- **Certificats.** registre-service établit la situation civile d'une personne : ses mariages (dissous ou non
+  par un divorce ou le décès du conjoint) et son décès. Le certificat de célibat exige qu'aucun mariage ne
+  soit inscrit, la capacité matrimoniale qu'aucun mariage ne soit en cours, le certificat de vie qu'aucun décès
+  ne soit inscrit. Dans le cas contraire, la demande n'est jamais refusée automatiquement : un agent vérifie
+  (homonymie, option de polygamie…), puis rattache l'acte ou rejette la demande. Le constat fait dans le
+  registre est imprimé sur le certificat et couvert par l'empreinte.
+
 **Authenticité.** À la signature, document-service relit l'acte dans le registre, en fige le contenu, en
 calcule l'empreinte SHA-256 et lui attribue un code de vérification unique, imprimé avec un QR code sur
 le PDF. Sur `/verification/{code}`, n'importe qui peut vérifier le document. Toute modification du contenu
@@ -146,10 +170,15 @@ enregistré est détectée. Il s'agit d'une signature applicative, pas d'une sig
 
 ### Mode démonstration
 
-Avec `ECIVIL_MODE=demo` dans `.env`, registre-service ajoute au registre national 11 actes **fictifs**
-(naissances, mariages, divorce, décès, dont 2 encore à valider), pour présenter la plateforme sans saisie
-préalable. Par exemple, une demande d'extrait de naissance pour **Ousmane Sarr**, né le 22/07/1995 à Thiès,
+Avec `ECIVIL_MODE=demo` dans `.env`, registre-service ajoute au registre national 16 actes **fictifs**
+(naissances, mariages, divorce, décès, reconnaissance, un acte par jugement supplétif, une transcription, dont
+2 encore à valider), pour présenter la plateforme sans saisie préalable. Par exemple, une demande d'extrait de naissance pour **Ousmane Sarr**, né le 22/07/1995 à Thiès,
 de Abdoulaye Sarr et Khady Faye, retrouve aussitôt l'acte `N-1995-000001` après le paiement.
+
+Pour les autres documents : un certificat de célibat pour **Mame Diarra Gueye** (née le 09/01/2003 à
+Saint-Louis), refusé pour **Babacar Mbaye** (marié) ; un livret de famille pour Babacar Mbaye et Seynabou Diouf
+(deux enfants) ; un jugement supplétif de naissance pour **Mamadou Saliou Baldé** ; une transcription de mariage
+pour **Aliou Faye** et Bineta Ndiaye ; une copie de reconnaissance pour **Fatou Gueye** (née le 05/12/2018).
 
 Le jeu est chargé une seule fois, à la création de la base (`db/demo/V1000__actes_demo.sql`) : pour revenir à un
 registre vide, repasser en `ECIVIL_MODE=production` et recréer les volumes (`docker compose down -v`).

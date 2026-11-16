@@ -24,13 +24,24 @@
                     <div class="col-md-6" th:insert="~{fragments/champs :: texte('commune', 'Commune', 'text', false)}"></div>
                     <div class="col-md-3" th:insert="~{fragments/champs :: texte('volume', 'Volume', 'text', false)}"></div>
                     <div class="col-md-3" th:insert="~{fragments/champs :: texte('folio', 'Folio', 'text', false)}"></div>
-                    <div class="col-md-3" th:insert="~{fragments/champs :: texte('dateEvenement', ${t == 'NAISSANCE'} ? 'Date de naissance' : (${t == 'DECES'} ? 'Date du décès' : 'Date de l\'acte'), 'date', true)}"></div>
+                    <div class="col-md-3" th:insert="~{fragments/champs :: texte('dateEvenement', ${t == 'NAISSANCE'} ? 'Date de naissance' : (${t == 'DECES'} ? 'Date du décès' : (${t == 'RECONNAISSANCE'} ? 'Date de la reconnaissance' : 'Date de l\'acte')), 'date', true)}"></div>
                     <div class="col-md-3" th:insert="~{fragments/champs :: texte('lieuEvenement', 'Lieu', 'text', true)}"></div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label" for="origine">Origine de l'acte</label>
+                        <select class="form-select" th:field="*{origine}">
+                            <option value="ORDINAIRE">Déclaration ordinaire</option>
+                            <option value="JUGEMENT_SUPPLETIF">Jugement supplétif</option>
+                            <option value="TRANSCRIPTION">Transcription d'un acte étranger</option>
+                        </select>
+                    </div>
+                    <div class="col-md-8" th:insert="~{fragments/champs :: texte('referenceOrigine', 'Références du jugement ou de l\'acte étranger (si l\'origine n\'est pas ordinaire)', 'text', false)}"></div>
                 </div>
             </div></div>
 
             <div class="card mb-3"><div class="card-body">
-                <h2 class="h6 text-brun" th:text="${t == 'NAISSANCE'} ? 'Enfant' : (${t == 'DECES'} ? 'Défunt(e)' : 'Premier conjoint')"></h2>
+                <h2 class="h6 text-brun" th:text="${t == 'NAISSANCE' or t == 'RECONNAISSANCE'} ? 'Enfant' : (${t == 'DECES'} ? 'Défunt(e)' : 'Premier conjoint')"></h2>
+                <p class="small text-muted" th:if="${t == 'RECONNAISSANCE'}">Indiquez dans la filiation le ou les parents qui reconnaissent
+                    l'enfant. Une reconnaissance anticipée peut précéder la naissance.</p>
                 <div class="row">
                     <div class="col-md-5" th:insert="~{fragments/champs :: texte('prenom', 'Prénom(s)', 'text', true)}"></div>
                     <div class="col-md-5" th:insert="~{fragments/champs :: texte('nom', 'Nom', 'text', true)}"></div>
@@ -90,7 +101,7 @@
         <th:block th:if="${verrouille}">
             <input type="hidden" th:each="c : ${ {'centre','commune','volume','folio','dateEvenement','lieuEvenement','prenom','nom','sexe',
                 'dateNaissance','lieuNaissance','prenomPere','nomPere','prenomMere','nomMere','prenomConjoint','nomConjoint',
-                'dateNaissanceConjoint','lieuNaissanceConjoint','heureDeces','causeDeces','temoin1','temoin2'} }"
+                'dateNaissanceConjoint','lieuNaissanceConjoint','heureDeces','causeDeces','temoin1','temoin2','origine','referenceOrigine'} }"
                    th:name="${c}" th:value="*{__${c}__}">
         </th:block>
 

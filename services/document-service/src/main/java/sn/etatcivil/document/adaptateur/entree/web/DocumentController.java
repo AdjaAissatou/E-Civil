@@ -9,6 +9,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import sn.etatcivil.document.application.port.entree.DelivrerDocuments;
+import sn.etatcivil.document.domaine.Complements;
 import sn.etatcivil.document.domaine.ContenuActe;
 import sn.etatcivil.document.domaine.DocumentDelivre;
 import sn.etatcivil.socle.securite.UtilisateurJwt;
@@ -29,16 +30,16 @@ class DocumentController {
     }
 
     public record Commande(@NotNull UUID demandeId, @NotBlank String reference, @NotBlank String demandeurId,
-                           @NotBlank String libelleDocument, boolean copieIntegrale, @NotNull UUID acteId,
-                           @NotBlank String format, @NotBlank String signataire) {}
+                           @NotBlank String libelleDocument, String modele, @NotNull UUID acteId,
+                           @NotBlank String format, @NotBlank String signataire, String motif, String constat) {}
 
     public record Delivrance(String codeVerification, String empreinte, Instant dateSignature) {}
 
     /** Ce qu'affiche la page publique de vérification. */
-    public record Verification(String libelleDocument, ContenuActe acte, String signataire, Instant dateSignature,
-                               String codeVerification, String empreinte) {
+    public record Verification(String libelleDocument, ContenuActe acte, Complements complements, String signataire,
+                               Instant dateSignature, String codeVerification, String empreinte) {
         static Verification de(DocumentDelivre d) {
-            return new Verification(d.libelleDocument(), d.contenu(), d.signataire(), d.dateSignature(),
+            return new Verification(d.libelleDocument(), d.contenu(), d.complements(), d.signataire(), d.dateSignature(),
                     d.codeVerification(), d.empreinte());
         }
     }
@@ -48,7 +49,8 @@ class DocumentController {
     @PreAuthorize("hasRole('SERVICE')")
     Delivrance delivrer(@Valid @RequestBody Commande c) {
         DocumentDelivre d = documents.delivrer(new DelivrerDocuments.DocumentADelivrer(c.demandeId(), c.reference(),
-                c.demandeurId(), c.libelleDocument(), c.copieIntegrale(), c.acteId(), c.format(), c.signataire()));
+                c.demandeurId(), c.libelleDocument(), c.modele(), c.acteId(), c.format(), c.signataire(), c.motif(),
+                c.constat()));
         return new Delivrance(d.codeVerification(), d.empreinte(), d.dateSignature());
     }
 

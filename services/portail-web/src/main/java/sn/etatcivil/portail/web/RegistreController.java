@@ -25,6 +25,7 @@ class RegistreController {
         TYPES.put("MARIAGE", "Mariage");
         TYPES.put("DIVORCE", "Divorce");
         TYPES.put("DECES", "Décès");
+        TYPES.put("RECONNAISSANCE", "Reconnaissance");
     }
 
     private final Api api;

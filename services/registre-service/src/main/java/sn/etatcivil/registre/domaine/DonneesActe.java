@@ -11,23 +11,31 @@ public record DonneesActe(
         String nomPere, String prenomPere, String nomMere, String prenomMere,
         String nomConjoint, String prenomConjoint, LocalDate dateNaissanceConjoint, String lieuNaissanceConjoint,
         String heureDeces, String causeDeces, String temoin1, String temoin2,
-        String mentionsMarginales, String observations) {
+        String mentionsMarginales, String observations,
+        OrigineActe origine, String referenceOrigine) {
 
-    /** Pour une naissance, la date et le lieu de naissance sont ceux de l'événement. */
+    /** Origine ordinaire par défaut ; pour une naissance, la date et le lieu de naissance sont ceux de l'événement. */
     DonneesActe completer() {
+        if (origine == null) {
+            return new DonneesActe(typeActe, centre, commune, volume, folio, dateEvenement, lieuEvenement,
+                    nom, prenom, sexe, dateNaissance, lieuNaissance, nomPere, prenomPere, nomMere, prenomMere,
+                    nomConjoint, prenomConjoint, dateNaissanceConjoint, lieuNaissanceConjoint,
+                    heureDeces, causeDeces, temoin1, temoin2, mentionsMarginales, observations,
+                    OrigineActe.ORDINAIRE, null).completer();
+        }
         if (typeActe != TypeActe.NAISSANCE) return this;
         String lieu = lieuNaissance == null || lieuNaissance.isBlank() ? lieuEvenement : lieuNaissance;
         return new DonneesActe(typeActe, centre, commune, volume, folio, dateEvenement, lieuEvenement,
                 nom.trim(), prenom.trim(), sexe, dateEvenement, lieu, nomPere, prenomPere, nomMere, prenomMere,
                 nomConjoint, prenomConjoint, dateNaissanceConjoint, lieuNaissanceConjoint,
-                heureDeces, causeDeces, temoin1, temoin2, mentionsMarginales, observations);
+                heureDeces, causeDeces, temoin1, temoin2, mentionsMarginales, observations, origine, referenceOrigine);
     }
 
     DonneesActe avecMentions(String mentions, String obs) {
         return new DonneesActe(typeActe, centre, commune, volume, folio, dateEvenement, lieuEvenement,
                 nom, prenom, sexe, dateNaissance, lieuNaissance, nomPere, prenomPere, nomMere, prenomMere,
                 nomConjoint, prenomConjoint, dateNaissanceConjoint, lieuNaissanceConjoint,
-                heureDeces, causeDeces, temoin1, temoin2, mentions, obs);
+                heureDeces, causeDeces, temoin1, temoin2, mentions, obs, origine, referenceOrigine);
     }
 
     void verifierCoherence() {
@@ -37,7 +45,13 @@ public record DonneesActe(
         if (dateEvenement.isAfter(LocalDate.now())) {
             throw new RegleMetierException("La date de l'événement ne peut pas être dans le futur");
         }
-        if (dateNaissance != null && dateNaissance.isAfter(dateEvenement)) {
+        if (origine != null && origine != OrigineActe.ORDINAIRE && vide(referenceOrigine)) {
+            throw new RegleMetierException(origine == OrigineActe.JUGEMENT_SUPPLETIF
+                    ? "Indiquez les références du jugement supplétif (numéro, date, tribunal)"
+                    : "Indiquez les références de l'acte étranger transcrit (pays, autorité, date)");
+        }
+        // une reconnaissance peut précéder la naissance (reconnaissance anticipée)
+        if (typeActe != TypeActe.RECONNAISSANCE && dateNaissance != null && dateNaissance.isAfter(dateEvenement)) {
             throw new RegleMetierException("La date de naissance ne peut pas être postérieure à l'événement");
         }
         switch (typeActe) {
@@ -53,6 +67,11 @@ public record DonneesActe(
                 }
             }
             case DECES -> { /* pas de règle supplémentaire */ }
+            case RECONNAISSANCE -> {
+                if (vide(nomPere) && vide(nomMere)) {
+                    throw new RegleMetierException("Indiquez le parent qui reconnaît l'enfant (père ou mère)");
+                }
+            }
         }
     }
 

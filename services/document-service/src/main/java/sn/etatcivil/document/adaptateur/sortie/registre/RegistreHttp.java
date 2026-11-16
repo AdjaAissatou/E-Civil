@@ -5,13 +5,17 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.http.MediaType;
 import org.springframework.web.client.RestClient;
 import sn.etatcivil.document.application.port.sortie.RegistreActes;
+import sn.etatcivil.document.domaine.Complements;
 import sn.etatcivil.document.domaine.ContenuActe;
 import sn.etatcivil.document.domaine.RegleMetierException;
 import sn.etatcivil.socle.securite.JetonServiceInterceptor;
 
 import java.time.Duration;
+import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 
 /** Relit l'acte dans registre-service, avec le jeton de service de document-service. */
@@ -34,14 +38,19 @@ class RegistreHttp implements RegistreActes {
                     String prenom, String sexe, java.time.LocalDate dateNaissance, String lieuNaissance, String nomPere,
                     String prenomPere, String nomMere, String prenomMere, String nomConjoint, String prenomConjoint,
                     java.time.LocalDate dateNaissanceConjoint, String lieuNaissanceConjoint, String heureDeces,
-                    String causeDeces, String temoin1, String temoin2, String mentionsMarginales, String observations) {
+                    String causeDeces, String temoin1, String temoin2, String mentionsMarginales, String observations,
+                    String origine, String referenceOrigine) {
         ContenuActe versDomaine() {
             return new ContenuActe(typeActe, numeroActe, annee, statut, centre, commune, volume, folio, dateEvenement,
                     lieuEvenement, nom, prenom, sexe, dateNaissance, lieuNaissance, nomPere, prenomPere, nomMere,
                     prenomMere, nomConjoint, prenomConjoint, dateNaissanceConjoint, lieuNaissanceConjoint, heureDeces,
-                    causeDeces, temoin1, temoin2, mentionsMarginales, observations);
+                    causeDeces, temoin1, temoin2, mentionsMarginales, observations, origine, referenceOrigine);
         }
     }
+
+    record PersonneJson(String nom, String prenom, java.time.LocalDate dateNaissance) {}
+
+    record ParentsJson(PersonneJson pere, PersonneJson mere) {}
 
     @Override
     public ContenuActe contenu(UUID acteId) {
@@ -50,5 +59,18 @@ class RegistreHttp implements RegistreActes {
         } catch (HttpClientErrorException.NotFound e) {
             throw new RegleMetierException("L'acte n'existe pas dans le registre national");
         }
+    }
+
+    /** Le titulaire de l'acte de mariage est le mari, sauf si l'acte indique le contraire (sexe F). */
+    @Override
+    public List<Complements.Enfant> enfants(ContenuActe m) {
+        PersonneJson titulaire = new PersonneJson(m.nom(), m.prenom(), m.dateNaissance());
+        PersonneJson conjoint = new PersonneJson(m.nomConjoint(), m.prenomConjoint(), m.dateNaissanceConjoint());
+        boolean titulaireEstLaMere = "F".equals(m.sexe());
+        ParentsJson parents = titulaireEstLaMere ? new ParentsJson(conjoint, titulaire) : new ParentsJson(titulaire, conjoint);
+        ActeJson[] actes = http.post().uri("/enfants").contentType(MediaType.APPLICATION_JSON).body(parents)
+                .retrieve().body(ActeJson[].class);
+        return actes == null ? List.of() : Arrays.stream(actes).map(a -> new Complements.Enfant(a.numeroActe(), a.prenom(),
+                a.nom(), a.sexe(), a.dateNaissance(), a.lieuNaissance())).toList();
     }
 }

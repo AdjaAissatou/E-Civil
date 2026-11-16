@@ -2,6 +2,7 @@ package sn.etatcivil.registre.adaptateur.entree.web;
 
 import jakarta.validation.constraints.*;
 import sn.etatcivil.registre.domaine.DonneesActe;
+import sn.etatcivil.registre.domaine.OrigineActe;
 import sn.etatcivil.registre.domaine.TypeActe;
 
 import java.time.LocalDate;
@@ -33,12 +34,14 @@ public record ActeRequete(
         @Size(max = 200) String temoin1,
         @Size(max = 200) String temoin2,
         @Size(max = 2000) String mentionsMarginales,
-        @Size(max = 2000) String observations) {
+        @Size(max = 2000) String observations,
+        OrigineActe origine,
+        @Size(max = 500) String referenceOrigine) {
 
     DonneesActe versDomaine() {
         return new DonneesActe(typeActe, centre, commune, volume, folio, dateEvenement, lieuEvenement, nom, prenom,
                 sexe, dateNaissance, lieuNaissance, nomPere, prenomPere, nomMere, prenomMere, nomConjoint,
                 prenomConjoint, dateNaissanceConjoint, lieuNaissanceConjoint, heureDeces, causeDeces, temoin1,
-                temoin2, mentionsMarginales, observations);
+                temoin2, mentionsMarginales, observations, origine, referenceOrigine);
     }
 }
