@@ -8,9 +8,14 @@ git worktree add ../e-civil-v1 28d59f4
 
 ## `base-e-civil-v1.sql`
 
-Recrée la base PostgreSQL `E-Civil` de la version 1, qui avait été perdue (25 tables, la vue
-`recherche_documents` et des données de départ). Le schéma est déduit des requêtes des DAO, puis complété
-avec le MCD PowerAMC du 10/08/2025. L'en-tête du script liste les écarts entre le MCD et le code.
+Recrée la base PostgreSQL `E-Civil` de la version 1, qui avait été perdue (28 tables, la vue
+`recherche_documents` et les fonctions `generer_document` et `synchroniser_serveur_central`). Le schéma est
+déduit des requêtes des DAO, puis complété avec le MCD PowerAMC du 10/08/2025. L'en-tête du script liste les
+écarts entre le MCD et le code.
+
+Les données sont celles d'origine : 19 variétés et 36 natures de documents avec leurs tarifs, 62 communes
+réparties dans 14 régions, 15 permissions et leur répartition entre les 5 rôles, les missions diplomatiques
+et un exemple de registre central rempli.
 
 ```bash
 createdb -U postgres E-Civil
