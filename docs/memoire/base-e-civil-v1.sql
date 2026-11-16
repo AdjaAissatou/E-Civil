@@ -1,10 +1,19 @@
 -- =====================================================================================================
 --  Base « E-Civil » de la version 1 (code du mémoire : Servlets/JSP, commit 28d59f4)
 --
---  Reconstruite à partir des requêtes SQL des DAO et des modèles Java, la base d'origine ayant été perdue.
---  Chaque table et chaque colonne correspond à ce que le code lit ou écrit ; les types sont déduits des
---  modèles. Les contraintes (clés étrangères, NOT NULL) sont volontairement souples pour accepter le
---  comportement du code d'origine.
+--  Reconstruite à partir des requêtes SQL des DAO et des modèles Java, la base d'origine ayant été perdue,
+--  puis complétée avec le MCD PowerAMC du 10/08/2025. Quand le code et le MCD diffèrent, le code l'emporte,
+--  puisque c'est lui qui interroge la base :
+--    MCD                         code (retenu)
+--    commune                     communes
+--    permision                   permission
+--    Association_18              role_permissions (role_id, permission_id)
+--    paiement.status INT2        texte : 'en attente', 'payé'…
+--    documentEtatCivil.iddocument CHAR(10)   entier (RETURNING iddocument)
+--    demandeDocument (8 colonnes) 21 colonnes (personne concernée, livraison, nature, motif…)
+--    nature (4 colonnes)         + tarif_base, duree_validite, delai_traitement
+--  Les tables ajoutées par le code après le MCD sont : motif_demande, historiquestatut,
+--  demande_variete_details, demandes et la vue recherche_documents.
 --
 --  Utilisation (PostgreSQL) :
 --      createdb -U postgres E-Civil
@@ -194,6 +203,56 @@ CREATE TABLE demandes (
     status         VARCHAR(30),
     date_demande   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     date_signature TIMESTAMP
+);
+
+-- ------------------------------------------------------------------ diaspora (MCD PowerAMC du 10/08/2025)
+-- Tables du modèle conceptuel d'origine. Les classes Java existent (MissionDiplomatique, Pays, Ville,
+-- Zonedecompetence, Typemission) mais aucun DAO ne les utilise encore : la partie diaspora était conçue,
+-- pas branchée.
+CREATE TABLE typemission (
+    idtype  SERIAL PRIMARY KEY,
+    libelle VARCHAR(254)                            -- ambassade, consulat…
+);
+
+CREATE TABLE missiondiplomatique (
+    idmission      SERIAL PRIMARY KEY,
+    idtype         INTEGER REFERENCES typeutilisateur (idtype),
+    typ_idtype     INTEGER REFERENCES typemission (idtype),
+    nom            VARCHAR(254),
+    zonecompetence VARCHAR(254),
+    adresse        VARCHAR(254),
+    telephone      VARCHAR(254),
+    email          VARCHAR(254)
+);
+
+CREATE TABLE zonedecompetence (
+    idzone SERIAL PRIMARY KEY
+);
+
+CREATE TABLE pays (
+    idpays SERIAL PRIMARY KEY,
+    idzone INTEGER REFERENCES zonedecompetence (idzone),
+    nom    VARCHAR(254)
+);
+
+CREATE TABLE ville (
+    idville    SERIAL PRIMARY KEY,
+    idmission  INTEGER REFERENCES missiondiplomatique (idmission),
+    idpays     INTEGER REFERENCES pays (idpays),
+    nom        VARCHAR(254),
+    codepostal VARCHAR(254)
+);
+
+CREATE TABLE mission_zone (                         -- « Association_27 » du MCD
+    idmission INTEGER REFERENCES missiondiplomatique (idmission),
+    idzone    INTEGER REFERENCES zonedecompetence (idzone),
+    PRIMARY KEY (idmission, idzone)
+);
+
+CREATE TABLE demande_commune (                      -- « Association_23 » du MCD (non utilisée par le code)
+    iddemande INTEGER REFERENCES demandedocument (iddemande),
+    idcommune INTEGER REFERENCES communes (idcommune),
+    PRIMARY KEY (iddemande, idcommune)
 );
 
 -- ------------------------------------------------------------------ vue de recherche (DetailDemandeServlet)
