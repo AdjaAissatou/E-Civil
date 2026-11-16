@@ -514,3 +514,14 @@ footer .drapeau span { flex: 1; }
 .card.border-info { border-color: var(--marque-100) !important; background: linear-gradient(180deg, var(--marque-50), var(--blanc)); }
 .card.border-success { border-color: #c4e8d9 !important; }
 .card.border-warning { border-color: #f1d9a6 !important; }
+
+/* ---------- Pages d'erreur ---------- */
+.page-erreur { min-height: 62vh; display: grid; place-items: center; padding-block: 4rem; }
+.carte-erreur { max-width: 560px; text-align: center; background: #fff; border: 1px solid var(--trait);
+  border-radius: 28px; padding: 3rem 2.5rem; box-shadow: 0 30px 60px -30px rgba(3, 36, 27, .25); }
+.carte-erreur h1 { font-family: 'Fraunces', Georgia, serif; font-size: 2rem; margin: .25rem 0 1rem; color: var(--encre); }
+.carte-erreur p { color: var(--encre-douce); margin: 0; }
+.icone-erreur { display: inline-grid; place-items: center; width: 72px; height: 72px; border-radius: 22px; font-size: 2rem;
+  color: var(--marque-700); background: var(--marque-50); border: 1px solid var(--marque-100); margin-bottom: 1rem; }
+.icone-erreur.or { color: var(--or-600); background: var(--or-100); border-color: #f3dfb3; }
+.code-erreur { display: block; font-size: .8rem; font-weight: 700; letter-spacing: .2em; color: var(--encre-pale); }

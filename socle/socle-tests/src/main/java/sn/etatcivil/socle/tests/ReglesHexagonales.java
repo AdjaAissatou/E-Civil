@@ -16,7 +16,8 @@ import static com.tngtech.archunit.library.Architectures.onionArchitecture;
  * <ul>
  *   <li>le domaine ne dépend que de Java ;</li>
  *   <li>l'application ne dépend que du domaine (aucun framework) ;</li>
- *   <li>les adaptateurs ne se connaissent pas entre eux et passent par les ports.</li>
+ *   <li>les adaptateurs ne se connaissent pas entre eux et passent par les ports ;</li>
+ *   <li>inversion de dépendances : aucun adaptateur ne voit l'implémentation des cas d'usage.</li>
  * </ul>
  * Paquets attendus : {@code <racine>.domaine}, {@code <racine>.application}, {@code <racine>.adaptateur.*},
  * {@code <racine>.configuration}.
@@ -49,6 +50,12 @@ public final class ReglesHexagonales {
                 .should().onlyDependOnClassesThat()
                 .resideInAnyPackage(racine + ".domaine..", racine + ".application..", "java..")
                 .because("les cas d'usage ne dépendent d'aucun framework : ils parlent aux ports")
+                .check(classes);
+
+        noClasses().that().resideInAPackage(racine + ".adaptateur..")
+                .should().dependOnClassesThat().resideInAPackage(racine + ".application.service..")
+                .because("inversion de dépendances : les adaptateurs ne connaissent que les ports (interfaces),"
+                        + " jamais l'implémentation des cas d'usage")
                 .check(classes);
 
         noClasses().that().resideInAnyPackage(racine + ".domaine..", racine + ".application..", racine + ".adaptateur..")
