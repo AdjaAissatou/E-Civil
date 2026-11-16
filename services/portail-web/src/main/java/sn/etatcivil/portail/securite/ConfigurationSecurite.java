@@ -37,7 +37,7 @@ class ConfigurationSecurite {
                                 @Value("${ecivil.url-publique}") String portail) throws Exception {
         return http
                 .authorizeHttpRequests(a -> a
-                        .requestMatchers("/", "/documents", "/inscription", "/verification/**", "/css/**", "/js/**", "/images/**",
+                        .requestMatchers("/", "/documents", "/inscription", "/verification/**", "/css/**", "/js/**", "/fonts/**", "/images/**",
                                 "/favicon_io/**", "/mairie.png", "/error", "/actuator/health/**").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/delegue/**").hasAnyRole("DELEGUE", "ADMIN")

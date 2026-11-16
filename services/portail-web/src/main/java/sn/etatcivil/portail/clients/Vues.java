@@ -69,6 +69,30 @@ public final class Vues {
 
         /** Classe Bootstrap du badge de statut. */
         public String couleur() { return Vues.couleur(statut); }
+
+        /** Dernière étape franchie du suivi visuel : 1 déposée, 2 validée, 3 payée, 4 acte retrouvé, 5 délivrée. */
+        public static int etapeDe(String statut) {
+            return switch (statut) {
+                case "SOUMISE" -> 1;
+                case "A_PAYER" -> 2;
+                case "PAYEE", "ACTE_INTROUVABLE" -> 3;
+                case "ACTE_TROUVE" -> 4;
+                case "SIGNEE", "LIVREE" -> 5;
+                default -> 0;
+            };
+        }
+
+        public boolean arretee() { return "REJETEE".equals(statut) || "ANNULEE".equals(statut); }
+
+        /**
+         * Étape en cours dans le suivi (les précédentes sont franchies ; 6 quand tout est terminé). Pour une demande rejetée ou annulée, c'est l'étape où elle s'est arrêtée
+         * (la suivante après la dernière atteinte).
+         */
+        public int etapeCourante() {
+            if (!arretee()) return etapeDe(statut) + 1; // 6 = tout est terminé
+            int atteinte = historique == null ? 1 : historique.stream().mapToInt(h -> etapeDe(h.nouveauStatut())).max().orElse(1);
+            return Math.min(atteinte + 1, 5);
+        }
     }
 
     public static String couleur(String statut) {

@@ -1,0 +1,14 @@
+<!-- Suivi visuel des étapes d'une demande -->
+<div xmlns:th="http://www.thymeleaf.org" th:fragment="suivi(d)" class="suivi" role="list" aria-label="Avancement de la demande"
+     th:with="c=${d.etapeCourante}">
+    <div th:each="e, i : ${ {'Déposée','Validée','Payée','Acte retrouvé','Délivrée'} }" role="listitem"
+         th:with="n=${i.count}"
+         th:class="'suivi-etape ' + (${n < c} ? 'fait' : (${n == c} ? (${d.arretee} ? 'arret' : 'courant') : ''))">
+        <div class="suivi-rond">
+            <i th:if="${n < c}" class="bi bi-check-lg"></i>
+            <i th:if="${n == c and d.arretee}" class="bi bi-x-lg"></i>
+            <span th:if="${n >= c and !(n == c and d.arretee)}" th:text="${n}"></span>
+        </div>
+        <div class="suivi-libelle" th:text="${n == c and d.arretee} ? ${d.libelleStatut} : ${e}"></div>
+    </div>
+</div>

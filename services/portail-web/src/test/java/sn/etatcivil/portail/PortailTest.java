@@ -40,9 +40,12 @@ class PortailTest {
     void pagesPubliquesEtControleDesRoles() throws Exception {
         when(api.documents()).thenReturn(List.of(new Vues.TypeDocument(1L, "EXTRAIT_NAISSANCE", "Extrait d'acte de naissance",
                 "desc", "NAISSANCE", false, false, 1000, 2, true)));
-        mvc.perform(get("/")).andExpect(status().isOk()).andExpect(content().string(org.hamcrest.Matchers.containsString("À partir de 1.000 FCFA")));
+        mvc.perform(get("/")).andExpect(status().isOk()).andExpect(content().string(org.hamcrest.Matchers.containsString(">1 000<")));
         mvc.perform(get("/documents")).andExpect(status().isOk());
         mvc.perform(get("/verification")).andExpect(status().isOk());
+        for (String ressource : List.of("/css/app.css", "/js/app.js", "/fonts/jakarta.woff2", "/images/mairie-hall-portrait.webp")) {
+            mvc.perform(get(ressource)).andExpect(status().isOk());
+        }
         mvc.perform(get("/demandes")).andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrlPattern("**/oauth2/authorization/keycloak"));
         mvc.perform(get("/inscription")).andExpect(redirectedUrl("/oauth2/authorization/keycloak?inscription"));
