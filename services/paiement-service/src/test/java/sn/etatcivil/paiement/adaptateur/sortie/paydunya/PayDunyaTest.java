@@ -60,6 +60,9 @@ class PayDunyaTest {
 
     private void repondre(HttpExchange e, String json) throws IOException {
         var h = e.getRequestHeaders();
+        if ("POST".equals(e.getRequestMethod()) && h.getFirst("Content-Length") == null) {
+            throw new IllegalStateException("Requête envoyée sans Content-Length");
+        }
         requetes.add(e.getRequestURI().getPath() + " master=" + h.getFirst("PAYDUNYA-MASTER-KEY") + " private="
                 + h.getFirst("PAYDUNYA-PRIVATE-KEY") + " token=" + h.getFirst("PAYDUNYA-TOKEN") + " "
                 + new String(e.getRequestBody().readAllBytes(), StandardCharsets.UTF_8));

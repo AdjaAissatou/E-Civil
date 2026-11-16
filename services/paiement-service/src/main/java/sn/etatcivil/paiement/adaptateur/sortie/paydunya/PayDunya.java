@@ -3,6 +3,7 @@ package sn.etatcivil.paiement.adaptateur.sortie.paydunya;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.http.MediaType;
+import org.springframework.http.client.BufferingClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
@@ -49,7 +50,9 @@ class PayDunya implements PasserellePaiement {
         var fabrique = new SimpleClientHttpRequestFactory();
         fabrique.setConnectTimeout(Duration.ofSeconds(10));
         fabrique.setReadTimeout(Duration.ofSeconds(30));
-        this.http = builder.baseUrl(config.urlApi()).requestFactory(fabrique)
+        // Corps mis en mémoire tampon : la requête part avec un Content-Length au lieu d'un envoi « chunked »,
+        // que certains serveurs refusent.
+        this.http = builder.baseUrl(config.urlApi()).requestFactory(new BufferingClientHttpRequestFactory(fabrique))
                 .defaultHeader("PAYDUNYA-MASTER-KEY", valeur(config.masterKey()))
                 .defaultHeader("PAYDUNYA-PRIVATE-KEY", valeur(config.privateKey()))
                 .defaultHeader("PAYDUNYA-TOKEN", valeur(config.token()))
