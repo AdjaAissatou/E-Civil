@@ -86,6 +86,7 @@ services:
     environment:
       <<: *environnement
       REGISTRE_DB_URL: jdbc:postgresql://postgres:5432/registre
+      SPRING_PROFILES_ACTIVE: ${ECIVIL_MODE:-production}
 
   demande-service:
     <<: *service

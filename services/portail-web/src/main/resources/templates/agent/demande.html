@@ -28,7 +28,7 @@
                     <dt class="col-sm-4" th:if="${acte.nomMere}">Mère</dt><dd class="col-sm-8" th:if="${acte.nomMere}" th:text="${acte.prenomMere} + ' ' + ${acte.nomMere}"></dd>
                     <dt class="col-sm-4" th:if="${acte.nomConjoint}">Conjoint</dt><dd class="col-sm-8" th:if="${acte.nomConjoint}" th:text="${acte.prenomConjoint} + ' ' + ${acte.nomConjoint}"></dd>
                     <dt class="col-sm-4">Centre</dt><dd class="col-sm-8" th:text="${acte.centre}"></dd>
-                    <dt class="col-sm-4">Statut</dt><dd class="col-sm-8" th:text="${acte.statut}"></dd>
+                    <dt class="col-sm-4">Statut</dt><dd class="col-sm-8" th:text="${acte.statut == 'VALIDE'} ? 'Validé par l\'officier' : 'Saisi, en attente de validation'"></dd>
                 </dl>
             </div></div>
             <div class="alert alert-secondary" th:if="${registreIndisponible}">Le registre national ne répond pas : l'acte ne peut pas être affiché.</div>

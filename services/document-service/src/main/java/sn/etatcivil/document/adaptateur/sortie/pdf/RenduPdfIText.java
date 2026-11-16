@@ -34,9 +34,9 @@ import java.util.Locale;
 @Component
 class RenduPdfIText implements RenduPdf {
 
-    private static final Color BRUN = new DeviceRgb(92, 61, 46);
-    private static final Color OR = new DeviceRgb(205, 153, 0);
-    private static final Color VERT = new DeviceRgb(0, 133, 63);
+    private static final Color VERT_NUIT = new DeviceRgb(5, 58, 44);
+    private static final Color OR = new DeviceRgb(184, 134, 43);
+    private static final Color VERT = new DeviceRgb(14, 138, 102);
     private static final DateTimeFormatter JOUR = DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.FRENCH);
     private static final DateTimeFormatter HORODATAGE = DateTimeFormatter.ofPattern("dd/MM/yyyy 'à' HH:mm", Locale.FRENCH)
             .withZone(ZoneId.of("Africa/Dakar"));
@@ -57,7 +57,7 @@ class RenduPdfIText implements RenduPdf {
             page.setMargins(40, 50, 40, 50);
 
             page.add(new Paragraph("RÉPUBLIQUE DU SÉNÉGAL").setBold().setFontSize(13)
-                    .setTextAlignment(TextAlignment.CENTER).setFontColor(BRUN).setMarginBottom(0));
+                    .setTextAlignment(TextAlignment.CENTER).setFontColor(VERT_NUIT).setMarginBottom(0));
             page.add(new Paragraph("Un Peuple – Un But – Une Foi").setItalic().setFontSize(9)
                     .setTextAlignment(TextAlignment.CENTER).setMarginTop(0));
             page.add(new Paragraph("ÉTAT CIVIL — " + a.centre().toUpperCase(Locale.FRENCH)
@@ -68,7 +68,7 @@ class RenduPdfIText implements RenduPdf {
             page.add(new LineSeparator(trait).setMarginBottom(12));
 
             page.add(new Paragraph(doc.libelleDocument().toUpperCase(Locale.FRENCH)).setBold().setFontSize(15)
-                    .setTextAlignment(TextAlignment.CENTER).setFontColor(BRUN));
+                    .setTextAlignment(TextAlignment.CENTER).setFontColor(VERT_NUIT));
             page.add(new Paragraph("Acte n° " + a.numeroActe() + "  •  Année " + a.annee()
                     + registrePapier(a)).setFontSize(10).setTextAlignment(TextAlignment.CENTER).setMarginBottom(14));
 
@@ -135,18 +135,18 @@ class RenduPdfIText implements RenduPdf {
         PdfFormXObject image = qr.createFormXObject(ColorConstants.BLACK, pdf);
         Image code = new Image(image).setWidth(95).setHeight(95);
 
-        Table t = new Table(UnitValue.createPercentArray(new float[]{70, 30})).useAllAvailableWidth().setMarginTop(24);
+        Table t = new Table(UnitValue.createPercentArray(new float[]{70, 30})).useAllAvailableWidth();
         Cell texte = new Cell().setBorder(null).setVerticalAlignment(VerticalAlignment.MIDDLE)
                 .add(new Paragraph("Délivré le " + HORODATAGE.format(doc.dateSignature())).setFontSize(10))
                 .add(new Paragraph("L'Officier de l'état civil : " + doc.signataire()).setBold().setFontSize(10))
                 .add(new Paragraph("Signé électroniquement").setFontSize(9).setFontColor(VERT))
                 .add(new Paragraph("Code de vérification : " + doc.codeVerification()).setBold().setFontSize(11)
-                        .setFontColor(BRUN))
+                        .setFontColor(VERT_NUIT))
                 .add(new Paragraph("Empreinte SHA-256 : " + doc.empreinte()).setFontSize(6.5f)
                         .setFontColor(ColorConstants.GRAY));
         t.addCell(texte);
-        t.addCell(new Cell().setBorder(null).add(code).setTextAlignment(TextAlignment.RIGHT));
-        Div bloc = new Div().setBorder(new SolidBorder(BRUN, 1)).setPadding(10).setMarginTop(20);
+        t.addCell(new Cell().setBorder(null).setVerticalAlignment(VerticalAlignment.MIDDLE).add(code).setTextAlignment(TextAlignment.RIGHT));
+        Div bloc = new Div().setBorder(new SolidBorder(VERT_NUIT, 1)).setPadding(12).setMarginTop(24);
         bloc.add(t);
         return bloc;
     }
@@ -162,7 +162,7 @@ class RenduPdfIText implements RenduPdf {
     private static void ajouterBloc(Document page, String titre, String texte, String siVide) {
         String contenu = texte == null || texte.isBlank() ? siVide : texte;
         if (contenu == null) return;
-        page.add(new Paragraph(titre).setBold().setFontSize(10).setFontColor(BRUN).setMarginTop(12).setMarginBottom(2));
+        page.add(new Paragraph(titre).setBold().setFontSize(10).setFontColor(VERT_NUIT).setMarginTop(12).setMarginBottom(2));
         page.add(new Paragraph(contenu).setFontSize(10).setBorderLeft(new SolidBorder(OR, 2)).setPaddingLeft(8));
     }
 

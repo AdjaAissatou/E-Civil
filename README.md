@@ -144,6 +144,16 @@ enregistré est détectée. Il s'agit d'une signature applicative, pas d'une sig
 | <http://localhost:8180> | Keycloak (console d'administration) |
 | <http://localhost:15672> | Console RabbitMQ (pour voir passer les événements) |
 
+### Mode démonstration
+
+Avec `ECIVIL_MODE=demo` dans `.env`, registre-service ajoute au registre national 11 actes **fictifs**
+(naissances, mariages, divorce, décès, dont 2 encore à valider), pour présenter la plateforme sans saisie
+préalable. Par exemple, une demande d'extrait de naissance pour **Ousmane Sarr**, né le 22/07/1995 à Thiès,
+de Abdoulaye Sarr et Khady Faye, retrouve aussitôt l'acte `N-1995-000001` après le paiement.
+
+Le jeu est chargé une seule fois, à la création de la base (`db/demo/V1000__actes_demo.sql`) : pour revenir à un
+registre vide, repasser en `ECIVIL_MODE=production` et recréer les volumes (`docker compose down -v`).
+
 ### Paiement PayDunya
 
 Créer une application en **mode test** sur <https://app.paydunya.com>, puis recopier la clé principale, la

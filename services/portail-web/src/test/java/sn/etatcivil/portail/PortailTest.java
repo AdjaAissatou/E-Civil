@@ -59,6 +59,27 @@ class PortailTest {
     }
 
     @Test
+    void ficheDeControleDeLOfficierSAffiche() throws Exception {
+        java.util.UUID id = java.util.UUID.randomUUID(), acteId = java.util.UUID.randomUUID();
+        Instant t = Instant.now();
+        java.time.LocalDate naissance = java.time.LocalDate.of(1995, 7, 22);
+        when(api.demande(id)).thenReturn(new Vues.Demande(id, "DEM-2026-000001", "ACTE_TROUVE", "Acte retrouvé", "",
+                false, "u-1", "Ousmane Sarr", "ousmane@example.sn", 1L, "Extrait d'acte de naissance", "NAISSANCE", false, 1000,
+                "Dossier administratif", "Moi-même", "NUMERIQUE", null, null, "Sarr", "Ousmane", "M", naissance, "Thiès",
+                "Sarr", "Abdoulaye", "Faye", "Khady", null, null, null, acteId, "N-1995-000001", null, null, null,
+                null, null, t, t, List.of()));
+        when(api.paiements(id)).thenReturn(List.of());
+        when(api.acte(acteId)).thenReturn(new Vues.Acte(acteId, "NAISSANCE", "N-1995-000001", 1995, "VALIDE",
+                "Centre principal de Thiès", "Thiès", "4", "112", naissance, "Thiès", "Sarr", "Ousmane", "M", naissance, "Thiès",
+                "Sarr", "Abdoulaye", "Faye", "Khady", null, null, null, null, null, null, null, null, null, null,
+                "Agent", t, t));
+        mvc.perform(get("/back-office/demandes/" + id).with(utilisateur("OFFICIER")))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Validé par l&#39;officier")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Signer et délivrer")));
+    }
+
+    @Test
     void formulairesSAffichent() throws Exception {
         when(api.document(1L)).thenReturn(new Vues.TypeDocument(1L, "EXTRAIT_MARIAGE", "Extrait d'acte de mariage",
                 "desc", "MARIAGE", true, false, 1500, 3, true));
