@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: page('Vérifier un document', ~{::main})}">
+<body>
+<main class="container py-4" style="max-width: 820px">
+    <h1 class="h3">Vérifier l'authenticité d'un document</h1>
+    <p class="text-muted">Saisissez le code de vérification imprimé sur le document (format XXXXX-XXXXX) ou scannez son QR code.</p>
+    <form class="d-flex gap-2 mb-4" th:action="@{/verification}" method="get">
+        <input class="form-control" name="code" placeholder="ABCDE-12345" th:value="${code}" required maxlength="11">
+        <button class="btn btn-primary" type="submit">Vérifier</button>
+    </form>
+
+    <div th:if="${code != null and document == null}" class="alert alert-danger">
+        <i class="bi bi-x-octagon me-2"></i>Aucun document délivré par E-Civil ne porte le code
+        <strong th:text="${code}"></strong>. Ce document n'est pas authentique ou le code a été mal saisi.
+    </div>
+
+    <div th:if="${document}" class="card border-success">
+        <div class="card-header bg-success text-white"><i class="bi bi-patch-check me-2"></i>Document authentique</div>
+        <div class="card-body">
+            <p>Ce document a été délivré par E-Civil. Comparez les informations ci-dessous avec celles du document présenté :
+               toute différence signifie qu'il a été falsifié.</p>
+            <dl class="row fiche">
+                <dt class="col-sm-4">Document</dt><dd class="col-sm-8" th:text="${document.libelleDocument}"></dd>
+                <dt class="col-sm-4">Numéro d'acte</dt><dd class="col-sm-8" th:text="${document.acte.numeroActe}"></dd>
+                <dt class="col-sm-4">Centre d'état civil</dt><dd class="col-sm-8" th:text="${document.acte.centre}"></dd>
+                <dt class="col-sm-4" th:text="${document.acte.typeActe == 'RECONNAISSANCE'} ? 'Enfant reconnu' : 'Titulaire'">Titulaire</dt><dd class="col-sm-8" th:text="${document.acte.prenom} + ' ' + ${document.acte.nom}"></dd>
+                <dt class="col-sm-4" th:if="${document.acte.nomConjoint}">Conjoint</dt>
+                <dd class="col-sm-8" th:if="${document.acte.nomConjoint}" th:text="${document.acte.prenomConjoint} + ' ' + ${document.acte.nomConjoint}"></dd>
+                <dt class="col-sm-4">Date de l'événement</dt>
+                <dd class="col-sm-8" th:text="${#temporals.format(document.acte.dateEvenement, 'dd/MM/yyyy')} + ' à ' + ${document.acte.lieuEvenement}"></dd>
+                <th:block th:if="${document.acte.libelleOrigine}">
+                    <dt class="col-sm-4" th:text="${document.acte.libelleOrigine}"></dt>
+                    <dd class="col-sm-8" th:text="${document.acte.referenceOrigine}"></dd>
+                </th:block>
+                <th:block th:if="${document.complements != null and document.complements.constat != null}">
+                    <dt class="col-sm-4">Constat</dt><dd class="col-sm-8" th:text="${document.complements.constat}"></dd>
+                </th:block>
+                <th:block th:if="${document.complements != null and !#lists.isEmpty(document.complements.enfants)}">
+                    <dt class="col-sm-4">Enfants inscrits</dt>
+                    <dd class="col-sm-8"><span th:each="e, i : ${document.complements.enfants}"
+                        th:text="${e.prenom} + ' ' + ${e.nom} + ' (' + ${e.numeroActe} + ')' + (${i.last} ? '' : ', ')"></span></dd>
+                </th:block>
+                <dt class="col-sm-4">Signé par</dt><dd class="col-sm-8" th:text="${document.signataire}"></dd>
+                <dt class="col-sm-4">Date de délivrance</dt><dd class="col-sm-8" th:text="${@dates.heure(document.dateSignature)}"></dd>
+                <dt class="col-sm-4">Empreinte SHA-256</dt><dd class="col-sm-8 small text-break" th:text="${document.empreinte}"></dd>
+            </dl>
+        </div>
+    </div>
+</main>
+</body>
+</html>

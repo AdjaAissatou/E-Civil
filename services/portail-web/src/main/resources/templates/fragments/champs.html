@@ -1,0 +1,9 @@
+<!-- Champ de formulaire Bootstrap avec message d'erreur de validation -->
+<div xmlns:th="http://www.thymeleaf.org" th:fragment="texte(champ, libelle, type, requis)" class="mb-3">
+    <label class="form-label" th:for="${champ}">
+        <span th:text="${libelle}"></span><span th:if="${requis}" class="text-danger"> *</span>
+    </label>
+    <input class="form-control" th:type="${type}" th:field="*{__${champ}__}" th:required="${requis}"
+           th:classappend="${#fields.hasErrors(champ)} ? 'is-invalid'">
+    <div class="invalid-feedback" th:if="${#fields.hasErrors(champ)}" th:errors="*{__${champ}__}"></div>
+</div>
