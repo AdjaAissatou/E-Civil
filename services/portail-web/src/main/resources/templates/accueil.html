@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{fragments/layout :: page('Accueil', ~{::main})}">
+<body>
+<main>
+    <!-- ============================================================ Bandeau -->
+    <section class="hero">
+        <div class="container">
+            <div class="row align-items-center g-5">
+                <div class="col-lg-6">
+                    <span class="hero-etiquette entree"><span class="point"><i class="bi bi-stars"></i></span>Le service public de l'état civil, en ligne</span>
+                    <h1 class="entree" style="--delai: 80ms">Vos actes d'état civil, <span class="italique-or d-block">sans faire la queue.</span></h1>
+                    <p class="lead entree" style="--delai: 160ms">Demandez un extrait ou une copie d'acte de naissance, de mariage, de divorce ou de décès.
+                        Payez depuis votre téléphone et recevez un document signé, vérifiable par QR code.</p>
+                    <div class="d-flex flex-wrap gap-3 mt-4 entree" style="--delai: 240ms">
+                        <a sec:authorize="isAnonymous()" th:href="@{/inscription}" class="btn btn-or btn-lg">
+                            Faire ma demande <i class="bi bi-arrow-right ms-1"></i></a>
+                        <a sec:authorize="isAuthenticated()" th:href="@{/espace}" class="btn btn-or btn-lg">
+                            Mon espace <i class="bi bi-arrow-right ms-1"></i></a>
+                        <a th:href="@{/documents}" class="btn btn-verre btn-lg">Voir les documents</a>
+                    </div>
+                    <div class="hero-preuves entree" style="--delai: 320ms">
+                        <span><i class="bi bi-phone"></i>Wave, Orange Money, carte</span>
+                        <span><i class="bi bi-qr-code-scan"></i>Authenticité vérifiable</span>
+                        <span><i class="bi bi-globe-europe-africa"></i>Ouvert à la diaspora</span>
+                    </div>
+                </div>
+
+                <!-- Illustration : le hall de la mairie, et l'acte délivré qui en sort -->
+                <div class="col-lg-6">
+                    <div class="vitrine entree" style="--delai: 200ms">
+                        <figure class="vitrine-photo">
+                            <img th:src="@{/images/mairie-hall-portrait.webp}" width="760" height="950"
+                                 alt="Une usagère fait sa démarche au guichet numérique de la mairie de Dakar">
+                        </figure>
+                        <div class="maquette-acte" aria-hidden="true">
+                            <div class="maquette-sceau"><div><i class="bi bi-patch-check-fill"></i>SIGNÉ</div></div>
+                            <div class="maquette-entete">
+                                <div class="rep">RÉPUBLIQUE DU SÉNÉGAL</div>
+                                <div class="devise">Un Peuple – Un But – Une Foi</div>
+                            </div>
+                            <div class="maquette-titre">Extrait d'acte de naissance</div>
+                            <div class="maquette-num">Acte n° N-1998-000042 · Dakar Plateau</div>
+                            <div class="maquette-ligne"><span>Nom</span><span>DIALLO</span></div>
+                            <div class="maquette-ligne"><span>Prénoms</span><span>Fatou Bintou</span></div>
+                            <div class="maquette-ligne"><span>Née le</span><span>14 mars 1998</span></div>
+                            <div class="maquette-pied">
+                                <div class="maquette-signature"><strong>L'Officier</strong>Code ABCDE-23456</div>
+                                <div class="maquette-qr"><img th:src="@{/images/qr-illustration.svg}" alt=""></div>
+                            </div>
+                        </div>
+                        <div class="bulle bulle-paiement" aria-hidden="true">
+                            <span class="icone"><i class="bi bi-check2-circle"></i></span>
+                            <span><strong>Paiement confirmé</strong><small>1 000 FCFA · Wave</small></span>
+                        </div>
+                        <div class="bulle bulle-verif" aria-hidden="true">
+                            <span class="icone"><i class="bi bi-shield-check"></i></span>
+                            <span><strong>Document authentique</strong><small>Vérifié par QR code</small></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================ Moyens de paiement -->
+    <section class="bande-paiement">
+        <div class="container d-flex flex-column flex-md-row align-items-center justify-content-between gap-3">
+            <span class="libelle">Payez comme vous voulez</span>
+            <div class="d-flex flex-wrap justify-content-center gap-2">
+                <span class="moyen"><span class="puce" style="background:#1dc3f0"></span>Wave</span>
+                <span class="moyen"><span class="puce" style="background:#ff7900"></span>Orange Money</span>
+                <span class="moyen"><span class="puce" style="background:#d6262f"></span>Free Money</span>
+                <span class="moyen"><i class="bi bi-credit-card-2-front"></i>Carte bancaire</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================ Documents -->
+    <section id="services" class="section">
+        <div class="container">
+            <div class="section-titre reveler">
+                <span class="surtitre">Nos documents</span>
+                <h2>Chaque moment de la vie a son acte</h2>
+                <p>Extraits et copies intégrales, délivrés à partir du registre national et signés par un officier de l'état civil.</p>
+            </div>
+            <div class="row g-4">
+                <div class="col-sm-6 col-lg-3 reveler" style="--delai: 0ms">
+                    <article class="carte-service accent-naissance">
+                        <div class="pictogramme"><img th:src="@{/images/birth.png}" alt=""></div>
+                        <h3>Naissance</h3>
+                        <p>Pour une inscription, un passeport, une carte d'identité ou un dossier administratif.</p>
+                        <div class="d-flex align-items-end justify-content-between">
+                            <div class="prix" th:if="${aPartirDe['NAISSANCE']}"><span class="depuis">dès</span>
+                                <span class="montant" th:text="${#numbers.formatInteger(aPartirDe['NAISSANCE'], 1, 'WHITESPACE')}">1 000</span><span class="devise">FCFA</span></div>
+                            <a th:href="@{/documents}" class="lien-fleche">Choisir <i class="bi bi-arrow-right"></i></a>
+                        </div>
+                    </article>
+                </div>
+                <div class="col-sm-6 col-lg-3 reveler" style="--delai: 90ms">
+                    <article class="carte-service accent-mariage">
+                        <div class="pictogramme"><img th:src="@{/images/marriage.png}" alt=""></div>
+                        <h3>Mariage</h3>
+                        <p>L'acte qui atteste votre union et l'identité des époux, avec ses mentions.</p>
+                        <div class="d-flex align-items-end justify-content-between">
+                            <div class="prix" th:if="${aPartirDe['MARIAGE']}"><span class="depuis">dès</span>
+                                <span class="montant" th:text="${#numbers.formatInteger(aPartirDe['MARIAGE'], 1, 'WHITESPACE')}">1 500</span><span class="devise">FCFA</span></div>
+                            <a th:href="@{/documents}" class="lien-fleche">Choisir <i class="bi bi-arrow-right"></i></a>
+                        </div>
+                    </article>
+                </div>
+                <div class="col-sm-6 col-lg-3 reveler" style="--delai: 180ms">
+                    <article class="carte-service accent-divorce">
+                        <div class="pictogramme"><i class="bi bi-file-earmark-break" style="font-size: 1.9rem; color: var(--ciel)"></i></div>
+                        <h3>Divorce</h3>
+                        <p>L'extrait qui atteste la dissolution du mariage, pour vos démarches.</p>
+                        <div class="d-flex align-items-end justify-content-between">
+                            <div class="prix" th:if="${aPartirDe['DIVORCE']}"><span class="depuis">dès</span>
+                                <span class="montant" th:text="${#numbers.formatInteger(aPartirDe['DIVORCE'], 1, 'WHITESPACE')}">1 500</span><span class="devise">FCFA</span></div>
+                            <a th:href="@{/documents}" class="lien-fleche">Choisir <i class="bi bi-arrow-right"></i></a>
+                        </div>
+                    </article>
+                </div>
+                <div class="col-sm-6 col-lg-3 reveler" style="--delai: 270ms">
+                    <article class="carte-service accent-deces">
+                        <div class="pictogramme"><img th:src="@{/images/death.png}" alt=""></div>
+                        <h3>Décès</h3>
+                        <p>Pour une succession, une pension ou les formalités auprès des administrations.</p>
+                        <div class="d-flex align-items-end justify-content-between">
+                            <div class="prix" th:if="${aPartirDe['DECES']}"><span class="depuis">dès</span>
+                                <span class="montant" th:text="${#numbers.formatInteger(aPartirDe['DECES'], 1, 'WHITESPACE')}">1 000</span><span class="devise">FCFA</span></div>
+                            <a th:href="@{/documents}" class="lien-fleche">Choisir <i class="bi bi-arrow-right"></i></a>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================ Parcours -->
+    <section id="parcours" class="section" style="background: var(--sable)">
+        <div class="container">
+            <div class="section-titre reveler">
+                <span class="surtitre">Comment ça marche</span>
+                <h2>Quatre étapes, zéro déplacement</h2>
+                <p>Vous suivez chaque étape depuis votre espace, et un email vous prévient à chaque avancée.</p>
+            </div>
+            <div class="parcours">
+                <div class="parcours-etape reveler" style="--delai: 0ms">
+                    <div class="parcours-num">1</div>
+                    <h3>Je fais ma demande</h3>
+                    <p>Je choisis le document et j'indique la personne concernée.</p>
+                </div>
+                <div class="parcours-etape reveler" style="--delai: 120ms">
+                    <div class="parcours-num">2</div>
+                    <h3>Un délégué la vérifie</h3>
+                    <p>La demande est examinée par l'état civil avant tout paiement.</p>
+                </div>
+                <div class="parcours-etape reveler" style="--delai: 240ms">
+                    <div class="parcours-num">3</div>
+                    <h3>Je paie en ligne</h3>
+                    <p>Wave, Orange Money, Free Money ou carte : l'acte est aussitôt recherché.</p>
+                </div>
+                <div class="parcours-etape reveler" style="--delai: 360ms">
+                    <div class="parcours-num">4</div>
+                    <h3>Je reçois mon acte</h3>
+                    <p>Signé par l'officier : je le télécharge en PDF ou je le reçois par courrier.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================ Des agents derrière chaque demande -->
+    <section class="section">
+        <div class="container">
+            <div class="row align-items-center g-5">
+                <div class="col-lg-6 reveler">
+                    <div class="photo-cadre">
+                        <img th:src="@{/images/guichet-etat-civil.webp}" width="1200" height="800"
+                             alt="Une agente de l'état civil traite une demande à son poste, devant le guichet">
+                        <div class="photo-carte">
+                            <span class="icone"><i class="bi bi-person-badge"></i></span>
+                            <div><strong>Traitée par l'état civil</strong><small>Délégué, agent du registre, officier</small></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <span class="surtitre reveler">Un vrai service public</span>
+                    <h2 class="mt-3 mb-3 reveler" style="font-size: clamp(2rem, 3.4vw, 2.7rem)">Derrière chaque demande, des agents de l'état civil</h2>
+                    <p class="mb-4 reveler">E-Civil ne remplace pas la mairie : il vous évite simplement de vous y rendre.
+                        Votre demande suit le même chemin qu'au guichet, en toute transparence.</p>
+                    <ul class="liste-etapes list-unstyled">
+                        <li class="reveler" style="--delai: 0ms"><span class="pastille-num">1</span><div><strong>Le délégué</strong> vérifie la cohérence de votre demande.</div></li>
+                        <li class="reveler" style="--delai: 100ms"><span class="pastille-num">2</span><div><strong>L'agent du registre</strong> retrouve l'acte, et le transcrit depuis les registres papier si besoin.</div></li>
+                        <li class="reveler" style="--delai: 200ms"><span class="pastille-num">3</span><div><strong>L'officier de l'état civil</strong> contrôle l'acte et signe votre document.</div></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================ Confiance et vérification -->
+    <section class="pb-5">
+        <div class="container">
+            <div class="bloc-sombre p-4 p-md-5 reveler">
+                <div class="row g-5 align-items-center position-relative">
+                    <div class="col-lg-6">
+                        <span class="surtitre">Confiance</span>
+                        <h2 class="mt-3 mb-3" style="font-size: clamp(1.9rem, 3.2vw, 2.6rem)">Un document qui se vérifie en un instant</h2>
+                        <p class="mb-4">Chaque acte délivré porte un code unique et un QR code. Une administration, un employeur ou
+                            une ambassade peut contrôler son authenticité, sans vous appeler.</p>
+                        <div class="atout"><span class="icone"><i class="bi bi-fingerprint"></i></span>
+                            <div><h3>Empreinte numérique</h3><p>Le contenu signé est scellé : la moindre modification serait détectée.</p></div></div>
+                        <div class="atout"><span class="icone"><i class="bi bi-lock"></i></span>
+                            <div><h3>Données protégées</h3><p>Connexion sécurisée, et chacun n'accède qu'à ses propres demandes.</p></div></div>
+                        <div class="atout"><span class="icone"><i class="bi bi-bell"></i></span>
+                            <div><h3>Toujours informé</h3><p>Un email à chaque étape, du dépôt à la délivrance.</p></div></div>
+                    </div>
+                    <div class="col-lg-5 offset-lg-1">
+                        <div class="verif-demo">
+                            <div class="d-flex align-items-center gap-3 mb-3">
+                                <div class="maquette-qr flex-shrink-0"><img th:src="@{/images/qr-illustration.svg}" alt=""></div>
+                                <div><strong class="text-white d-block">Vérifier un document</strong>
+                                    <small style="color: rgba(255,255,255,.65)">Scannez le QR code ou saisissez le code</small></div>
+                            </div>
+                            <form class="champ" th:action="@{/verification}" method="get">
+                                <input class="code form-control" name="code" placeholder="ABCDE-23456" maxlength="11" aria-label="Code de vérification">
+                                <button class="btn btn-or" type="submit">Vérifier</button>
+                            </form>
+                            <div class="resultat"><i class="bi bi-patch-check-fill"></i>Document authentique, délivré par E-Civil</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================ FAQ -->
+    <section id="faq" class="section pt-4">
+        <div class="container" style="max-width: 860px">
+            <div class="section-titre reveler">
+                <span class="surtitre">Questions fréquentes</span>
+                <h2>Tout ce qu'il faut savoir</h2>
+            </div>
+            <div class="accordion reveler" id="faqAccordion">
+                <div class="accordion-item">
+                    <h3 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#q1">
+                        Puis-je demander l'acte d'un proche ?</button></h3>
+                    <div id="q1" class="accordion-collapse collapse" data-bs-parent="#faqAccordion"><div class="accordion-body">
+                        Oui : indiquez votre lien avec la personne (enfant, parent, conjoint, mandataire). Le délégué vérifie la légitimité de la demande avant le paiement.</div></div>
+                </div>
+                <div class="accordion-item">
+                    <h3 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#q2">
+                        Quand dois-je payer ?</button></h3>
+                    <div id="q2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion"><div class="accordion-body">
+                        Seulement après la validation de votre demande par un délégué. Vous recevez alors un email et le bouton « Payer en ligne » apparaît dans votre espace.</div></div>
+                </div>
+                <div class="accordion-item">
+                    <h3 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#q3">
+                        Et si mon acte n'est pas encore numérisé ?</button></h3>
+                    <div id="q3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion"><div class="accordion-body">
+                        Un agent du registre le retrouve dans les registres papier et le transcrit. Dès qu'un officier le valide, votre demande reprend automatiquement son cours.</div></div>
+                </div>
+                <div class="accordion-item">
+                    <h3 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#q4">
+                        Comment une administration vérifie-t-elle mon document ?</button></h3>
+                    <div id="q4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion"><div class="accordion-body">
+                        En scannant son QR code ou en saisissant son code sur la page <a th:href="@{/verification}">Vérifier un document</a>. Elle voit alors le contenu authentique de l'acte.</div></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================ Appel à l'action -->
+    <section class="pb-5 mb-5">
+        <div class="container">
+            <div class="cta reveler">
+                <div class="row align-items-center g-4">
+                    <div class="col-lg-8">
+                        <h2 class="mb-2">Prêt à obtenir votre acte ?</h2>
+                        <p class="mb-0">Créez votre compte en deux minutes, et suivez votre demande jusqu'à la délivrance.</p>
+                    </div>
+                    <div class="col-lg-4 text-lg-end">
+                        <a sec:authorize="isAnonymous()" th:href="@{/inscription}" class="btn btn-primary btn-lg">Créer mon compte <i class="bi bi-arrow-right ms-1"></i></a>
+                        <a sec:authorize="isAuthenticated()" th:href="@{/documents}" class="btn btn-primary btn-lg">Faire une demande <i class="bi bi-arrow-right ms-1"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+</body>
+</html>

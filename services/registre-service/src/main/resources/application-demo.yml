@@ -1,0 +1,4 @@
+# Mode démonstration (ECIVIL_MODE=demo) : ajoute au registre des actes fictifs pour présenter la plateforme.
+spring:
+  flyway:
+    locations: classpath:db/migration,classpath:db/socle,classpath:db/demo

@@ -1,4 +1,18 @@
-﻿target/
+# Compilation
+target/
 *.class
+*.war
+*.jar
+
+# IDE
 .idea/
 *.iml
+.classpath
+.project
+.settings/
+.factorypath
+.vscode/
+
+# Secrets locaux : ne jamais committer
+.env
+*.local.properties
