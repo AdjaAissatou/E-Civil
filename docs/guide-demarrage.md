@@ -169,6 +169,8 @@ la demande passe « Acte non retrouvé » avec la raison, et un agent décide de
 | `port is already allocated` sur **8080** | Un autre serveur occupe le port, souvent le **Tomcat** de l'ancienne version : arrêtez-le. |
 | `port is already allocated` sur **8180** ou **15672** | Un autre programme utilise ce port : fermez-le. |
 | `java` n'est pas reconnu, ou `JAVA_HOME` est signalé incorrect | Réinstallez Temurin en cochant *Set JAVA_HOME* et *Add to PATH*, puis rouvrez PowerShell. |
+| `'C:\Users\Prénom' n'est pas reconnu` puis `Cannot start maven from wrapper` | Votre nom d'utilisateur Windows contient un espace. Récupérez la dernière version du projet (`git pull`) ou, en attendant, tapez `$env:MAVEN_USER_HOME = "C:\maven-wrapper"` avant `.\mvnw.cmd`. |
+| `COPY services/…/target/….jar` : `not found` lors de `docker compose up` | Les services n'ont pas été construits dans ce dossier : lancez d'abord `.\mvnw.cmd -DskipTests package` (fin : `BUILD SUCCESS`). |
 | `Cannot connect to the Docker daemon` | Docker Desktop n'est pas lancé. |
 | Un service redémarre en boucle (`docker compose ps`) | Souvent la mémoire : augmentez-la dans Docker Desktop. Sinon, lisez `docker compose logs <service>`. |
 | Erreur de connexion juste après le démarrage | Keycloak met une à deux minutes à être prêt : patientez puis rechargez la page. |

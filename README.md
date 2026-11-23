@@ -174,6 +174,13 @@ enregistré est détectée. Il s'agit d'une signature applicative, pas d'une sig
 | <http://localhost:8180> | Keycloak (console d'administration) |
 | <http://localhost:15672> | Console RabbitMQ (pour voir passer les événements) |
 
+### Thème Keycloak
+
+Les pages de connexion, d'inscription et l'espace « Mon compte » de Keycloak portent le style E-Civil
+(`infra/keycloak-theme/ecivil`). Le thème est monté dans le conteneur Keycloak et appliqué par défaut
+(`KC_SPI_THEME_DEFAULT`), y compris sur un realm déjà importé ; la console d'administration garde l'apparence
+d'origine de Keycloak.
+
 ### Mode démonstration
 
 Avec `ECIVIL_MODE=demo` dans `.env`, registre-service ajoute au registre national 16 actes **fictifs**

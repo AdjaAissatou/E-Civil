@@ -1,6 +1,8 @@
 {
   "realm": "ecivil",
   "displayName": "E-Civil Sénégal",
+  "loginTheme": "ecivil",
+  "accountTheme": "ecivil",
   "enabled": true,
   "registrationAllowed": true,
   "registrationEmailAsUsername": true,
