@@ -142,6 +142,9 @@ enregistré est détectée. Il s'agit d'une signature applicative, pas d'une sig
 
 ## Démarrer
 
+> Première installation ? Suivez le **[guide pas à pas](docs/guide-demarrage.md)** : outils à installer,
+> fichier `.env`, comptes agents, PayDunya en mode test, premier parcours et problèmes fréquents.
+
 **Prérequis :** Java 17 ou plus récent, Maven 3.9 et Docker Desktop.
 
 1. Copier `.env.example` en `.env`, puis remplir chaque valeur (mots de passe, secrets, PayDunya).
@@ -160,7 +163,8 @@ enregistré est détectée. Il s'agit d'une signature applicative, pas d'une sig
 
 4. Ouvrir <http://localhost:8080>. Le compte administrateur (`ECIVIL_ADMIN_EMAIL`) doit changer son mot de
    passe à la première connexion. Les comptes agents se créent dans la console Keycloak
-   (<http://localhost:8180>, realm `ecivil`), avec le rôle voulu.
+   (<http://localhost:8180>, realm `ecivil`), avec le rôle voulu, ou d'un coup pour la démonstration :
+   `./scripts/agents-demo.sh <mot de passe>`.
 
 | Adresse | Contenu |
 |---|---|

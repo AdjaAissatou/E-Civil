@@ -16,7 +16,8 @@
     <div class="card carte-statut-hero mb-4"><div class="card-body">
         <div th:replace="~{fragments/suivi :: suivi(${d})}"></div>
         <p class="text-center mb-0 mt-3" th:classappend="${d.arretee} ? 'text-danger' : ''">
-            <i class="bi bi-info-circle me-1"></i><span th:text="${d.explicationStatut}"></span>
+            <i class="bi bi-info-circle me-1"></i><span th:text="${d.statut == 'ACTE_INTROUVABLE' and d.noteRecherche != null}
+                ? ${d.noteRecherche} + ' Un agent examine votre demande.' : ${d.explicationStatut}"></span>
             <span th:if="${d.motifRejet}" th:text="' — ' + ${d.motifRejet}"></span>
         </p>
     </div></div>
