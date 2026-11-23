@@ -1,0 +1,78 @@
+/* Thème E-Civil pour l'espace « Mon compte » de Keycloak (PatternFly 5). */
+
+@font-face { font-family: "Fraunces"; src: url("../fonts/fraunces.woff2") format("woff2"); font-weight: 400 800; font-display: swap; }
+@font-face { font-family: "Plus Jakarta Sans"; src: url("../fonts/jakarta.woff2") format("woff2"); font-weight: 300 800; font-display: swap; }
+
+:root {
+  --pf-v5-global--FontFamily--text: "Plus Jakarta Sans", system-ui, sans-serif;
+  --pf-v5-global--FontFamily--heading: "Fraunces", Georgia, serif;
+  --pf-v5-global--primary-color--100: #0a6b50;
+  --pf-v5-global--primary-color--200: #07513d;
+  --pf-v5-global--primary-color--dark-100: #17a87c;
+  --pf-v5-global--link--Color: #0a6b50;
+  --pf-v5-global--link--Color--hover: #07513d;
+  --pf-v5-global--active-color--100: #0a6b50;
+  --pf-v5-global--BackgroundColor--200: #faf8f3;
+  --pf-v5-global--BorderRadius--sm: 10px;
+}
+
+body { font-family: "Plus Jakarta Sans", system-ui, sans-serif; background: #faf8f3; }
+
+/* Bandeau supérieur */
+.pf-v5-c-page__header, .pf-v5-c-masthead {
+  --pf-v5-c-page__header--BackgroundColor: #053a2c;
+  --pf-v5-c-masthead--BackgroundColor: #053a2c;
+  background: linear-gradient(90deg, #03241b, #053a2c 60%, #07513d);
+  box-shadow: inset 0 -3px 0 #d9a441;
+}
+.pf-v5-c-page__header-brand-link img, .pf-v5-c-brand { max-height: 40px; }
+.pf-v5-c-page__header-tools .pf-v5-c-menu-toggle:not(.pf-m-plain) {
+  --pf-v5-c-menu-toggle--BackgroundColor: rgba(255, 255, 255, .08);
+  --pf-v5-c-menu-toggle--Color: #fff;
+  --pf-v5-c-menu-toggle--before--BorderColor: rgba(255, 255, 255, .25);
+  --pf-v5-c-menu-toggle--hover--before--BorderColor: #d9a441;
+  border-radius: 999px;
+}
+.pf-v5-c-page__header-tools .pf-v5-c-menu-toggle::before { border-radius: 999px; }
+
+/* Menu latéral */
+.pf-v5-c-page__sidebar {
+  --pf-v5-c-page__sidebar--BackgroundColor: #03241b;
+}
+.pf-v5-c-nav {
+  --pf-v5-c-nav__link--m-current--BackgroundColor: rgba(217, 164, 65, .14);
+  --pf-v5-c-nav__link--m-current--Color: #fff;
+  --pf-v5-c-nav__link--hover--BackgroundColor: rgba(255, 255, 255, .06);
+  --pf-v5-c-nav__link--m-current--after--BorderColor: #d9a441;
+  --pf-v5-c-nav__link--after--BorderColor: transparent;
+  --pf-v5-c-nav__link--hover--after--BorderColor: rgba(217, 164, 65, .5);
+  --pf-v5-c-nav__link--Color: rgba(255, 255, 255, .78);
+}
+
+/* Contenu */
+.pf-v5-c-page__main-section.pf-m-light, .pf-v5-c-page__main-section {
+  --pf-v5-c-page__main-section--m-light--BackgroundColor: #ffffff;
+}
+.pf-v5-c-title, h1, h2, h3 { font-family: "Fraunces", Georgia, serif; letter-spacing: 0; }
+.pf-v5-c-title.pf-m-2xl, .pf-v5-c-title.pf-m-3xl { font-weight: 650; color: #0d1f1a; }
+
+/* Champs et boutons */
+.pf-v5-c-form-control {
+  --pf-v5-c-form-control--BorderRadius: 12px;
+  --pf-v5-c-form-control--focus--after--BorderBottomColor: #0e8a66;
+  --pf-v5-c-form-control--hover--after--BorderBottomColor: #0e8a66;
+}
+.pf-v5-c-button.pf-m-primary {
+  --pf-v5-c-button--m-primary--BackgroundColor: #0a6b50;
+  --pf-v5-c-button--m-primary--hover--BackgroundColor: #07513d;
+  --pf-v5-c-button--m-primary--focus--BackgroundColor: #07513d;
+  --pf-v5-c-button--BorderRadius: 999px;
+  font-weight: 700;
+}
+.pf-v5-c-button.pf-m-secondary, .pf-v5-c-button.pf-m-link { --pf-v5-c-button--BorderRadius: 999px; }
+.pf-v5-c-button.pf-m-secondary {
+  --pf-v5-c-button--m-secondary--Color: #0a6b50;
+  --pf-v5-c-button--m-secondary--after--BorderColor: #0a6b50;
+  --pf-v5-c-button--m-secondary--hover--after--BorderColor: #07513d;
+}
+.pf-v5-c-card { --pf-v5-c-card--BorderRadius: 20px; }

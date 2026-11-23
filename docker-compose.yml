@@ -68,8 +68,11 @@ services:
       KC_HOSTNAME: http://localhost:8180
       KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "true"
       KC_HEALTH_ENABLED: "true"
+      # Thème E-Civil, appliqué aussi à un realm déjà importé
+      KC_SPI_THEME_DEFAULT: ecivil
     volumes:
       - ./infra/keycloak:/opt/keycloak/data/import:ro
+      - ./infra/keycloak-theme/ecivil:/opt/keycloak/themes/ecivil:ro
     ports: [ "8180:8080" ]
     depends_on:
       postgres: { condition: service_healthy }

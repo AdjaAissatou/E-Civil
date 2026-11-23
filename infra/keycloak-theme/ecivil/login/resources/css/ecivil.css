@@ -1,0 +1,226 @@
+/* Thème E-Civil pour les pages de connexion de Keycloak (connexion, inscription, mot de passe oublié…).
+   Mêmes couleurs, polices et photo que le portail : émeraude et or. */
+
+@font-face { font-family: "Fraunces"; src: url("../fonts/fraunces.woff2") format("woff2"); font-weight: 400 800; font-display: swap; }
+@font-face { font-family: "Fraunces"; src: url("../fonts/fraunces-italique.woff2") format("woff2"); font-style: italic; font-weight: 400 800; font-display: swap; }
+@font-face { font-family: "Plus Jakarta Sans"; src: url("../fonts/jakarta.woff2") format("woff2"); font-weight: 300 800; font-display: swap; }
+
+:root {
+  --encre: #0d1f1a;
+  --encre-douce: #3d5249;
+  --marque-950: #03241b;
+  --marque-900: #053a2c;
+  --marque-800: #07513d;
+  --marque-700: #0a6b50;
+  --marque-600: #0e8a66;
+  --marque-100: #dcf3ea;
+  --marque-50: #effaf5;
+  --or-600: #b8862b;
+  --or-500: #d9a441;
+  --or-100: #fbefd6;
+  --ivoire: #faf8f3;
+  --trait: #e6e0d4;
+  --corail: #c2412d;
+  /* PatternFly 4 */
+  --pf-global--FontFamily--sans-serif: "Plus Jakarta Sans", system-ui, sans-serif;
+  --pf-global--primary-color--100: var(--marque-700);
+  --pf-global--primary-color--200: var(--marque-800);
+  --pf-global--link--Color: var(--marque-700);
+  --pf-global--link--Color--hover: var(--marque-800);
+  --pf-global--active-color--100: var(--marque-700);
+}
+
+html.login-pf, .login-pf body {
+  font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+  color: var(--encre);
+}
+
+/* Fond : la mairie, sous un voile émeraude */
+.login-pf body {
+  background:
+    radial-gradient(ellipse at 20% 0%, rgba(23, 168, 124, .35), transparent 55%),
+    linear-gradient(160deg, rgba(3, 36, 27, .92) 0%, rgba(5, 58, 44, .88) 55%, rgba(3, 36, 27, .95) 100%),
+    url("../img/mairie-hall.webp") center / cover no-repeat fixed;
+  min-height: 100vh;
+}
+
+.login-pf-page { padding-top: 48px; padding-bottom: 48px; }
+
+/* En-tête : logo + nom du service */
+#kc-header { margin-bottom: 28px; }
+#kc-header-wrapper {
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 30px;
+  font-weight: 650;
+  letter-spacing: 0;
+  text-transform: none;
+  color: #fff;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  line-height: 1.1;
+}
+#kc-header-wrapper::before {
+  content: "";
+  width: 52px;
+  height: 52px;
+  flex: none;
+  background: url("../img/logo.svg") center / contain no-repeat;
+  filter: drop-shadow(0 8px 18px rgba(0, 0, 0, .35));
+}
+#kc-header-wrapper::after {
+  content: "Service public de l'état civil";
+  display: block;
+  position: absolute;
+  margin-top: 64px;
+  font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--or-500);
+}
+#kc-header { position: relative; padding-bottom: 26px; }
+
+/* Carte */
+.card-pf {
+  border: 0;
+  border-top: 0;
+  border-radius: 28px;
+  background: #fff;
+  box-shadow: 0 40px 80px -30px rgba(0, 0, 0, .55), 0 0 0 1px rgba(255, 255, 255, .06);
+  padding: 40px 44px 32px;
+  max-width: 520px;
+  margin: 0 auto;
+  position: relative;
+  overflow: hidden;
+}
+.card-pf::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 5px;
+  background: linear-gradient(90deg, var(--marque-600), var(--or-500));
+}
+.login-pf-page .login-pf-header { margin-bottom: 20px; }
+
+h1#kc-page-title {
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 28px;
+  font-weight: 650;
+  color: var(--encre);
+  text-align: left;
+  margin: 4px 0 8px;
+}
+
+/* Langue */
+#kc-locale-dropdown button, #kc-locale-dropdown a { color: var(--encre-douce); font-weight: 600; }
+#kc-locale ul { border-radius: 12px; box-shadow: 0 12px 30px -12px rgba(0, 0, 0, .3); overflow: hidden; }
+
+/* Champs */
+.pf-c-form__label, .pf-c-form__label-text, .login-pf-page label {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--encre);
+}
+.pf-c-form-control {
+  border: 1px solid var(--trait);
+  border-radius: 14px;
+  background: var(--ivoire);
+  min-height: 48px;
+  padding: 10px 14px;
+  font-size: 15px;
+  transition: border-color .15s, box-shadow .15s, background .15s;
+}
+.pf-c-form-control:hover { border-color: #cfc6b4; }
+.pf-c-form-control:focus {
+  outline: 0;
+  border-color: var(--marque-600);
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(14, 138, 102, .15);
+}
+.pf-c-form-control[aria-invalid="true"] { border-color: var(--corail); background: #fff5f3; }
+.pf-c-input-group { border-radius: 14px; }
+.pf-c-input-group .pf-c-form-control { border-radius: 14px 0 0 14px; }
+.pf-c-input-group .pf-c-button.pf-m-control {
+  border: 1px solid var(--trait);
+  border-left: 0;
+  border-radius: 0 14px 14px 0;
+  background: var(--ivoire);
+  color: var(--encre-douce);
+}
+.pf-c-button.pf-m-control::after { border: 0; }
+
+/* Bouton principal */
+.pf-c-button.pf-m-primary, #kc-login, input[type="submit"].pf-m-primary {
+  background: linear-gradient(180deg, var(--marque-600), var(--marque-700));
+  border: 0;
+  border-radius: 999px;
+  min-height: 50px;
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: .01em;
+  box-shadow: 0 14px 28px -14px rgba(10, 107, 80, .9);
+  transition: transform .15s, box-shadow .15s, filter .15s;
+}
+.pf-c-button.pf-m-primary:hover, #kc-login:hover {
+  background: linear-gradient(180deg, var(--marque-700), var(--marque-800));
+  transform: translateY(-1px);
+  box-shadow: 0 18px 30px -14px rgba(10, 107, 80, .95);
+}
+.pf-c-button.pf-m-primary:focus { box-shadow: 0 0 0 4px rgba(217, 164, 65, .45); }
+.pf-c-button.pf-m-secondary, .pf-c-button.pf-m-link { border-radius: 999px; }
+.pf-c-button.pf-m-secondary { color: var(--marque-700); }
+.pf-c-button.pf-m-secondary::after { border-color: var(--marque-700); border-radius: 999px; }
+
+/* Liens et cases */
+.login-pf a, #kc-form-options a, #kc-registration a { color: var(--marque-700); font-weight: 600; }
+.login-pf a:hover { color: var(--marque-800); text-decoration: underline; }
+.pf-c-check__input, input[type="checkbox"] { accent-color: var(--marque-700); }
+#kc-form-options .checkbox label, .pf-c-check__label { font-weight: 500; color: var(--encre-douce); }
+
+/* « Nouvel utilisateur ? Enregistrement » */
+#kc-info { margin: 24px -44px -32px; padding: 0; border: 0; }
+#kc-info-wrapper, .login-pf-signup {
+  background: var(--marque-50);
+  border-top: 1px solid var(--marque-100);
+  margin: 0;
+  padding: 18px 44px;
+  font-size: 15px;
+  color: var(--encre-douce);
+}
+
+/* Messages */
+.pf-c-alert { border-radius: 14px; }
+.alert-error, .pf-m-danger { --pf-c-alert--BorderTopColor: var(--corail); }
+.alert-success, .pf-m-success { --pf-c-alert--BorderTopColor: var(--marque-600); }
+.alert-warning, .pf-m-warning { --pf-c-alert--BorderTopColor: var(--or-500); }
+.alert-info, .pf-m-info { --pf-c-alert--BorderTopColor: var(--marque-700); }
+#input-error, .kc-feedback-text { color: var(--corail); }
+
+/* Petit écran */
+@media (max-width: 560px) {
+  .login-pf-page { padding-top: 20px; }
+  #kc-header-wrapper { font-size: 24px; }
+  #kc-header-wrapper::before { width: 42px; height: 42px; }
+  .card-pf { border-radius: 22px; padding: 30px 22px 24px; }
+  #kc-info { margin: 20px -22px -24px; }
+  #kc-info-wrapper, .login-pf-signup { padding: 16px 22px; }
+}
+
+/* Pages avec « * Champs requis » (inscription…) : titre aligné à gauche, mention discrète */
+.card-pf header [class*="col-"] { width: 100%; padding-left: 0; padding-right: 0; float: none; }
+.card-pf header .subtitle { text-align: left; font-size: 13px; color: var(--encre-douce); }
+.card-pf header .subtitle .required { color: var(--corail); }
+
+/* Langue au-dessus du titre, jamais par-dessus */
+.card-pf header { display: flex; flex-direction: column; }
+.card-pf #kc-locale { position: static; width: 100%; text-align: right; margin: 0 0 4px; padding: 0; float: none; }
+.card-pf header h1#kc-page-title { padding: 0; margin-left: 0; }
+
+@media (max-width: 560px) {
+  .login-pf-page .card-pf { margin: 0 14px; max-width: none; width: auto; padding: 30px 22px 24px; }
+  h1#kc-page-title { font-size: 23px; }
+}
