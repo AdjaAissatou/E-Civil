@@ -1,0 +1,5 @@
+# Les scripts shell gardent des fins de ligne Unix, même sous Windows (sinon bash échoue sur « \r »)
+*.sh     text eol=lf
+mvnw     text eol=lf
+# Les scripts Windows gardent les leurs
+*.cmd    text eol=crlf

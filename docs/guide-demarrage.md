@@ -9,15 +9,14 @@ macOS et Linux sont signalées. Compter environ une heure la première fois, sur
 |---|---|---|---|
 | Git | récente | <https://git-scm.com> (installe aussi **Git Bash**) | `git --version` |
 | Java (JDK) | 17 ou plus | <https://adoptium.net> (Temurin) | `java -version` |
-| Maven | 3.9 | <https://maven.apache.org/download.cgi> | `mvn -v` |
 | Docker Desktop | récente | <https://www.docker.com/products/docker-desktop> | `docker version` |
 
 - **Mémoire** : la plateforme lance 10 conteneurs (7 services, PostgreSQL, RabbitMQ, Keycloak). Il faut un
   ordinateur avec **8 Go de RAM** au minimum. Dans Docker Desktop → *Settings* → *Resources*, donnez au moins
   **6 Go** à Docker.
 - **Windows** : Docker Desktop demande WSL 2 ; acceptez son installation et redémarrez si on vous le propose.
-- **Maven sous Windows** : décompressez l'archive (par exemple dans `C:\outils\maven`), puis ajoutez
-  `C:\outils\maven\bin` à la variable d'environnement `Path`. Rouvrez PowerShell avant de vérifier `mvn -v`.
+- **Maven** n'a pas besoin d'être installé : le projet contient le *Maven Wrapper* (`mvnw.cmd` sous Windows,
+  `./mvnw` sous macOS et Linux), qui télécharge la bonne version de Maven la première fois.
 
 Lancez Docker Desktop et attendez qu'il indique *Engine running* avant de continuer.
 
@@ -73,11 +72,13 @@ Pour générer un secret aléatoire, dans PowerShell :
 
 ## 4. Construire et démarrer
 
-Construire les 7 services (la première fois, Maven télécharge ses dépendances : quelques minutes) :
+Construire les 7 services (la première fois, Maven et ses dépendances se téléchargent : 5 à 10 minutes) :
 
-```bash
-mvn -DskipTests package
+```powershell
+.\mvnw.cmd -DskipTests package
 ```
+
+(macOS / Linux : `./mvnw -DskipTests package`.) La construction se termine par `BUILD SUCCESS`.
 
 Tout démarrer en arrière-plan :
 
@@ -157,7 +158,7 @@ la demande passe « Acte non retrouvé » avec la raison, et un agent décide de
 |---|---|
 | Arrêter (les données sont conservées) | `docker compose down` |
 | Relancer | `docker compose up -d` |
-| Après une modification du code | `mvn -DskipTests package` puis `docker compose up --build -d` |
+| Après une modification du code | `.\mvnw.cmd -DskipTests package` puis `docker compose up --build -d` |
 | Voir les journaux d'un service | `docker compose logs -f demande-service` |
 | Tout effacer (bases comprises) et repartir de zéro | `docker compose down -v` puis `docker compose up -d` |
 
@@ -167,7 +168,7 @@ la demande passe « Acte non retrouvé » avec la raison, et un agent décide de
 |---|---|
 | `port is already allocated` sur **8080** | Un autre serveur occupe le port, souvent le **Tomcat** de l'ancienne version : arrêtez-le. |
 | `port is already allocated` sur **8180** ou **15672** | Un autre programme utilise ce port : fermez-le. |
-| `mvn` ou `java` n'est pas reconnu | Le dossier `bin` n'est pas dans `Path`, ou PowerShell n'a pas été rouvert. |
+| `java` n'est pas reconnu, ou `JAVA_HOME` est signalé incorrect | Réinstallez Temurin en cochant *Set JAVA_HOME* et *Add to PATH*, puis rouvrez PowerShell. |
 | `Cannot connect to the Docker daemon` | Docker Desktop n'est pas lancé. |
 | Un service redémarre en boucle (`docker compose ps`) | Souvent la mémoire : augmentez-la dans Docker Desktop. Sinon, lisez `docker compose logs <service>`. |
 | Erreur de connexion juste après le démarrage | Keycloak met une à deux minutes à être prêt : patientez puis rechargez la page. |

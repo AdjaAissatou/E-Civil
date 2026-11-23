@@ -145,15 +145,17 @@ enregistré est détectée. Il s'agit d'une signature applicative, pas d'une sig
 > Première installation ? Suivez le **[guide pas à pas](docs/guide-demarrage.md)** : outils à installer,
 > fichier `.env`, comptes agents, PayDunya en mode test, premier parcours et problèmes fréquents.
 
-**Prérequis :** Java 17 ou plus récent, Maven 3.9 et Docker Desktop.
+**Prérequis :** Java 17 ou plus récent et Docker Desktop (Maven est fourni par le wrapper `mvnw`).
 
 1. Copier `.env.example` en `.env`, puis remplir chaque valeur (mots de passe, secrets, PayDunya).
    Le fichier `.env` est ignoré par git : aucun secret n'est écrit dans le code.
 2. Construire les services :
 
    ```bash
-   mvn -DskipTests package
+   ./mvnw -DskipTests package
    ```
+
+   (Windows : `.\mvnw.cmd -DskipTests package`.)
 
 3. Tout démarrer :
 
@@ -203,7 +205,7 @@ Sans `MAIL_HOST`, notification-service journalise les messages sans les envoyer.
 ## Tests
 
 ```bash
-mvn test
+./mvnw test
 ```
 
 Les tests n'ont besoin ni de Docker ni du réseau (base H2 en mémoire, jetons Keycloak simulés). Pour

@@ -5,7 +5,7 @@
 # Usage (depuis la racine du projet, plateforme démarrée) :
 #   ./scripts/agents-demo.sh MotDePasseDesAgents
 #
-# Fonctionne sous Linux, macOS et Windows (Git Bash). Nécessite seulement curl.
+# Fonctionne sous Linux, macOS et Windows (Git Bash). Nécessite seulement curl, rien d'autre à installer.
 # Les identifiants d'administration Keycloak sont lus dans .env, jamais écrits ici.
 set -euo pipefail
 
