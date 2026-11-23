@@ -51,3 +51,17 @@ document.documentElement.classList.add('js');
   recherche.addEventListener('input', appliquer);
   appliquer();
 })();
+
+/* Formulaire de demande : l'adresse de livraison n'apparaît que pour un document papier */
+(function () {
+  const bloc = document.getElementById('bloc-livraison');
+  if (!bloc) return;
+  const choix = document.querySelectorAll('input[name="format"]');
+  function appliquer() {
+    const papier = Array.from(choix).some(r => r.checked && r.value === 'PHYSIQUE');
+    bloc.classList.toggle('d-none', !papier);
+    bloc.querySelectorAll('input').forEach(i => { i.required = papier; });
+  }
+  choix.forEach(r => r.addEventListener('change', appliquer));
+  appliquer();
+})();

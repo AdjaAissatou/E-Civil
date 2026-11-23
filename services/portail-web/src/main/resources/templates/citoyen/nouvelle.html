@@ -58,8 +58,13 @@
                         <label class="form-check-label" th:for="${#ids.prev('format')}">Papier (livraison ou retrait)</label>
                     </div>
                 </div>
-                <div class="col-md-8" th:insert="~{fragments/champs :: texte('adresseLivraison', 'Adresse de livraison (format papier)', 'text', false)}"></div>
-                <div class="col-md-4" th:insert="~{fragments/champs :: texte('villeLivraison', 'Ville', 'text', false)}"></div>
+                <!-- Visible seulement pour un document papier (masqué par app.js dès qu'on choisit « Numérique ») -->
+                <div class="col-12" id="bloc-livraison" th:classappend="*{format != 'PHYSIQUE'} ? 'd-none'">
+                    <div class="row">
+                        <div class="col-md-8" th:insert="~{fragments/champs :: texte('adresseLivraison', 'Adresse de livraison', 'text', true)}"></div>
+                        <div class="col-md-4" th:insert="~{fragments/champs :: texte('villeLivraison', 'Ville', 'text', true)}"></div>
+                    </div>
+                </div>
             </div>
         </div></div>
 
