@@ -33,6 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class DemandeApiTest {
 
     @Autowired MockMvc mvc;
+    @Autowired org.springframework.jdbc.core.JdbcTemplate jdbc;
     @MockBean RegistreCivil registre;
     @MockBean ServiceDocuments documents;
 
@@ -187,5 +188,14 @@ class DemandeApiTest {
                         .content(DEPOT.replace("\"lieuNaissance\":\"Dakar\",", "")).with(FATOU))
                 .andExpect(status().isUnprocessableEntity())
                 .andExpect(jsonPath("$.detail").value("La date et le lieu de naissance sont obligatoires"));
+    }
+
+    @Test
+    void lesPreferencesDeNotificationAccompagnentLesEvenements() throws Exception {
+        mvc.perform(put("/api/demandes/preferences").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"notifications\":false}").with(FATOU)).andExpect(status().isOk());
+        deposer();
+        org.assertj.core.api.Assertions.assertThat(jdbc.queryForObject(
+                "SELECT COUNT(*) FROM evenement_sortant WHERE contenu LIKE '%\"notifier\":false%'", Long.class)).isEqualTo(1L);
     }
 }

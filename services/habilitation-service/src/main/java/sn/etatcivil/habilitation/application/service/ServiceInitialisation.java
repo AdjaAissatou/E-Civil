@@ -41,6 +41,7 @@ public class ServiceInitialisation implements InitialiserHabilitations {
 
     @Override
     public void initialiser() {
+        annuaire.configurerProfilUtilisateur();
         Set<String> permissionsExistantes = annuaire.permissions().stream().map(Permission::code).collect(Collectors.toSet());
         Catalogue.PERMISSIONS.stream().filter(p -> !permissionsExistantes.contains(p.code()))
                 .forEach(annuaire::enregistrerPermission);

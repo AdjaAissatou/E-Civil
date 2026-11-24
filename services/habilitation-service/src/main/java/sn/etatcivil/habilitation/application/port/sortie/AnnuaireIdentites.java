@@ -76,6 +76,14 @@ public interface AnnuaireIdentites {
     /** Ferme les sessions ouvertes : les nouveaux droits s'appliquent à la connexion suivante. */
     void deconnecter(String utilisateur);
 
+    // ------------------------------------------------------------------ informations personnelles
+    /** Déclare dans l'annuaire les informations demandées à l'inscription (idempotent). */
+    void configurerProfilUtilisateur();
+
+    Optional<ProfilPersonnel> profilPersonnel(String utilisateur);
+
+    void modifierProfilPersonnel(String utilisateur, ProfilPersonnel profil);
+
     // ------------------------------------------------------------------ migration des comptes existants
     List<String> utilisateursAvecRoleDirect(String role);
 

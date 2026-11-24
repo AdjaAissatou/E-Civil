@@ -103,6 +103,18 @@ public class AnnuaireEnMemoire implements AnnuaireIdentites {
     @Override public void retirerDesRolesParDefaut(String role) { rolesParDefaut.remove(role); }
     @Override public String roleParDefaut() { return "default-roles-ecivil"; }
 
+    public final Map<String, ProfilPersonnel> profilsPersonnels = new HashMap<>();
+    public boolean profilConfigure;
+
+    @Override public void configurerProfilUtilisateur() { profilConfigure = true; }
+    @Override public Optional<ProfilPersonnel> profilPersonnel(String u) {
+        Utilisateur c = comptes.get(u);
+        if (c == null) return Optional.empty();
+        return Optional.of(profilsPersonnels.getOrDefault(u, new ProfilPersonnel(c.prenom(), c.nom(), c.email(), null, null,
+                null, null, null, null, null, null, null, null, null, true, null)));
+    }
+    @Override public void modifierProfilPersonnel(String u, ProfilPersonnel p) { profilsPersonnels.put(u, p); }
+
     public Set<String> permissionsDe(String u) {
         return rolesEffectifs(u).stream().filter(Catalogue.CODES_PERMISSIONS::contains).collect(Collectors.toSet());
     }

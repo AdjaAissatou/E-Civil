@@ -29,8 +29,11 @@ class DemandeController {
     private final RechercherActes recherche;
     private final SignerDemandes signature;
 
+    private final GererPreferences preferences;
+
     DemandeController(GererMesDemandes citoyen, ConsulterDemandes consultation, InstruireDemandes instruction,
-                      RechercherActes recherche, SignerDemandes signature) {
+                      RechercherActes recherche, SignerDemandes signature, GererPreferences preferences) {
+        this.preferences = preferences;
         this.citoyen = citoyen;
         this.consultation = consultation;
         this.instruction = instruction;
@@ -62,6 +65,15 @@ class DemandeController {
     @PreAuthorize(Permissions.A_DEMANDES_DEPOSER)
     void annuler(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt) {
         citoyen.annuler(id, jwt.getSubject());
+    }
+
+    public record Preferences(boolean notifications) {}
+
+    /** Préférences de notification du demandeur connecté (enregistrées depuis « Mon compte »). */
+    @PutMapping("/preferences")
+    Preferences preferences(@RequestBody Preferences p, @AuthenticationPrincipal Jwt jwt) {
+        preferences.definirNotifications(jwt.getSubject(), p.notifications());
+        return p;
     }
 
     @GetMapping("/{id}")

@@ -283,6 +283,99 @@ class AnnuaireKeycloak implements AnnuaireIdentites {
         appel(() -> http.post().uri("/users/{id}/logout", utilisateur).retrieve().toBodilessEntity());
     }
 
+    // ================================================================== informations personnelles
+
+    private static final ParameterizedTypeReference<Map<String, Object>> CARTE = new ParameterizedTypeReference<>() {};
+
+    @Override
+    public void configurerProfilUtilisateur() {
+        Map<String, Object> config = appel(() -> http.get().uri("/users/profile").retrieve().body(CARTE));
+        Map<String, Object> fusionnee = ProfilUtilisateurKeycloak.fusionner(config);
+        if (!fusionnee.equals(config)) {
+            appel(() -> http.put().uri("/users/profile").body(fusionnee).retrieve().toBodilessEntity());
+        }
+        // Les comptes existants ne sont pas bloqués à la connexion pour compléter leur profil : ils le complètent
+        // librement depuis « Mon compte » ; l'inscription, elle, exige les informations obligatoires.
+        Map<String, Object> action = appel(() -> http.get().uri("/authentication/required-actions/VERIFY_PROFILE")
+                .retrieve().body(CARTE));
+        if (action != null && Boolean.TRUE.equals(action.get("enabled"))) {
+            Map<String, Object> desactivee = new LinkedHashMap<>(action);
+            desactivee.put("enabled", false);
+            appel(() -> http.put().uri("/authentication/required-actions/VERIFY_PROFILE").body(desactivee)
+                    .retrieve().toBodilessEntity());
+        }
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public Optional<ProfilPersonnel> profilPersonnel(String utilisateur) {
+        Map<String, Object> u;
+        try {
+            u = appel(() -> http.get().uri("/users/{id}", utilisateur).retrieve().body(CARTE));
+        } catch (ProfilOuCompteIntrouvable e) {
+            return Optional.empty();
+        }
+        Map<String, List<String>> a = (Map<String, List<String>>) u.getOrDefault("attributes", Map.of());
+        Function<String, String> v = n -> a.getOrDefault(n, List.of()).stream().findFirst().orElse(null);
+        Integer enfants = null;
+        try {
+            if (v.apply("nombreEnfants") != null) enfants = Integer.valueOf(v.apply("nombreEnfants"));
+        } catch (NumberFormatException ignore) {
+            // valeur saisie hors validation : ignorée
+        }
+        java.time.LocalDate naissance = null;
+        try {
+            if (v.apply("dateNaissance") != null) naissance = java.time.LocalDate.parse(v.apply("dateNaissance"));
+        } catch (java.time.format.DateTimeParseException ignore) {
+            // idem
+        }
+        String prenom = Objects.toString(u.get("firstName"), "");
+        String nom = Objects.toString(u.get("lastName"), "");
+        return Optional.of(new ProfilPersonnel(prenom.isBlank() ? "—" : prenom, nom.isBlank() ? "—" : nom,
+                Objects.toString(u.get("email"), null), v.apply("telephone"), v.apply("sexe"), naissance,
+                v.apply("lieuNaissance"), v.apply("profession"), v.apply("residence"), v.apply("localite"), enfants,
+                v.apply("numeroCni"), v.apply("typeUtilisateur"), v.apply("paysResidence"),
+                !"non".equals(v.apply("notifications")), v.apply("langue")));
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public void modifierProfilPersonnel(String utilisateur, ProfilPersonnel p) {
+        Map<String, Object> u = new LinkedHashMap<>(appel(() -> http.get().uri("/users/{id}", utilisateur).retrieve().body(CARTE)));
+        Map<String, Object> attributs = new LinkedHashMap<>((Map<String, Object>) u.getOrDefault("attributes", Map.of()));
+        BiConsumerAttribut mettre = (nom, valeur) -> {
+            if (valeur == null || valeur.isBlank()) attributs.remove(nom);
+            else attributs.put(nom, List.of(valeur));
+        };
+        mettre.accept("telephone", p.telephone());
+        mettre.accept("sexe", p.sexe());
+        mettre.accept("dateNaissance", p.dateNaissance() == null ? null : p.dateNaissance().toString());
+        mettre.accept("lieuNaissance", p.lieuNaissance());
+        mettre.accept("profession", p.profession());
+        mettre.accept("residence", p.residence());
+        mettre.accept("localite", p.localite());
+        mettre.accept("nombreEnfants", p.nombreEnfants() == null ? null : p.nombreEnfants().toString());
+        mettre.accept("numeroCni", p.numeroCni());
+        mettre.accept("typeUtilisateur", p.typeUtilisateur());
+        mettre.accept("paysResidence", "DIASPORA".equals(p.typeUtilisateur()) ? p.paysResidence() : null);
+        mettre.accept("notifications", p.notifications() ? "oui" : "non");
+        mettre.accept("langue", p.langue());
+        Map<String, Object> corps = new LinkedHashMap<>();
+        corps.put("username", u.get("username"));
+        corps.put("email", u.get("email"));
+        corps.put("firstName", p.prenom());
+        corps.put("lastName", p.nom());
+        corps.put("enabled", u.get("enabled"));
+        corps.put("emailVerified", u.get("emailVerified"));
+        corps.put("attributes", attributs);
+        appel(() -> http.put().uri("/users/{id}", utilisateur).body(corps).retrieve().toBodilessEntity());
+    }
+
+    @FunctionalInterface
+    private interface BiConsumerAttribut {
+        void accept(String nom, String valeur);
+    }
+
     // ================================================================== migration
 
     @Override
