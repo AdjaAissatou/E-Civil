@@ -31,6 +31,8 @@ public class Demande {
     private final String adresseLivraison;
     private final String villeLivraison;
     private final PersonneConcernee personne;
+    private final ComplementsDemande complements;
+    private final Integer dureeValiditeJours;
     private final Instant dateCreation;
 
     private StatutDemande statut;
@@ -46,7 +48,6 @@ public class Demande {
     private final List<ChangementStatut> historique;
     private final List<ChangementStatut> nouveauxChangements = new ArrayList<>();
 
-    /** Reconstitution depuis le stockage. */
     public Demande(UUID id, String reference, Demandeur demandeur, Long typeDocumentId, String libelleDocument,
                    TypeActe typeActe, ModeleDocument modele, OrigineActe origine, int montant, Long motifId, String libelleMotif,
                    LienDemandeur lien, FormatDocument format, String adresseLivraison, String villeLivraison,
@@ -54,6 +55,20 @@ public class Demande {
                    String numeroActe, String noteRecherche, String signataire, Instant dateSignature,
                    String codeVerification, String motifRejet, Instant dateModification, Integer version,
                    List<ChangementStatut> historique) {
+        this(id, reference, demandeur, typeDocumentId, libelleDocument, typeActe, modele, origine, montant, motifId,
+                libelleMotif, lien, format, adresseLivraison, villeLivraison, personne, dateCreation, statut, acteId,
+                numeroActe, noteRecherche, signataire, dateSignature, codeVerification, motifRejet, dateModification,
+                version, historique, ComplementsDemande.AUCUN, null);
+    }
+
+    /** Reconstitution depuis le stockage. */
+    public Demande(UUID id, String reference, Demandeur demandeur, Long typeDocumentId, String libelleDocument,
+                   TypeActe typeActe, ModeleDocument modele, OrigineActe origine, int montant, Long motifId, String libelleMotif,
+                   LienDemandeur lien, FormatDocument format, String adresseLivraison, String villeLivraison,
+                   PersonneConcernee personne, Instant dateCreation, StatutDemande statut, UUID acteId,
+                   String numeroActe, String noteRecherche, String signataire, Instant dateSignature,
+                   String codeVerification, String motifRejet, Instant dateModification, Integer version,
+                   List<ChangementStatut> historique, ComplementsDemande complements, Integer dureeValiditeJours) {
         this.id = id;
         this.reference = reference;
         this.demandeur = demandeur;
@@ -82,13 +97,25 @@ public class Demande {
         this.dateModification = dateModification;
         this.version = version;
         this.historique = new ArrayList<>(historique);
+        this.complements = complements == null ? ComplementsDemande.AUCUN : complements;
+        this.dureeValiditeJours = dureeValiditeJours;
     }
 
     /** Dépôt par un citoyen : le tarif du catalogue est figé dans la demande. */
     public static Demande deposer(String reference, Demandeur demandeur, TypeDocument type, Motif motif,
                                   String precisionMotif, LienDemandeur lien, FormatDocument format,
                                   String adresse, String ville, PersonneConcernee personne, Instant maintenant) {
+        return deposer(reference, demandeur, type, motif, precisionMotif, lien, format, adresse, ville, personne,
+                ComplementsDemande.AUCUN, maintenant);
+    }
+
+    /** Dépôt par un citoyen : le tarif, la durée de validité et les rubriques de la variété sont figés dans la demande. */
+    public static Demande deposer(String reference, Demandeur demandeur, TypeDocument type, Motif motif,
+                                  String precisionMotif, LienDemandeur lien, FormatDocument format,
+                                  String adresse, String ville, PersonneConcernee personne,
+                                  ComplementsDemande complements, Instant maintenant) {
         if (!type.actif()) throw new RegleMetierException("Ce document n'est pas disponible");
+        if (!motif.concerne(type.id())) throw new RegleMetierException("Ce motif ne s'applique pas à ce document");
         if (lien == null || format == null) throw new RegleMetierException("Indiquez le lien avec la personne et le format");
         String precision = PersonneConcernee.t(precisionMotif);
         if (motif.estAutre() && precision == null) throw new RegleMetierException("Précisez le motif de votre demande");
@@ -97,13 +124,16 @@ public class Demande {
             throw new RegleMetierException("L'adresse et la ville de livraison sont obligatoires pour un document papier");
         }
         PersonneConcernee p = personne.pour(type.typeActe());
-        p.verifier(type.typeActe(), LocalDate.ofInstant(maintenant, ZoneId.of("Africa/Dakar")));
+        LocalDate aujourdhui = LocalDate.ofInstant(maintenant, ZoneId.of("Africa/Dakar"));
+        p.verifier(type.typeActe(), aujourdhui);
+        ComplementsDemande c = (complements == null ? ComplementsDemande.AUCUN : complements).pour(type);
+        c.verifier(type, aujourdhui);
 
         Demande d = new Demande(UUID.randomUUID(), reference, demandeur, type.id(), type.libelle(), type.typeActe(),
                 type.modele(), type.origine(), type.tarif(), motif.id(),
                 motif.estAutre() ? precision : motif.libelle(), lien, format,
                 papier ? adresse.trim() : null, papier ? ville.trim() : null, p, maintenant, SOUMISE,
-                null, null, null, null, null, null, null, maintenant, null, List.of());
+                null, null, null, null, null, null, null, maintenant, null, List.of(), c, type.dureeValiditeJours());
         d.tracer(null, SOUMISE, Acteur.citoyen(demandeur), null, maintenant);
         return d;
     }
@@ -178,6 +208,14 @@ public class Demande {
         numeroActe = acte.numero();
         noteRecherche = null;
         changer(ACTE_TROUVE, auteur, commentaire, maintenant);
+    }
+
+    /** Document établi sur comparution (non-appartenance, coutume) : aucun acte n'est à rechercher. */
+    public void dispenserDActe(Acteur auteur, Instant maintenant) {
+        if (modele.exigeActe()) throw new RegleMetierException("Ce document s'appuie sur un acte du registre");
+        if (!enAttenteDeRecherche()) throw new RegleMetierException("Cette demande n'est pas en attente de recherche");
+        noteRecherche = null;
+        changer(ACTE_TROUVE, auteur, "Document établi sur comparution devant l'officier : aucun acte à rechercher", maintenant);
     }
 
     public void marquerIntrouvable(String note, Acteur auteur, Instant maintenant) {
@@ -265,6 +303,8 @@ public class Demande {
     public String adresseLivraison() { return adresseLivraison; }
     public String villeLivraison() { return villeLivraison; }
     public PersonneConcernee personne() { return personne; }
+    public ComplementsDemande complements() { return complements; }
+    public Integer dureeValiditeJours() { return dureeValiditeJours; }
     public Instant dateCreation() { return dateCreation; }
     public StatutDemande statut() { return statut; }
     public UUID acteId() { return acteId; }

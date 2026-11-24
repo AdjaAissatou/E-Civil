@@ -19,6 +19,7 @@ import sn.etatcivil.demande.domaine.TypeActe;
 import java.util.List;
 import java.util.Map;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
@@ -64,7 +65,7 @@ class DemandeApiTest {
 
     @Test
     void catalogueEtSecurite() throws Exception {
-        mvc.perform(get("/api/catalogue/documents")).andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(19))
+        mvc.perform(get("/api/catalogue/documents")).andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(46))
                 .andExpect(jsonPath("$[?(@.code == 'COPIE_NAISSANCE')].modele").value("COPIE_INTEGRALE"))
                 .andExpect(jsonPath("$[?(@.code == 'TRANSCRIPTION_MARIAGE')].origine").value("TRANSCRIPTION"))
                 .andExpect(jsonPath("$[?(@.code == 'CERTIFICAT_CELIBAT')].typeActe").value("NAISSANCE"))
@@ -78,6 +79,46 @@ class DemandeApiTest {
         mvc.perform(put("/api/catalogue/documents/1").contentType(MediaType.APPLICATION_JSON)
                         .content("{\"tarif\":1500,\"delaiJours\":2,\"actif\":true}").with(utilisateur("admin", "ADMIN")))
                 .andExpect(jsonPath("$.tarif").value(1500));
+    }
+
+    @Test
+    void naturesVarietesEtAdministrationDuCatalogue() throws Exception {
+        var admin = utilisateur("admin", "ADMIN");
+        mvc.perform(get("/api/catalogue/natures")).andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(15))
+                .andExpect(jsonPath("$[0].code").value("NAISSANCE"));
+        String catalogue = mvc.perform(get("/api/catalogue/documents")).andReturn().getResponse()
+                .getContentAsString(java.nio.charset.StandardCharsets.UTF_8);
+        Integer original = JsonPath.<List<Integer>>read(catalogue, "$[?(@.code == 'ACTE_NAISSANCE')].id").get(0);
+        assertThat(JsonPath.<List<Object>>read(catalogue, "$[?(@.code == 'COPIE_NAISSANCE')].copieDeId")).containsExactly(original);
+        assertThat(JsonPath.<List<Object>>read(catalogue, "$[?(@.code == 'ACTE_NAISSANCE')].estOriginal")).containsExactly(true);
+        assertThat(JsonPath.<List<Object>>read(catalogue, "$[?(@.code == 'EXTRAIT_NAISSANCE')].dureeValiditeJours")).containsExactly(90);
+        assertThat(JsonPath.<List<Object>>read(catalogue, "$[?(@.code == 'CERTIFICAT_CELIBAT')].libelleNature")).containsExactly("Célibat");
+        assertThat(JsonPath.<List<Object>>read(catalogue, "$[?(@.code == 'CERTIFICAT_COUTUME')].exigeActe")).containsExactly(false);
+        Integer domicile = JsonPath.<List<Integer>>read(catalogue, "$[?(@.code == 'CERTIFICAT_DOMICILE_ELECTIONS')].id").get(0);
+        mvc.perform(get("/api/catalogue/motifs").param("document", domicile.toString()))
+                .andExpect(jsonPath("$.length()").value(12))
+                .andExpect(jsonPath("$[?(@.libelle == 'Inscription sur les listes électorales')].piecesRequises").exists());
+
+        String nature = mvc.perform(post("/api/catalogue/natures").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"code\":\"adoption\",\"libelle\":\"Adoption\",\"ordre\":160,\"active\":true}").with(admin))
+                .andExpect(status().isCreated()).andExpect(jsonPath("$.code").value("ADOPTION"))
+                .andReturn().getResponse().getContentAsString();
+        Integer natureId = JsonPath.read(nature, "$.id");
+        String variete = """
+                {"code":"copie adoption","libelle":"Copie de jugement d'adoption","natureId":%d,"typeActe":"NAISSANCE",
+                 "modele":"%s","champs":["PARENTS","PRECISIONS"],"tarif":1000,"delaiJours":3,"dureeValiditeJours":90,
+                 "piecesAFournir":"Pièce d'identité","actif":true}""";
+        mvc.perform(post("/api/catalogue/documents").contentType(MediaType.APPLICATION_JSON)
+                        .content(variete.formatted(natureId, "LIVRET_FAMILLE")).with(admin))
+                .andExpect(status().isUnprocessableEntity()).andExpect(jsonPath("$.detail").value(org.hamcrest.Matchers.containsString("mariage")));
+        mvc.perform(post("/api/catalogue/documents").contentType(MediaType.APPLICATION_JSON)
+                        .content(variete.formatted(natureId, "COPIE_INTEGRALE")).with(DELEGUE))
+                .andExpect(status().isForbidden());
+        mvc.perform(post("/api/catalogue/documents").contentType(MediaType.APPLICATION_JSON)
+                        .content(variete.formatted(natureId, "COPIE_INTEGRALE")).with(admin))
+                .andExpect(status().isCreated()).andExpect(jsonPath("$.code").value("COPIE_ADOPTION"))
+                .andExpect(jsonPath("$.libelleNature").value("Adoption"))
+                .andExpect(jsonPath("$.champs.length()").value(2));
     }
 
     @Test

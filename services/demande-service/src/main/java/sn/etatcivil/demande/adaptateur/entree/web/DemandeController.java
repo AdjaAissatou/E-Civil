@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import sn.etatcivil.socle.securite.Permissions;
 import sn.etatcivil.demande.application.port.entree.*;
 import sn.etatcivil.demande.domaine.StatutDemande;
+import sn.etatcivil.demande.domaine.FormatDocument;
 
 import java.util.*;
 
@@ -74,17 +75,25 @@ class DemandeController {
     @PreAuthorize(AGENTS)
     PageReponse<DemandeReponse> rechercher(@RequestParam(required = false) Set<StatutDemande> statut,
                                            @RequestParam(required = false) String reference,
+                                           @RequestParam(required = false) Long typeDocument,
+                                           @RequestParam(required = false) FormatDocument format,
+                                           @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate du,
+                                           @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate au,
                                            @RequestParam(defaultValue = "0") int page,
                                            @RequestParam(defaultValue = "25") int taille) {
-        var p = consultation.rechercher(statut == null ? Set.of() : statut, reference, new PageDemandee(page, taille))
+        var filtre = new FiltreDemandes(statut == null ? Set.of() : statut, reference, typeDocument, format, du, au);
+        var p = consultation.rechercher(filtre, new PageDemandee(page, taille))
                 .map(d -> DemandeReponse.de(d, false));
         return new PageReponse<>(p.contenu(), p.numero(), p.taille(), p.total(), p.nombrePages());
     }
 
     @GetMapping("/statistiques")
     @PreAuthorize("hasAnyRole('DEMANDES_CONSULTER','STATISTIQUES_CONSULTER')")
-    Map<StatutDemande, Long> statistiques() {
-        return consultation.nombreParStatut();
+    Map<StatutDemande, Long> statistiques(@RequestParam(required = false) Long typeDocument,
+                                          @RequestParam(required = false) FormatDocument format,
+                                          @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate du,
+                                          @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate au) {
+        return consultation.nombreParStatut(new FiltreDemandes(Set.of(), null, typeDocument, format, du, au));
     }
 
     @PostMapping("/{id}/validation")

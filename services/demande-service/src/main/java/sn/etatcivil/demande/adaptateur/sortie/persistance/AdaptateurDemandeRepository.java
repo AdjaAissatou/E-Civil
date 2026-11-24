@@ -11,7 +11,10 @@ import sn.etatcivil.demande.application.port.entree.PageResultat;
 import sn.etatcivil.demande.application.port.sortie.DemandeRepository;
 import sn.etatcivil.demande.domaine.*;
 
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.*;
+import sn.etatcivil.demande.application.port.entree.FiltreDemandes;
 
 @Component
 class AdaptateurDemandeRepository implements DemandeRepository {
@@ -56,14 +59,40 @@ class AdaptateurDemandeRepository implements DemandeRepository {
                 .map(e -> versDomaine(e, List.of())).toList();
     }
 
-    @Override
-    public PageResultat<Demande> rechercher(Set<StatutDemande> statuts, String reference, PageDemandee page) {
+    /** Critères communs aux listes et aux compteurs, sans les statuts. */
+    private static Specification<DemandeEntite> criteres(FiltreDemandes f) {
         Specification<DemandeEntite> spec = (r, q, cb) -> cb.conjunction();
-        if (statuts != null && !statuts.isEmpty()) spec = spec.and((r, q, cb) -> r.get("statut").in(statuts));
-        if (reference != null && !reference.isBlank()) {
-            String motif = "%" + reference.trim().toUpperCase() + "%";
+        if (f.reference() != null && !f.reference().isBlank()) {
+            String motif = "%" + f.reference().trim().toUpperCase() + "%";
             spec = spec.and((r, q, cb) -> cb.like(r.get("reference"), motif));
         }
+        if (f.typeDocumentId() != null) spec = spec.and((r, q, cb) -> cb.equal(r.get("typeDocumentId"), f.typeDocumentId()));
+        if (f.format() != null) spec = spec.and((r, q, cb) -> cb.equal(r.get("format"), f.format()));
+        ZoneId dakar = ZoneId.of("Africa/Dakar");
+        if (f.du() != null) {
+            Instant debut = f.du().atStartOfDay(dakar).toInstant();
+            spec = spec.and((r, q, cb) -> cb.greaterThanOrEqualTo(r.get("dateCreation"), debut));
+        }
+        if (f.au() != null) {
+            Instant fin = f.au().plusDays(1).atStartOfDay(dakar).toInstant();
+            spec = spec.and((r, q, cb) -> cb.lessThan(r.get("dateCreation"), fin));
+        }
+        return spec;
+    }
+
+    @Override
+    public Map<StatutDemande, Long> compterParStatut(FiltreDemandes f) {
+        Map<StatutDemande, Long> m = new EnumMap<>(StatutDemande.class);
+        for (StatutDemande s : StatutDemande.values()) {
+            m.put(s, demandes.count(criteres(f).and((r, q, cb) -> cb.equal(r.get("statut"), s))));
+        }
+        return m;
+    }
+
+    @Override
+    public PageResultat<Demande> rechercher(FiltreDemandes f, PageDemandee page) {
+        Specification<DemandeEntite> spec = criteres(f);
+        if (f.statuts() != null && !f.statuts().isEmpty()) spec = spec.and((r, q, cb) -> r.get("statut").in(f.statuts()));
         Page<DemandeEntite> p = demandes.findAll(spec, PageRequest.of(page.numero(), page.taille(),
                 Sort.by(Sort.Direction.ASC, "dateCreation")));
         return new PageResultat<>(p.getContent().stream().map(e -> versDomaine(e, List.of())).toList(),
@@ -125,6 +154,31 @@ class AdaptateurDemandeRepository implements DemandeRepository {
         e.motifRejet = d.motifRejet();
         e.dateCreation = d.dateCreation();
         e.dateModification = d.dateModification();
+        e.complements = ecrire(d.complements());
+        e.dureeValiditeJours = d.dureeValiditeJours();
+    }
+
+    private static final com.fasterxml.jackson.databind.ObjectMapper JSON = new com.fasterxml.jackson.databind.ObjectMapper()
+            .findAndRegisterModules()
+            .disable(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+            .setSerializationInclusion(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL);
+
+    private static String ecrire(ComplementsDemande c) {
+        if (c == null || c.equals(ComplementsDemande.AUCUN)) return null;
+        try {
+            return JSON.writeValueAsString(c);
+        } catch (com.fasterxml.jackson.core.JsonProcessingException ex) {
+            throw new IllegalStateException(ex);
+        }
+    }
+
+    private static ComplementsDemande lire(String json) {
+        if (json == null || json.isBlank()) return ComplementsDemande.AUCUN;
+        try {
+            return JSON.readValue(json, ComplementsDemande.class);
+        } catch (com.fasterxml.jackson.core.JsonProcessingException ex) {
+            throw new IllegalStateException(ex);
+        }
     }
 
     private static Demande versDomaine(DemandeEntite e, List<HistoriqueEntite> h) {
@@ -136,6 +190,6 @@ class AdaptateurDemandeRepository implements DemandeRepository {
                 e.typeDocumentId, e.libelleDocument, e.typeActe, e.modele, e.origine, e.montant, e.motifId, e.libelleMotif,
                 e.lien, e.format, e.adresseLivraison, e.villeLivraison, p, e.dateCreation, e.statut, e.acteId,
                 e.numeroActe, e.noteRecherche, e.signataire, e.dateSignature, e.codeVerification, e.motifRejet,
-                e.dateModification, e.version, historique);
+                e.dateModification, e.version, historique, lire(e.complements), e.dureeValiditeJours);
     }
 }

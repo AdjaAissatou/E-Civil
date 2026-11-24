@@ -45,7 +45,7 @@ public class ServiceDemandes implements GererMesDemandes, ConsulterDemandes, Ins
         Instant maintenant = horloge.maintenant();
         String reference = references.suivante(maintenant.atZone(ZoneId.of("Africa/Dakar")).getYear());
         Demande d = Demande.deposer(reference, demandeur, type, motif, c.precisionMotif(), c.lien(), c.format(),
-                c.adresseLivraison(), c.villeLivraison(), c.personne(), maintenant);
+                c.adresseLivraison(), c.villeLivraison(), c.personne(), c.complements(), maintenant);
         return sauver(d);
     }
 
@@ -69,8 +69,16 @@ public class ServiceDemandes implements GererMesDemandes, ConsulterDemandes, Ins
     }
 
     @Override
-    public PageResultat<Demande> rechercher(Set<StatutDemande> statuts, String reference, PageDemandee page) {
-        return demandes.rechercher(statuts, reference, page);
+    public PageResultat<Demande> rechercher(FiltreDemandes filtre, PageDemandee page) {
+        return demandes.rechercher(filtre, page);
+    }
+
+    @Override
+    public Map<StatutDemande, Long> nombreParStatut(FiltreDemandes filtre) {
+        Map<StatutDemande, Long> m = new EnumMap<>(StatutDemande.class);
+        for (StatutDemande s : StatutDemande.values()) m.put(s, 0L);
+        m.putAll(demandes.compterParStatut(filtre));
+        return m;
     }
 
     @Override
@@ -119,11 +127,15 @@ public class ServiceDemandes implements GererMesDemandes, ConsulterDemandes, Ins
     public Demande rechercher(UUID id, Acteur auteur) {
         Demande d = trouver(id);
         if (!d.enAttenteDeRecherche()) throw new RegleMetierException("Cette demande n'est pas en attente de recherche");
-        RegistreCivil.ResultatRecherche r = registre.rechercher(d.typeActe(), d.personne(), d.origine());
         Instant maintenant = horloge.maintenant();
+        if (!d.modele().exigeActe()) {
+            d.dispenserDActe(auteur, maintenant);
+            return sauver(d);
+        }
+        RegistreCivil.ResultatRecherche r = registre.rechercher(d.typeActe(), d.personne(), d.origine());
         switch (r.resultat()) {
             case TROUVE -> {
-                Optional<String> obstacle = obstacle(d);
+                Optional<String> obstacle = obstacle(d).or(() -> mentionAbsente(d, r.actes().get(0)));
                 if (obstacle.isPresent()) d.marquerIntrouvable(obstacle.get(), auteur, maintenant);
                 else d.rattacherActe(r.actes().get(0), auteur, d.modele().estCertificat()
                         ? "Acte de naissance retrouvé ; " + situation(d).constat(d.modele()).toLowerCase()
@@ -177,9 +189,13 @@ public class ServiceDemandes implements GererMesDemandes, ConsulterDemandes, Ins
     public Demande signer(UUID id, Acteur officier) {
         Demande d = trouver(id);
         d.verifierSignable(officier);
-        ActeRetrouve acte = registre.parId(d.acteId())
-                .orElseThrow(() -> new RegleMetierException("L'acte rattaché n'existe plus dans le registre"));
-        if (!acte.valide()) throw new RegleMetierException("L'acte " + acte.numero() + " n'est plus validé dans le registre");
+        if (d.modele().exigeActe()) {
+            ActeRetrouve acte = registre.parId(d.acteId())
+                    .orElseThrow(() -> new RegleMetierException("L'acte rattaché n'existe plus dans le registre"));
+            if (!acte.valide()) throw new RegleMetierException("L'acte " + acte.numero() + " n'est plus validé dans le registre");
+            Optional<String> sansMention = mentionAbsente(d, acte);
+            if (sansMention.isPresent()) throw new RegleMetierException(sansMention.get());
+        }
         String constat = null;
         if (d.modele().estCertificat()) {
             SituationCivile situation = situation(d);
@@ -192,7 +208,8 @@ public class ServiceDemandes implements GererMesDemandes, ConsulterDemandes, Ins
         }
         String code = documents.delivrer(new ServiceDocuments.DocumentADelivrer(d.id(), d.reference(), d.demandeur().id(),
                 d.libelleDocument(), d.modele().name(), d.acteId(), d.format().name(), officier.nomComplet(),
-                d.libelleMotif(), constat));
+                d.libelleMotif(), constat, d.personne(), d.complements(), d.dureeValiditeJours(),
+                d.complements().typeMention()));
         d.signer(code, officier, horloge.maintenant());
         return sauver(d);
     }
@@ -210,7 +227,14 @@ public class ServiceDemandes implements GererMesDemandes, ConsulterDemandes, Ins
     }
 
     @Override
-    public List<Motif> motifs() {
+    public List<Motif> motifs(Long typeDocumentId) {
+        return catalogue.motifs().stream()
+                .filter(m -> typeDocumentId == null ? m.typeDocumentId() == null : m.concerne(typeDocumentId))
+                .toList();
+    }
+
+    @Override
+    public List<Motif> tousLesMotifs() {
         return catalogue.motifs();
     }
 
@@ -220,6 +244,90 @@ public class ServiceDemandes implements GererMesDemandes, ConsulterDemandes, Ins
         t.modifier(tarif, delaiJours, actif);
         catalogue.enregistrer(t);
         return t;
+    }
+
+    @Override
+    public TypeDocument creerDocument(String code, TypeDocument.Caracteristiques c) {
+        TypeDocument t = TypeDocument.creer(code, c);
+        if (catalogue.documentParCode(t.code()).isPresent()) {
+            throw new RegleMetierException("Un document porte déjà le code " + t.code());
+        }
+        verifierReferences(t, c);
+        return document(catalogue.enregistrer(t));
+    }
+
+    @Override
+    public TypeDocument modifierDocument(Long id, TypeDocument.Caracteristiques c) {
+        TypeDocument t = document(id);
+        t.modifier(c);
+        verifierReferences(t, c);
+        catalogue.enregistrer(t);
+        return document(id);
+    }
+
+    /** La nature existe ; la copie désigne un original existant, de même type d'acte. */
+    private void verifierReferences(TypeDocument t, TypeDocument.Caracteristiques c) {
+        catalogue.nature(c.natureId()).orElseThrow(() -> new RegleMetierException("Nature inconnue"));
+        if (c.copieDeId() != null) {
+            TypeDocument original = catalogue.document(c.copieDeId())
+                    .orElseThrow(() -> new RegleMetierException("Le document original désigné n'existe pas"));
+            if (!original.estOriginal()) {
+                throw new RegleMetierException("« " + original.libelle() + " » n'est pas un original : une copie désigne un original");
+            }
+            if (original.typeActe() != t.typeActe()) {
+                throw new RegleMetierException("La copie et son original doivent porter sur le même type d'acte");
+            }
+        }
+    }
+
+    @Override
+    public List<Nature> natures(boolean activesSeulement) {
+        return catalogue.natures().stream().filter(n -> !activesSeulement || n.active())
+                .sorted(Comparator.comparingInt(Nature::ordre).thenComparing(Nature::libelle)).toList();
+    }
+
+    @Override
+    public Nature creerNature(String code, String libelle, String description, int ordre) {
+        Nature n = Nature.creer(code, libelle, description, ordre);
+        if (catalogue.natureParCode(n.code()).isPresent()) throw new RegleMetierException("Une nature porte déjà le code " + n.code());
+        Long id = catalogue.enregistrer(n);
+        return catalogue.nature(id).orElseThrow();
+    }
+
+    @Override
+    public Nature modifierNature(Long id, String libelle, String description, int ordre, boolean active) {
+        Nature n = catalogue.nature(id).orElseThrow(() -> new RegleMetierException("Nature inconnue"));
+        n.modifier(libelle, description, ordre, active);
+        catalogue.enregistrer(n);
+        return n;
+    }
+
+    @Override
+    public Motif creerMotif(String libelle, int ordre, String piecesRequises, Long typeDocumentId) {
+        if (typeDocumentId != null) document(typeDocumentId);
+        Motif m = new Motif(null, libelle.trim(), ordre, vide(piecesRequises), typeDocumentId);
+        return catalogue.motif(catalogue.enregistrer(m)).orElseThrow();
+    }
+
+    @Override
+    public Motif modifierMotif(Long id, String libelle, int ordre, String piecesRequises, Long typeDocumentId) {
+        catalogue.motif(id).orElseThrow(() -> new RegleMetierException("Motif inconnu"));
+        if (typeDocumentId != null) document(typeDocumentId);
+        Motif m = new Motif(id, libelle == null ? null : libelle.trim(), ordre, vide(piecesRequises), typeDocumentId);
+        catalogue.enregistrer(m);
+        return m;
+    }
+
+    private static String vide(String s) {
+        return s == null || s.isBlank() ? null : s.trim();
+    }
+
+    /** Extrait de mention marginale : la mention demandée doit figurer en marge de l'acte. */
+    private Optional<String> mentionAbsente(Demande d, ActeRetrouve acte) {
+        String type = d.complements().typeMention();
+        if (d.modele() != ModeleDocument.EXTRAIT_MENTION || type == null || acte.porteMention(type)) return Optional.empty();
+        return Optional.of("L'acte " + acte.numero() + " a été retrouvé, mais aucune mention « " + type.toLowerCase()
+                + " » n'est portée en marge : un agent doit vérifier avant toute délivrance.");
     }
 
     // ---------------------------------------------------------------- interne

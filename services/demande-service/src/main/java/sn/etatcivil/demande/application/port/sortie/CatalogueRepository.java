@@ -1,6 +1,7 @@
 package sn.etatcivil.demande.application.port.sortie;
 
 import sn.etatcivil.demande.domaine.Motif;
+import sn.etatcivil.demande.domaine.Nature;
 import sn.etatcivil.demande.domaine.TypeDocument;
 
 import java.util.List;
@@ -11,9 +12,22 @@ public interface CatalogueRepository {
 
     Optional<TypeDocument> document(Long id);
 
-    void enregistrer(TypeDocument document);
+    Optional<TypeDocument> documentParCode(String code);
+
+    /** Crée ou met à jour la variété ; @return son identifiant */
+    Long enregistrer(TypeDocument document);
+
+    List<Nature> natures();
+
+    Optional<Nature> nature(Long id);
+
+    Optional<Nature> natureParCode(String code);
+
+    Long enregistrer(Nature nature);
 
     List<Motif> motifs();
 
     Optional<Motif> motif(Long id);
+
+    Long enregistrer(Motif motif);
 }

@@ -3,6 +3,7 @@ package sn.etatcivil.demande.application;
 import org.junit.jupiter.api.Test;
 import sn.etatcivil.demande.application.port.entree.DemandeADeposer;
 import sn.etatcivil.demande.application.port.entree.PageDemandee;
+import sn.etatcivil.demande.application.port.entree.FiltreDemandes;
 import sn.etatcivil.demande.application.port.entree.PageResultat;
 import sn.etatcivil.demande.application.port.sortie.*;
 import sn.etatcivil.demande.application.service.ServiceDemandes;
@@ -29,7 +30,8 @@ class ServiceDemandesTest {
         public void enregistrer(Demande d) { stock.put(d.id(), d); }
         public Optional<Demande> parId(UUID id) { return Optional.ofNullable(stock.get(id)); }
         public List<Demande> parDemandeur(String id) { return stock.values().stream().filter(d -> d.demandeur().id().equals(id)).toList(); }
-        public PageResultat<Demande> rechercher(Set<StatutDemande> s, String r, PageDemandee p) { return null; }
+        public PageResultat<Demande> rechercher(FiltreDemandes f, PageDemandee p) { return null; }
+        public Map<StatutDemande, Long> compterParStatut(FiltreDemandes f) { return Map.of(); }
         public List<UUID> identifiants(StatutDemande s, TypeActe t, int l) {
             return stock.values().stream().filter(d -> d.statut() == s && (t == null || d.typeActe() == t)).map(Demande::id).toList();
         }
@@ -39,9 +41,15 @@ class ServiceDemandesTest {
     final CatalogueRepository catalogue = new CatalogueRepository() {
         public List<TypeDocument> documents(boolean d) { return List.of(typeCourant); }
         public Optional<TypeDocument> document(Long id) { return Optional.of(typeCourant); }
-        public void enregistrer(TypeDocument t) {}
+        public Optional<TypeDocument> documentParCode(String code) { return Optional.empty(); }
+        public Long enregistrer(TypeDocument t) { return 1L; }
+        public List<Nature> natures() { return List.of(); }
+        public Optional<Nature> nature(Long id) { return Optional.empty(); }
+        public Optional<Nature> natureParCode(String code) { return Optional.empty(); }
+        public Long enregistrer(Nature n) { return 1L; }
         public List<Motif> motifs() { return List.of(Fixtures.motif()); }
         public Optional<Motif> motif(Long id) { return Optional.of(Fixtures.motif()); }
+        public Long enregistrer(Motif m) { return 1L; }
     };
 
     final RegistreCivil registre = new RegistreCivil() {
@@ -155,5 +163,73 @@ class ServiceDemandesTest {
         assertThat(stock.get(decede.id()).noteRecherche()).contains("décès");
         service.rattacher(decede.id(), "N-1972-000001", AGENT);
         assertThatThrownBy(() -> service.signer(decede.id(), OFFICIER)).hasMessageContaining("décès");
+    }
+
+    Demande deposerAvec(ComplementsDemande c) {
+        return service.deposer(new DemandeADeposer(1L, 1L, null, LienDemandeur.MOI_MEME, FormatDocument.NUMERIQUE,
+                null, null, fatou(), c), FATOU);
+    }
+
+    static ComplementsDemande complements(String residence, String temoin, String precisions) {
+        return new ComplementsDemande(null, residence, null, null, null, null, null, null, null, null, temoin, null,
+                null, null, null, null, null, null, precisions);
+    }
+
+    @Test
+    void unDocumentSurComparutionNeChercheAucunActe() {
+        typeCourant = new TypeDocument(1L, "CERTIFICAT_COUTUME", "Certificat de coutume pour mariage mixte", "", 15L,
+                "Coutume", TypeActe.NAISSANCE, ModeleDocument.CERTIFICAT_COUTUME, null, null,
+                java.util.EnumSet.of(Champ.PRECISIONS), 500, 1, 30, null, null, false, null, true);
+        assertThatThrownBy(this::deposer).hasMessageContaining("précisions");
+        Demande d = deposerAvec(complements(null, null, "Coutume wolof ; futur époux de nationalité française"));
+        assertThat(d.dureeValiditeJours()).isEqualTo(30);
+        service.valider(d.id(), DELEGUE);
+        service.enregistrerPaiement(d.id(), 500, "PayDunya");
+        service.rechercher(d.id(), Acteur.SYSTEME);
+        assertThat(stock.get(d.id()).statut()).isEqualTo(StatutDemande.ACTE_TROUVE);
+        assertThat(stock.get(d.id()).acteId()).isNull();
+        service.signer(d.id(), OFFICIER);
+        assertThat(documents).singleElement().satisfies(doc -> {
+            assertThat(doc.acteId()).isNull();
+            assertThat(doc.modele()).isEqualTo("CERTIFICAT_COUTUME");
+            assertThat(doc.complements().precisions()).startsWith("Coutume wolof");
+            assertThat(doc.dureeValiditeJours()).isEqualTo(30);
+        });
+    }
+
+    @Test
+    void unCertificatDeDomicileExigeLAdresseEtUnTemoin() {
+        typeCourant = new TypeDocument(1L, "CERTIFICAT_DOMICILE_ELECTIONS", "Certificat de domicile pour élections", "", 14L,
+                "Domicile", TypeActe.NAISSANCE, ModeleDocument.CERTIFICAT_DOMICILE, null, null,
+                java.util.EnumSet.of(Champ.DOMICILE, Champ.TEMOINS), 500, 1, 30, null, null, false, null, true);
+        assertThatThrownBy(() -> deposerAvec(complements(null, "Awa Ndiaye", null))).hasMessageContaining("domicile");
+        assertThatThrownBy(() -> deposerAvec(complements("Sicap Liberté 2, Dakar", null, null))).hasMessageContaining("témoin");
+        Demande d = deposerAvec(complements("Sicap Liberté 2, Dakar", "Awa Ndiaye", "ignoré"));
+        assertThat(d.complements().residence()).isEqualTo("Sicap Liberté 2, Dakar");
+        assertThat(d.complements().precisions()).as("rubrique non demandée").isNull();
+    }
+
+    @Test
+    void unExtraitDeMentionExigeLaMentionEnMargeDeLActe() {
+        typeCourant = new TypeDocument(1L, "MENTION_DIVORCE", "Extrait de mention de divorce", "", 9L, "Mention marginale",
+                TypeActe.MARIAGE, ModeleDocument.EXTRAIT_MENTION, null, "DIVORCE", java.util.EnumSet.of(Champ.CONJOINT),
+                500, 1, 90, null, null, false, null, true);
+        PersonneConcernee couple = new PersonneConcernee("Mbaye", "Babacar", "M", null, null, null, null, null, null,
+                "Diouf", "Seynabou", java.time.LocalDate.of(2000, 8, 12));
+        Demande d = service.deposer(new DemandeADeposer(1L, 1L, null, LienDemandeur.MOI_MEME, FormatDocument.NUMERIQUE,
+                null, null, couple), FATOU);
+        assertThat(d.complements().typeMention()).isEqualTo("DIVORCE");
+        service.valider(d.id(), DELEGUE);
+        service.enregistrerPaiement(d.id(), 500, "PayDunya");
+        ActeRetrouve mariage = new ActeRetrouve(java.util.UUID.randomUUID(), "M-2000-000001", TypeActe.MARIAGE, true, Set.of());
+        reponseRegistre = new RegistreCivil.ResultatRecherche(RegistreCivil.Resultat.TROUVE, List.of(mariage));
+        service.rechercher(d.id(), Acteur.SYSTEME);
+        assertThat(stock.get(d.id()).statut()).isEqualTo(StatutDemande.ACTE_INTROUVABLE);
+        assertThat(stock.get(d.id()).noteRecherche()).contains("aucune mention « divorce »");
+
+        ActeRetrouve divorce = new ActeRetrouve(mariage.id(), "M-2000-000001", TypeActe.MARIAGE, true, Set.of("DIVORCE"));
+        reponseRegistre = new RegistreCivil.ResultatRecherche(RegistreCivil.Resultat.TROUVE, List.of(divorce));
+        service.rechercher(d.id(), Acteur.SYSTEME);
+        assertThat(stock.get(d.id()).statut()).isEqualTo(StatutDemande.ACTE_TROUVE);
     }
 }

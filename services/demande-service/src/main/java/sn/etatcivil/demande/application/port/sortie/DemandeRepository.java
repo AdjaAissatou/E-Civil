@@ -1,5 +1,7 @@
 package sn.etatcivil.demande.application.port.sortie;
 
+import java.util.Map;
+
 import sn.etatcivil.demande.application.port.entree.PageDemandee;
 import sn.etatcivil.demande.application.port.entree.PageResultat;
 import sn.etatcivil.demande.domaine.Demande;
@@ -19,7 +21,10 @@ public interface DemandeRepository {
 
     List<Demande> parDemandeur(String demandeurId);
 
-    PageResultat<Demande> rechercher(Set<StatutDemande> statuts, String reference, PageDemandee page);
+    PageResultat<Demande> rechercher(sn.etatcivil.demande.application.port.entree.FiltreDemandes filtre, PageDemandee page);
+
+    /** Nombre de demandes par statut parmi celles que retiennent les filtres (statuts exceptés). */
+    Map<StatutDemande, Long> compterParStatut(sn.etatcivil.demande.application.port.entree.FiltreDemandes filtre);
 
     List<UUID> identifiants(StatutDemande statut, TypeActe type, int limite);
 

@@ -12,7 +12,14 @@ public interface ConsulterDemandes {
     Demande consulter(UUID id, String utilisateurId, boolean estAgent);
 
     /** {@code statuts} vide = tous les statuts. */
-    PageResultat<Demande> rechercher(Set<StatutDemande> statuts, String reference, PageDemandee page);
+    default PageResultat<Demande> rechercher(Set<StatutDemande> statuts, String reference, PageDemandee page) {
+        return rechercher(FiltreDemandes.statuts(statuts, reference), page);
+    }
+
+    PageResultat<Demande> rechercher(FiltreDemandes filtre, PageDemandee page);
+
+    /** Nombre de demandes par statut parmi celles que retiennent les filtres (statuts exceptés). */
+    Map<StatutDemande, Long> nombreParStatut(FiltreDemandes filtre);
 
     Map<StatutDemande, Long> nombreParStatut();
 }

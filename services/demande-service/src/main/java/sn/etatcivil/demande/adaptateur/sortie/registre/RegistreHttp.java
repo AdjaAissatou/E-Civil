@@ -40,9 +40,15 @@ class RegistreHttp implements RegistreCivil {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    record ActeJson(UUID id, String numeroActe, TypeActe typeActe, String statut) {
-        ActeRetrouve versDomaine() { return new ActeRetrouve(id, numeroActe, typeActe, "VALIDE".equals(statut)); }
+    record ActeJson(UUID id, String numeroActe, TypeActe typeActe, String statut, List<MentionJson> mentions) {
+        ActeRetrouve versDomaine() {
+            return new ActeRetrouve(id, numeroActe, typeActe, "VALIDE".equals(statut), mentions == null ? java.util.Set.of()
+                    : mentions.stream().map(MentionJson::type).collect(java.util.stream.Collectors.toSet()));
+        }
     }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    record MentionJson(String type) {}
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     record ResultatJson(Resultat resultat, List<ActeJson> actes) {}

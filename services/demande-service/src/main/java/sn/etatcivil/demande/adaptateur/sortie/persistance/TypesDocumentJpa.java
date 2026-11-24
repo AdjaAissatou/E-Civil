@@ -15,4 +15,6 @@ interface TypesDocumentJpa extends JpaRepository<TypeDocumentEntite, Long> {
     List<TypeDocumentEntite> findAllByOrderByIdAsc();
 
     List<TypeDocumentEntite> findByActifTrueOrderByIdAsc();
+
+    java.util.Optional<TypeDocumentEntite> findByCode(String code);
 }
