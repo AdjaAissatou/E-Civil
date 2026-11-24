@@ -55,6 +55,9 @@ public class ServiceHabilitations implements GererUtilisateurs, GererProfils, Ge
         }
         String id = annuaire.creerUtilisateur(nouveau);
         nouveau.profils().forEach(p -> annuaire.ajouterAuProfil(id, p));
+        // Keycloak place tout nouveau compte dans le profil par défaut (Citoyen) : seuls les profils choisis restent
+        annuaire.utilisateur(id).ifPresent(u -> u.profils().stream().map(ProfilResume::id)
+                .filter(p -> !nouveau.profils().contains(p)).forEach(p -> annuaire.retirerDuProfil(id, p)));
         tracer(auteur, TypeOperation.UTILISATEUR_CREE, nouveau.email(),
                 nouveau.prenom() + " " + nouveau.nom() + " — profils : " + noms(nouveau.profils(), profils));
         return id;
@@ -169,7 +172,7 @@ public class ServiceHabilitations implements GererUtilisateurs, GererProfils, Ge
         Role r = Role.creer(code, libelle, description, permissions);
         if (annuaire.nomDeRoleUtilise(r.code())) throw new RegleMetierException("Le code " + r.code() + " est déjà utilisé");
         annuaire.creerRole(r);
-        tracer(auteur, TypeOperation.ROLE_CREE, r.code(), r.libelle() + " — " + r.permissions().size() + " permissions");
+        tracer(auteur, TypeOperation.ROLE_CREE, r.code(), r.libelle() + " — " + r.permissions().size() + (r.permissions().size() > 1 ? " permissions" : " permission"));
         return r.code();
     }
 

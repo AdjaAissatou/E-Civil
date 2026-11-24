@@ -98,14 +98,14 @@ Quand tous sont `running` (Keycloak, PostgreSQL et RabbitMQ en `healthy`), ouvre
 | Adresse | Contenu |
 |---|---|
 | <http://localhost:8080> | le portail E-Civil |
-| <http://localhost:8180> | la console Keycloak (comptes et rôles), identifiants `KEYCLOAK_ADMIN` / `KEYCLOAK_ADMIN_PASSWORD` |
+| <http://localhost:8180> | la console Keycloak (serveur d'identité, rarement utile), identifiants `KEYCLOAK_ADMIN` / `KEYCLOAK_ADMIN_PASSWORD` |
 | <http://localhost:15672> | la console RabbitMQ (événements), identifiants `RABBITMQ_USER` / `RABBITMQ_PASSWORD` |
 
 ## 5. Créer les comptes
 
 - **Administrateur** : cliquez sur *Connexion* avec `ECIVIL_ADMIN_EMAIL` et `ECIVIL_ADMIN_MOT_DE_PASSE`.
   Keycloak vous demande aussitôt de choisir votre vrai mot de passe.
-- **Citoyen** : *Créer un compte* sur le portail ; le rôle citoyen est attribué automatiquement.
+- **Citoyen** : *Créer un compte* sur le portail ; le profil Citoyen est attribué automatiquement.
 - **Agents** (délégué, agent du registre, officier) : dans **Git Bash** (macOS / Linux : le terminal), à la
   racine du projet :
 
@@ -113,11 +113,33 @@ Quand tous sont `running` (Keycloak, PostgreSQL et RabbitMQ en `healthy`), ouvre
   ./scripts/agents-demo.sh UnMotDePassePourLesAgents
   ```
 
-  Le script crée `delegue@ecivil.sn`, `registre@ecivil.sn` et `officier@ecivil.sn` avec ce mot de passe.
+  Le script crée `delegue@ecivil.sn`, `registre@ecivil.sn` et `officier@ecivil.sn` avec ce mot de passe et
+  les range dans les profils *Délégué de commune*, *Agent du registre* et *Officier de l'état civil*.
 
-  Sans le script, dans la console Keycloak : realm **ecivil** → *Users* → *Add user* (cocher *Email verified*),
-  onglet *Credentials* → *Set password* (décocher *Temporary*), onglet *Role mapping* → *Assign role* →
-  filtrer par *realm roles* → choisir `DELEGUE`, `AGENT_REGISTRE` ou `OFFICIER`.
+  Sans le script, connecté en administrateur sur le portail : *Administration › Utilisateurs › Nouvel agent*,
+  choisir le ou les profils et un mot de passe provisoire (l'agent le changera à sa première connexion).
+
+- **Profils, rôles et permissions** : *Administration › Profils*, *Rôles* et *Permissions* (matrice
+  rôles × permissions). Chaque modification est inscrite au *Journal*.
+
+## Mettre à jour une installation existante
+
+Depuis la racine du projet (PowerShell), plateforme démarrée ou non :
+
+```bash
+git pull
+```
+
+```bash
+.\mvnw.cmd -DskipTests package
+```
+
+```bash
+docker compose up --build -d
+```
+
+Les données sont conservées. Au premier démarrage, le service des habilitations crée sa base, les profils,
+rôles et permissions, puis range chaque compte existant dans le profil de son ancien rôle.
 
 ## 6. Activer le paiement (PayDunya, mode test)
 

@@ -51,6 +51,7 @@ class ConfigurationSecurite {
                         .requestMatchers("/registre/**").hasAnyRole("REGISTRE_CONSULTER", "DEMANDES_RECHERCHER")
                         .requestMatchers("/officier/**").hasAnyRole("DOCUMENTS_SIGNER", "REGISTRE_VALIDER")
                         .requestMatchers("/back-office/**").hasRole("DEMANDES_CONSULTER")
+                        .requestMatchers("/demandes/**", "/paiements/**").hasRole("DEMANDES_DEPOSER")
                         .anyRequest().authenticated())
                 .oauth2Login(o -> o
                         .loginPage("/oauth2/authorization/keycloak")

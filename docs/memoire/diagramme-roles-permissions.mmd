@@ -1,76 +1,63 @@
 classDiagram
     direction TB
 
-    class Personne {
-        -int idPersonne
+    class Utilisateur {
+        -String id
+        -String email
         -String prenom
         -String nom
-        -String sexe
-        -Date dateNaissance
-        -String lieuNaissance
-        -String profession
-        -String residence
-    }
-
-    class Utilisateur {
-        -int idUtilisateur
-        -Date dateInscription
-        -String numeroTelephone
-        -String numeroPieceIdentite
-        +aLaPermission(code : String) boolean
-        +roles() List~Role~
-    }
-
-    class Compte {
-        -int idCompte
-        -String email
-        -String motDePasseHache
         -boolean actif
-        +seConnecter(email, motDePasse) boolean
-        +desactiver() void
+        -Instant dateCreation
+        +nomComplet() String
+        +permissionsEffectives() Set~Permission~
     }
 
     class Profil {
-        -int idProfil
-        -String libelle
+        -String id
+        -String nom
         -String description
-        -String paysResidence
-        +ajouterRole(role : Role) void
-        +retirerRole(role : Role) void
+        -boolean parDefaut
+        +modifier(nom, description, roles) void
+        +verifierSuppressible(nombreMembres) void
     }
 
     class Role["Rôle"] {
-        -int idRole
         -String code
         -String libelle
         -String description
-        +accorder(permission : Permission) void
-        +revoquer(permission : Permission) void
-        +autorise(code : String) boolean
+        -boolean deBase
+        +creer(code, libelle, description, permissions)$ Role
+        +modifier(libelle, description, permissions) void
+        +verifierSuppressible() void
     }
 
     class Permission {
-        -int idPermission
         -String code
+        -String libelle
         -String description
         -String avantage
         -String interdiction
+        -String famille
+        +avecTextes(libelle, description, avantage, interdiction) Permission
     }
 
-    class ProfilRole {
-        <<association>>
-        -Date dateAttribution
+    class Operation["Opération (journal)"] {
+        -Instant date
+        -String auteur
+        -TypeOperation type
+        -String cible
+        -String detail
     }
 
-    class RolePermission {
-        <<association>>
-        -Date dateAttribution
+    class Organisation {
+        <<règle>>
+        +verifierAdministrationPreservee(auteur) void
     }
 
-    Personne <|-- Utilisateur : est une
-    Utilisateur "1" -- "1" Compte : possède
-    Utilisateur "0..*" --> "1" Profil : appartient à
-    Profil "1" -- "1..*" ProfilRole
-    ProfilRole "0..*" -- "1" Role
-    Role "1" -- "0..*" RolePermission
-    RolePermission "0..*" -- "1" Permission
+    Utilisateur "0..*" --> "1..*" Profil : membre de
+    Profil "0..*" --> "1..*" Role : regroupe
+    Role "0..*" --> "1..*" Permission : accorde
+    Utilisateur "1" <-- "0..*" Operation : auteur / cible
+    Organisation ..> Utilisateur : vérifie
+    Organisation ..> Profil
+    Organisation ..> Role

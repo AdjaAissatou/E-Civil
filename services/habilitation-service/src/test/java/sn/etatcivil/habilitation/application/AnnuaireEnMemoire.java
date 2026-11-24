@@ -32,6 +32,7 @@ public class AnnuaireEnMemoire implements AnnuaireIdentites {
         r.addAll(List.of(rolesDirects));
         rolesDirectsParCompte.put(id, r);
         profilsParCompte.put(id, new HashSet<>());
+        if (profilParDefaut != null) profilsParCompte.get(id).add(profilParDefaut); // comme les groupes par défaut de Keycloak
         return id;
     }
 

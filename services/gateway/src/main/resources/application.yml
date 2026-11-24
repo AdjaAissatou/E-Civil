@@ -17,6 +17,9 @@ spring:
         - id: documents
           uri: ${DOCUMENT_SERVICE_URL:http://localhost:8084}
           predicates: [ "Path=/api/documents/**,/api/verification/**" ]
+        - id: habilitations
+          uri: ${HABILITATION_SERVICE_URL:http://localhost:8086}
+          predicates: [ "Path=/api/habilitations/**" ]
         # Tout le reste : le portail web (pages, connexion Keycloak, fichiers statiques)
         - id: portail
           uri: ${PORTAIL_URL:http://localhost:8090}

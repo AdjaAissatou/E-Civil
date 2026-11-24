@@ -205,6 +205,7 @@ class PortailTest {
         mvc.perform(get("/admin/utilisateurs").with(utilisateur("OFFICIER"))).andExpect(status().isForbidden());
         mvc.perform(get("/admin/roles").with(utilisateur("DELEGUE"))).andExpect(status().isForbidden());
         mvc.perform(get("/admin/journal").with(utilisateur("CITOYEN"))).andExpect(status().isForbidden());
+        mvc.perform(get("/demandes").with(utilisateur("DELEGUE"))).andExpect(status().isForbidden());
         mvc.perform(get("/espace").with(utilisateur("ADMIN"))).andExpect(redirectedUrl("/admin"));
     }
 }

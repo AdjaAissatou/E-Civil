@@ -68,7 +68,18 @@
                     <h2 class="h6 text-brun mb-0">Activité récente de l'administration</h2>
                     <a class="small" sec:authorize="hasRole('JOURNAL_CONSULTER')" th:href="@{/admin/journal}">Tout le journal</a>
                 </div>
-                <div th:replace="~{admin/_onglets :: operations(${synthese.dernieresOperations}, 'Aucune opération enregistrée pour le moment.')}"></div>
+                <p th:if="${synthese.dernieresOperations.isEmpty()}" class="small text-muted mb-0">Aucune opération enregistrée pour le moment.</p>
+                <ul class="list-unstyled mb-0">
+                    <li th:each="o : ${synthese.dernieresOperations}" class="py-2 border-bottom">
+                        <div class="d-flex flex-wrap justify-content-between gap-2">
+                            <span><span class="pastille me-2" th:classappend="'pastille-' + ${o.teinte()}" th:text="${o.libelleType}"></span>
+                                <span class="fw-semibold" th:text="${o.cible}"></span></span>
+                            <span class="small text-muted text-nowrap" th:text="${@dates.heure(o.date)}"></span>
+                        </div>
+                        <div class="small text-muted mt-1" th:text="${o.detail}"></div>
+                        <div class="small" th:text="'par ' + ${o.auteur}"></div>
+                    </li>
+                </ul>
             </div></div>
         </div>
     </div>

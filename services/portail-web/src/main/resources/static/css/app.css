@@ -533,3 +533,8 @@ footer .drapeau span { flex: 1; }
 .text-bg-success, .bg-success { background: var(--succes) !important; color: #fff !important; }
 .text-bg-warning { background: var(--or-500) !important; color: var(--marque-950) !important; }
 .text-bg-light { background: var(--sable) !important; color: var(--encre) !important; }
+
+/* ------------------------------------------------------------------ administration */
+main code { color: var(--marque-700); background: var(--marque-50); padding: .05rem .35rem; border-radius: 6px; font-size: .78em; }
+.matrice thead th { position: sticky; top: 0; background: var(--blanc); z-index: 1; vertical-align: bottom; }
+.matrice .form-check-input { width: 1.15rem; height: 1.15rem; }

@@ -19,6 +19,8 @@ flowchart LR
     G --> PA[paiement-service]
     G --> R[registre-service]
     G --> DOC[document-service]
+    G --> H[habilitation-service]
+    H -->|API d'administration| KC[(Keycloak)]
     P -->|API + jeton utilisateur| G
     D -->|jeton de service| R
     D -->|jeton de service| DOC
@@ -37,6 +39,7 @@ flowchart LR
 | `registre-service` | Registre national des actes : transcription, validation, recherche | `registre` | 8083 |
 | `document-service` | Signature, PDF, vérification publique d'authenticité | `document` | 8084 |
 | `notification-service` | Emails aux citoyens à chaque étape | `notification` | 8085 |
+| `habilitation-service` | Utilisateurs, profils, rôles, permissions et journal (administre Keycloak) | `habilitation` | 8086 |
 
 Chaque service possède **sa propre base** : aucun ne lit les données d'un autre, ils communiquent
 uniquement par API et par événements.
@@ -102,14 +105,25 @@ stateDiagram-v2
     A_PAYER --> ANNULEE
 ```
 
-| Rôle (Keycloak) | Ce qu'il fait |
-|---|---|
-| `CITOYEN` | Attribué automatiquement à l'inscription : dépose, paie, suit, télécharge |
-| `DELEGUE` | Examine les demandes, expédie les documents papier |
-| `AGENT_REGISTRE` | Transcrit les actes des registres papier, traite les actes non retrouvés |
-| `OFFICIER` | Valide les transcriptions, contrôle et signe les documents |
-| `ADMIN` | Tarifs et catalogue ; les comptes et les rôles se gèrent dans la console Keycloak |
-| `SERVICE` | Comptes techniques des services qui en appellent d'autres |
+### Habilitations : utilisateurs, profils, rôles, permissions
+
+Chaque service vérifie une **permission** sur chaque action (15 permissions : `DEMANDES_VALIDER`,
+`DOCUMENTS_SIGNER`, `REGISTRE_VALIDER`…). Les permissions sont regroupées en **rôles**, les rôles en
+**profils**, et chaque utilisateur reçoit un ou plusieurs profils. Tout se gère dans le portail,
+*Administration* : comptes des agents, profils, rôles, matrice rôles × permissions, journal des opérations.
+
+| Profil de départ | Rôles | Ce qu'il permet |
+|---|---|---|
+| Citoyen (donné à chaque inscription) | Citoyen | déposer, payer, suivre, télécharger ses demandes |
+| Délégué de commune | Délégué | examiner les demandes, expédier les documents papier |
+| Agent du registre | Agent du registre | transcrire les actes, traiter les actes non retrouvés |
+| Officier de l'état civil | Officier | valider les transcriptions, contrôler et signer les documents |
+| Chef de centre | Officier + Délégué | les deux |
+| Administrateur | Administrateur | tout, sauf déposer des demandes |
+
+La plateforme refuse toute modification qui la laisserait sans administrateur. Détails, règles et
+correspondance avec Keycloak : [`docs/memoire/roles-permissions.md`](docs/memoire/roles-permissions.md).
+Les comptes techniques des services portent le rôle `SERVICE`.
 
 ## Catalogue des documents
 
@@ -164,9 +178,8 @@ enregistré est détectée. Il s'agit d'une signature applicative, pas d'une sig
    ```
 
 4. Ouvrir <http://localhost:8080>. Le compte administrateur (`ECIVIL_ADMIN_EMAIL`) doit changer son mot de
-   passe à la première connexion. Les comptes agents se créent dans la console Keycloak
-   (<http://localhost:8180>, realm `ecivil`), avec le rôle voulu, ou d'un coup pour la démonstration :
-   `./scripts/agents-demo.sh <mot de passe>`.
+   passe à la première connexion. Les comptes agents se créent dans *Administration › Utilisateurs ›
+   Nouvel agent*, ou d'un coup pour la démonstration : `./scripts/agents-demo.sh <mot de passe>`.
 
 | Adresse | Contenu |
 |---|---|

@@ -1,4 +1,4 @@
-# Plateforme E-Civil complète : infrastructure + 7 microservices.
+# Plateforme E-Civil complète : infrastructure + 8 microservices.
 #   1. cp .env.example .env   (puis remplir les secrets)
 #   2. mvn -DskipTests package
 #   3. docker compose up --build
@@ -82,7 +82,37 @@ services:
       interval: 10s
       retries: 30
 
+  # Crée les bases manquantes sur un volume existant (le script de postgres ne s'exécute qu'au tout
+  # premier démarrage) : une installation déjà en service reçoit ainsi la base des habilitations.
+  bases:
+    image: postgres:16
+    restart: "no"
+    environment:
+      PGHOST: postgres
+      PGUSER: postgres
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+    command:
+      - sh
+      - -c
+      - |
+        for base in demande paiement registre document notification habilitation keycloak; do
+          psql -tAc "SELECT 1 FROM pg_database WHERE datname = '$$base'" | grep -q 1 \
+            || psql -c "CREATE DATABASE $$base" || exit 1
+        done
+    depends_on:
+      postgres: { condition: service_healthy }
+
   # ------------------------------------------------------------------ microservices
+  habilitation-service:
+    <<: *service
+    build: { context: ., args: { SERVICE: habilitation-service } }
+    environment:
+      <<: *environnement
+      HABILITATION_DB_URL: jdbc:postgresql://postgres:5432/habilitation
+    depends_on:
+      bases: { condition: service_completed_successfully }
+      keycloak: { condition: service_healthy }
+
   registre-service:
     <<: *service
     build: { context: ., args: { SERVICE: registre-service } }
@@ -134,9 +164,10 @@ services:
       PAIEMENT_SERVICE_URL: http://paiement-service:8082
       REGISTRE_SERVICE_URL: http://registre-service:8083
       DOCUMENT_SERVICE_URL: http://document-service:8084
+      HABILITATION_SERVICE_URL: http://habilitation-service:8086
       PORTAIL_URL: http://portail-web:8090
     ports: [ "8080:8080" ]
-    depends_on: [ portail-web, demande-service, paiement-service, registre-service, document-service ]
+    depends_on: [ portail-web, demande-service, paiement-service, registre-service, document-service, habilitation-service ]
 
 volumes:
   donnees-postgres:

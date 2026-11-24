@@ -81,7 +81,8 @@ class ServiceHabilitationsTest {
         String chef = annuaire.idProfil("Chef de centre");
         String id = service.creerUtilisateur(new NouvelUtilisateur("Awa.Ndiaye@ecivil.sn", "Awa", "Ndiaye", Set.of(chef),
                 "Provisoire2026"), auteur);
-        assertThat(annuaire.permissionsDe(id)).contains(DOCUMENTS_SIGNER, DEMANDES_VALIDER);
+        assertThat(annuaire.permissionsDe(id)).contains(DOCUMENTS_SIGNER, DEMANDES_VALIDER).doesNotContain(DEMANDES_DEPOSER);
+        assertThat(annuaire.profilsParCompte.get(id)).containsExactly(chef);
         assertThat(service.fiche(id).permissions()).extracting(Permission::code).contains(DOCUMENTS_SIGNER);
         assertThat(journal).last().satisfies(o -> {
             assertThat(o.type()).isEqualTo(TypeOperation.UTILISATEUR_CREE);

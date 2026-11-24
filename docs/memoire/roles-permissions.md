@@ -1,66 +1,102 @@
 # Utilisateurs, profils, rôles et permissions
 
 Diagramme de classes : `diagramme-roles-permissions.png` (source Mermaid : `diagramme-roles-permissions.mmd`).
+Il décrit le domaine du service `habilitation-service` tel qu'il est implémenté.
 
 ## Les quatre notions
 
-| Notion | Ce qu'elle répond | Exemples (données d'origine) |
+| Notion | Question à laquelle elle répond | Exemples |
 |---|---|---|
-| **Profil** | *Qui est la personne* dans l'organisation | Citoyen résident, Citoyen de la diaspora, Délégué de commune, Officier de l'état civil, Administrateur |
-| **Rôle** | *Quelle fonction* elle exerce dans le traitement d'une demande | Administrateur système, Officier d'état civil, Délégué, Chargé de renseignement, Utilisateur |
-| **Permission** | *Quelle action élémentaire* elle a le droit de faire | `LECTURE_DOCUMENTS`, `SIGNATURE_DOCUMENTS`, `VALIDATION_DELEGUE`… (15) |
-| **Compte** | *Comment* elle se connecte | email, mot de passe haché, actif ou non |
+| **Utilisateur** | *Qui* se connecte | un citoyen, un agent (compte Keycloak : email, actif ou non) |
+| **Profil** | *Quelle situation* dans l'organisation | Citoyen, Délégué de commune, Agent du registre, Officier de l'état civil, Chef de centre, Administrateur |
+| **Rôle** | *Quelle fonction* exercée | Citoyen, Délégué, Agent du registre, Officier de l'état civil, Administrateur (+ rôles créés par l'administrateur) |
+| **Permission** | *Quelle action élémentaire* est autorisée | `DEMANDES_VALIDER`, `DOCUMENTS_SIGNER`, `REGISTRE_VALIDER`… (15) |
 
-Un utilisateur a **un** profil ; un profil regroupe **un ou plusieurs** rôles ; un rôle accorde **plusieurs**
-permissions. Pour savoir si un utilisateur peut agir, on remonte la chaîne :
-`Utilisateur → Profil → Rôles → Permissions` (méthode `aLaPermission(code)`).
+Un utilisateur appartient à **un ou plusieurs** profils ; un profil regroupe **un ou plusieurs** rôles ; un rôle
+accorde **une ou plusieurs** permissions. Les droits d'une personne sont l'union des permissions obtenues par
+cette chaîne : `Utilisateur → Profils → Rôles → Permissions`.
 
-Les deux associations plusieurs-à-plusieurs deviennent des **classes d'association** (`ProfilRole`,
-`RolePermission`), qui deviennent des tables de liaison dans le modèle relationnel (`role_permissions` /
-`Association_18` dans la base d'origine).
+Chaque service vérifie une **permission** sur chaque action (`@PreAuthorize("hasRole('DOCUMENTS_SIGNER')")`),
+jamais un rôle ou un profil : l'administrateur peut donc réorganiser profils et rôles sans toucher au code.
 
-## Profils proposés
+## Les 15 permissions
 
-| Profil | Rôles | Remarque |
+| Famille | Code | Libellé |
 |---|---|---|
-| Citoyen résident | Utilisateur | |
-| Citoyen de la diaspora | Utilisateur | `paysResidence` renseigné ; remplace la classe `TypeUtilisateur` |
-| Délégué de commune | Délégué | |
-| Agent du registre | Chargé de renseignement | saisie et mise à jour du registre central |
-| Officier de l'état civil | Officier d'état civil | |
-| Chef de centre | Officier d'état civil + Délégué | montre l'intérêt d'un profil à plusieurs rôles |
-| Administrateur | Administrateur système | |
+| Citoyen | `DEMANDES_DEPOSER` | Déposer ses demandes |
+| Instruction | `DEMANDES_CONSULTER` | Consulter toutes les demandes |
+| Instruction | `DEMANDES_VALIDER` | Valider les demandes |
+| Instruction | `DOCUMENTS_LIVRER` | Livrer les documents papier |
+| Instruction | `DEMANDES_SUPERVISER` | Superviser les demandes (rejet à toute étape) |
+| Registre | `REGISTRE_CONSULTER` | Consulter le registre national |
+| Registre | `REGISTRE_SAISIR` | Saisir le registre |
+| Registre | `REGISTRE_VALIDER` | Valider les actes |
+| Registre | `DEMANDES_RECHERCHER` | Rechercher les actes des demandes |
+| Officier | `DOCUMENTS_SIGNER` | Signer les documents |
+| Administration | `CATALOGUE_GERER` | Gérer le catalogue |
+| Administration | `STATISTIQUES_CONSULTER` | Consulter les statistiques |
+| Administration | `UTILISATEURS_GERER` | Gérer les utilisateurs |
+| Administration | `HABILITATIONS_GERER` | Gérer les habilitations |
+| Administration | `JOURNAL_CONSULTER` | Consulter le journal |
 
-## Rôles et permissions (données d'origine)
+Chaque permission porte aussi une description, ce qu'elle permet (*avantage*) et ce qu'elle n'autorise pas
+(*interdiction*), modifiables dans *Administration › Permissions*. Les codes, eux, sont fixés par l'application.
 
-| Permission | Administrateur système | Officier d'état civil | Délégué | Chargé de renseignement | Utilisateur |
+## Configuration de départ
+
+| Permission | Administrateur | Officier | Agent du registre | Délégué | Citoyen |
 |---|:-:|:-:|:-:|:-:|:-:|
-| `LECTURE_DOCUMENTS` | ✔ | ✔ | ✔ | ✔ | ✔ |
-| `ECRITURE_DOCUMENTS` | ✔ | ✔ | ✔ |  |  |
-| `VALIDATION_ACTES` | ✔ | ✔ |  |  |  |
-| `GESTION_UTILISATEURS` | ✔ |  |  |  |  |
-| `STATISTIQUES` | ✔ | ✔ | ✔ | ✔ |  |
-| `GESTION_PARAMETRES` | ✔ |  |  |  |  |
-| `SAISIE_REGISTRES` |  |  |  | ✔ |  |
-| `MISE_A_JOUR_REGISTRES` |  |  |  | ✔ |  |
-| `SIGNATURE_DOCUMENTS` |  | ✔ |  |  |  |
-| `VALIDATION_OFFICIELLE` |  | ✔ |  |  |  |
-| `SUPERVISION_ACTES` |  |  | ✔ |  |  |
-| `VALIDATION_DELEGUE` |  |  | ✔ |  |  |
-| `IMPORT_DONNEES` | ✔ |  |  | ✔ |  |
-| `EXPORT_DONNEES` | ✔ |  |  | ✔ |  |
-| `GESTION_SERVEUR_CENTRAL` | ✔ |  |  | ✔ |  |
+| `DEMANDES_DEPOSER` |  |  |  |  | ✔ |
+| `DEMANDES_CONSULTER` | ✔ | ✔ | ✔ | ✔ |  |
+| `DEMANDES_VALIDER` | ✔ |  |  | ✔ |  |
+| `DOCUMENTS_LIVRER` | ✔ |  |  | ✔ |  |
+| `DEMANDES_SUPERVISER` | ✔ |  |  |  |  |
+| `REGISTRE_CONSULTER` | ✔ | ✔ | ✔ |  |  |
+| `REGISTRE_SAISIR` | ✔ | ✔ | ✔ |  |  |
+| `REGISTRE_VALIDER` | ✔ | ✔ |  |  |  |
+| `DEMANDES_RECHERCHER` | ✔ | ✔ | ✔ |  |  |
+| `DOCUMENTS_SIGNER` | ✔ | ✔ |  |  |  |
+| `CATALOGUE_GERER`, `STATISTIQUES_CONSULTER`, `UTILISATEURS_GERER`, `HABILITATIONS_GERER`, `JOURNAL_CONSULTER` | ✔ |  |  |  |  |
 
-## Correspondance avec la version actuelle (Keycloak)
-
-La version microservices délègue l'identité à Keycloak, qui offre exactement ces notions :
-
-| Diagramme | Keycloak / E-Civil v3 |
+| Profil | Rôles |
 |---|---|
-| Compte | utilisateur Keycloak (le mot de passe n'est jamais stocké par l'application) |
-| Profil | **groupe** Keycloak (un utilisateur y est placé, le groupe porte des rôles) |
-| Rôle | **rôle du realm** : `CITOYEN`, `DELEGUE`, `AGENT_REGISTRE`, `OFFICIER`, `ADMIN` |
-| Permission | rôle **composite** ou contrôle `@PreAuthorize` sur chaque action des services |
+| Citoyen (*par défaut* : donné à chaque inscription) | Citoyen |
+| Délégué de commune | Délégué |
+| Agent du registre | Agent du registre |
+| Officier de l'état civil | Officier de l'état civil |
+| Chef de centre | Officier de l'état civil + Délégué |
+| Administrateur | Administrateur |
 
-Aujourd'hui, la version actuelle vérifie directement les rôles sur chaque action. Les groupes et les permissions
-fines du diagramme correspondent à une évolution possible, sans changement d'architecture.
+## Règles de gestion
+
+- La plateforme garde toujours au moins un administrateur actif (`UTILISATEURS_GERER` + `HABILITATIONS_GERER`) :
+  toute modification qui le supprimerait est refusée (classe `Organisation`, qui simule le résultat avant de l'appliquer).
+- Un administrateur ne peut ni se désactiver ni se retirer lui-même ses droits d'administration.
+- Les rôles de base peuvent être modifiés mais pas supprimés ; un rôle utilisé par un profil ne peut pas être supprimé.
+- Le profil par défaut ne peut pas être supprimé ; un profil qui a encore des membres non plus.
+- Un agent est créé avec un mot de passe provisoire qu'il doit changer à sa première connexion.
+- Toute opération est inscrite au journal (date, auteur, type, cible, détail), qui ne se modifie jamais.
+- Après un changement, les personnes concernées sont déconnectées : elles retrouvent leurs nouveaux droits à la
+  connexion suivante.
+
+## Correspondance avec Keycloak
+
+Keycloak reste la seule source de vérité des identités ; `habilitation-service` l'administre par son API.
+
+| Diagramme | Keycloak |
+|---|---|
+| Utilisateur | utilisateur du realm `ecivil` (le mot de passe n'est jamais vu par l'application) |
+| Profil | **groupe** ; le profil par défaut est un *default group* |
+| Rôle | **rôle composite** du realm (attribut `ecivil.type=role`) |
+| Permission | **rôle simple** du realm (attribut `ecivil.type=permission`) |
+| Opération | table `operation` de la base `habilitation` |
+
+Keycloak développe groupes et rôles composites dans le jeton (`realm_access.roles`) : le jeton d'une personne
+contient directement ses permissions, que chaque service vérifie sans appel supplémentaire.
+
+## Mise à jour d'une installation existante
+
+Au premier démarrage, `habilitation-service` crée les permissions, rôles et profils manquants, puis range chaque
+compte dans le profil correspondant à son ancien rôle (`ADMIN` → Administrateur, `OFFICIER` → Officier de l'état
+civil…) et lui retire ce rôle direct. Cette migration n'a lieu qu'une fois ; les choix ultérieurs de
+l'administrateur ne sont jamais écrasés.
