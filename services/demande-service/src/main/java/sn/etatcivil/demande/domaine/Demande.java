@@ -33,6 +33,7 @@ public class Demande {
     private final PersonneConcernee personne;
     private final ComplementsDemande complements;
     private final Integer dureeValiditeJours;
+    private final boolean verificationIdentite;
     private final Instant dateCreation;
 
     private StatutDemande statut;
@@ -61,7 +62,6 @@ public class Demande {
                 version, historique, ComplementsDemande.AUCUN, null);
     }
 
-    /** Reconstitution depuis le stockage. */
     public Demande(UUID id, String reference, Demandeur demandeur, Long typeDocumentId, String libelleDocument,
                    TypeActe typeActe, ModeleDocument modele, OrigineActe origine, int montant, Long motifId, String libelleMotif,
                    LienDemandeur lien, FormatDocument format, String adresseLivraison, String villeLivraison,
@@ -69,6 +69,22 @@ public class Demande {
                    String numeroActe, String noteRecherche, String signataire, Instant dateSignature,
                    String codeVerification, String motifRejet, Instant dateModification, Integer version,
                    List<ChangementStatut> historique, ComplementsDemande complements, Integer dureeValiditeJours) {
+        this(id, reference, demandeur, typeDocumentId, libelleDocument, typeActe, modele, origine, montant, motifId,
+                libelleMotif, lien, format, adresseLivraison, villeLivraison, personne, dateCreation, statut, acteId,
+                numeroActe, noteRecherche, signataire, dateSignature, codeVerification, motifRejet, dateModification,
+                version, historique, complements, dureeValiditeJours, false);
+    }
+
+    /** Reconstitution depuis le stockage. */
+    public Demande(UUID id, String reference, Demandeur demandeur, Long typeDocumentId, String libelleDocument,
+                   TypeActe typeActe, ModeleDocument modele, OrigineActe origine, int montant, Long motifId, String libelleMotif,
+                   LienDemandeur lien, FormatDocument format, String adresseLivraison, String villeLivraison,
+                   PersonneConcernee personne, Instant dateCreation, StatutDemande statut, UUID acteId,
+                   String numeroActe, String noteRecherche, String signataire, Instant dateSignature,
+                   String codeVerification, String motifRejet, Instant dateModification, Integer version,
+                   List<ChangementStatut> historique, ComplementsDemande complements, Integer dureeValiditeJours,
+                   boolean verificationIdentite) {
+        this.verificationIdentite = verificationIdentite;
         this.id = id;
         this.reference = reference;
         this.demandeur = demandeur;
@@ -133,7 +149,8 @@ public class Demande {
                 type.modele(), type.origine(), type.tarif(), motif.id(),
                 motif.estAutre() ? precision : motif.libelle(), lien, format,
                 papier ? adresse.trim() : null, papier ? ville.trim() : null, p, maintenant, SOUMISE,
-                null, null, null, null, null, null, null, maintenant, null, List.of(), c, type.dureeValiditeJours());
+                null, null, null, null, null, null, null, maintenant, null, List.of(), c, type.dureeValiditeJours(),
+                type.verificationIdentite());
         d.tracer(null, SOUMISE, Acteur.citoyen(demandeur), null, maintenant);
         return d;
     }
@@ -152,8 +169,20 @@ public class Demande {
     // ---------------------------------------------------------------- délégué
 
     public void valider(Acteur delegue, Instant maintenant) {
+        valider(delegue, false, maintenant);
+    }
+
+    /**
+     * @param identiteVerifiee le délégué atteste avoir comparé le selfie à la pièce d'identité ; exigé pour les
+     *                         documents qui le demandent
+     */
+    public void valider(Acteur delegue, boolean identiteVerifiee, Instant maintenant) {
         exiger(delegue, Habilitation.DEMANDES_VALIDER);
-        changer(A_PAYER, delegue, null, maintenant);
+        if (verificationIdentite && !identiteVerifiee) {
+            throw new RegleMetierException("Comparez le selfie à la pièce d'identité et confirmez qu'il s'agit de la même "
+                    + "personne avant de valider ; sinon, rejetez la demande");
+        }
+        changer(A_PAYER, delegue, verificationIdentite ? "Identité vérifiée : selfie conforme à la pièce d'identité" : null, maintenant);
     }
 
     /**
@@ -305,6 +334,7 @@ public class Demande {
     public PersonneConcernee personne() { return personne; }
     public ComplementsDemande complements() { return complements; }
     public Integer dureeValiditeJours() { return dureeValiditeJours; }
+    public boolean verificationIdentite() { return verificationIdentite; }
     public Instant dateCreation() { return dateCreation; }
     public StatutDemande statut() { return statut; }
     public UUID acteId() { return acteId; }

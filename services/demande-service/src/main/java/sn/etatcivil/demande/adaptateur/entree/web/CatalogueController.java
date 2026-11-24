@@ -32,13 +32,13 @@ class CatalogueController {
                                   OrigineActe origine, int tarif, int delaiJours, boolean actif,
                                   Long natureId, String libelleNature, String libelleModele, String typeMention,
                                   Set<Champ> champs, Integer dureeValiditeJours, String motsCles, String piecesAFournir,
-                                  boolean estOriginal, Long copieDeId, boolean exigeActe) {
+                                  boolean estOriginal, Long copieDeId, boolean exigeActe, boolean verificationIdentite) {
         static DocumentReponse de(TypeDocument t) {
             return new DocumentReponse(t.id(), t.code(), t.libelle(), t.description(), t.typeActe(),
                     t.typeActe().concerneUnCouple(), t.copieIntegrale(), t.modele(), t.origine(), t.tarif(),
                     t.delaiJours(), t.actif(), t.natureId(), t.libelleNature(), t.modele().libelle(), t.typeMention(),
                     t.champs(), t.dureeValiditeJours(), t.motsCles(), t.piecesAFournir(), t.estOriginal(), t.copieDeId(),
-                    t.modele().exigeActe());
+                    t.modele().exigeActe(), t.verificationIdentite());
         }
     }
 
@@ -61,10 +61,12 @@ class CatalogueController {
                                   @NotNull ModeleDocument modele, OrigineActe origine, @Size(max = 30) String typeMention,
                                   Set<Champ> champs, @Min(200) int tarif, @Min(1) @Max(60) int delaiJours,
                                   @Min(1) @Max(3650) Integer dureeValiditeJours, @Size(max = 255) String motsCles,
-                                  @Size(max = 1000) String piecesAFournir, boolean estOriginal, Long copieDeId, boolean actif) {
+                                  @Size(max = 1000) String piecesAFournir, boolean estOriginal, Long copieDeId, boolean actif,
+                                  boolean verificationIdentite) {
         TypeDocument.Caracteristiques caracteristiques() {
             return new TypeDocument.Caracteristiques(libelle, description, natureId, typeActe, modele, origine, typeMention,
-                    champs, tarif, delaiJours, dureeValiditeJours, motsCles, piecesAFournir, estOriginal, copieDeId, actif);
+                    champs, tarif, delaiJours, dureeValiditeJours, motsCles, piecesAFournir, estOriginal, copieDeId, actif,
+                    verificationIdentite);
         }
     }
 

@@ -11,6 +11,8 @@ import sn.etatcivil.socle.securite.Permissions;
 import sn.etatcivil.demande.application.port.entree.*;
 import sn.etatcivil.demande.domaine.StatutDemande;
 import sn.etatcivil.demande.domaine.FormatDocument;
+import sn.etatcivil.demande.domaine.PieceIdentite;
+import sn.etatcivil.demande.domaine.PiecesDeposees;
 
 import java.util.*;
 
@@ -30,9 +32,12 @@ class DemandeController {
     private final SignerDemandes signature;
 
     private final GererPreferences preferences;
+    private final ConsulterPiecesIdentite piecesIdentite;
 
     DemandeController(GererMesDemandes citoyen, ConsulterDemandes consultation, InstruireDemandes instruction,
-                      RechercherActes recherche, SignerDemandes signature, GererPreferences preferences) {
+                      RechercherActes recherche, SignerDemandes signature, GererPreferences preferences,
+                      ConsulterPiecesIdentite piecesIdentite) {
+        this.piecesIdentite = piecesIdentite;
         this.preferences = preferences;
         this.citoyen = citoyen;
         this.consultation = consultation;
@@ -48,11 +53,55 @@ class DemandeController {
 
     // ---------------------------------------------------------------- citoyen
 
-    @PostMapping
+    @PostMapping(consumes = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize(Permissions.A_DEMANDES_DEPOSER)
     DemandeReponse deposer(@Valid @RequestBody DepotRequete requete, @AuthenticationPrincipal Jwt jwt) {
         return DemandeReponse.de(citoyen.deposer(requete.versCommande(), Identite.demandeur(jwt)), true);
+    }
+
+    /** Dépôt avec la pièce d'identité (recto, verso) et le selfie, pour les documents qui exigent la vérification. */
+    @PostMapping(consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
+    @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize(Permissions.A_DEMANDES_DEPOSER)
+    DemandeReponse deposerAvecPieces(@Valid @RequestPart("demande") DepotRequete requete,
+                                     @RequestParam(required = false) PieceIdentite.TypePiece typePiece,
+                                     @RequestPart(required = false) org.springframework.web.multipart.MultipartFile recto,
+                                     @RequestPart(required = false) org.springframework.web.multipart.MultipartFile verso,
+                                     @RequestPart(required = false) org.springframework.web.multipart.MultipartFile selfie,
+                                     @AuthenticationPrincipal Jwt jwt) throws java.io.IOException {
+        java.util.Map<PieceIdentite.Nature, PiecesDeposees.Photo> photos = new java.util.EnumMap<>(PieceIdentite.Nature.class);
+        photos.put(PieceIdentite.Nature.RECTO, photo(recto));
+        photos.put(PieceIdentite.Nature.VERSO, photo(verso));
+        photos.put(PieceIdentite.Nature.SELFIE, photo(selfie));
+        return DemandeReponse.de(citoyen.deposer(requete.versCommande(), Identite.demandeur(jwt),
+                new PiecesDeposees(typePiece, photos)), true);
+    }
+
+    private static PiecesDeposees.Photo photo(org.springframework.web.multipart.MultipartFile f) throws java.io.IOException {
+        return f == null || f.isEmpty() ? null : new PiecesDeposees.Photo(f.getBytes(), f.getContentType());
+    }
+
+    public record PieceReponse(UUID id, PieceIdentite.Nature nature, String libelle, PieceIdentite.TypePiece typePiece,
+                               String libelleTypePiece, int taille, java.time.Instant dateDepot, java.time.Instant datePurge) {}
+
+    /** Liste des photos d'identité (sans leur contenu) : le demandeur et les agents qui consultent les demandes. */
+    @GetMapping("/{id}/pieces")
+    List<PieceReponse> pieces(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt) {
+        consultation.consulter(id, jwt.getSubject(), Identite.consulteToutes(jwt));
+        return piecesIdentite.pieces(id).stream().map(p -> new PieceReponse(p.id(), p.nature(), p.nature().libelle(),
+                p.typePiece(), p.typePiece().libelle(), p.taille(), p.dateDepot(), p.datePurge())).toList();
+    }
+
+    /** Contenu d'une photo : délégué, officier ou supervision ; jamais mis en cache. */
+    @GetMapping("/{id}/pieces/{pieceId}")
+    @PreAuthorize("hasAnyRole('DEMANDES_VALIDER','DOCUMENTS_SIGNER','DEMANDES_SUPERVISER')")
+    org.springframework.http.ResponseEntity<byte[]> piece(@PathVariable UUID id, @PathVariable UUID pieceId,
+                                                          @AuthenticationPrincipal Jwt jwt) {
+        return org.springframework.http.ResponseEntity.ok()
+                .contentType(org.springframework.http.MediaType.IMAGE_JPEG)
+                .header(org.springframework.http.HttpHeaders.CACHE_CONTROL, "private, no-store")
+                .body(piecesIdentite.contenu(id, pieceId, Identite.acteur(jwt)));
     }
 
     @GetMapping("/mes-demandes")
@@ -110,9 +159,12 @@ class DemandeController {
 
     @PostMapping("/{id}/validation")
     @PreAuthorize(Permissions.A_DEMANDES_VALIDER)
-    void valider(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt) {
-        instruction.valider(id, Identite.acteur(jwt));
+    void valider(@PathVariable UUID id, @RequestBody(required = false) Validation corps, @AuthenticationPrincipal Jwt jwt) {
+        instruction.valider(id, Identite.acteur(jwt), corps != null && corps.identiteVerifiee());
     }
+
+    /** @param identiteVerifiee le délégué a comparé le selfie à la pièce d'identité */
+    public record Validation(boolean identiteVerifiee) {}
 
     @PostMapping("/{id}/rejet")
     @PreAuthorize(REJET)

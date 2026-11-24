@@ -156,6 +156,7 @@ class AdaptateurDemandeRepository implements DemandeRepository {
         e.dateModification = d.dateModification();
         e.complements = ecrire(d.complements());
         e.dureeValiditeJours = d.dureeValiditeJours();
+        e.verificationIdentite = d.verificationIdentite();
     }
 
     private static final com.fasterxml.jackson.databind.ObjectMapper JSON = new com.fasterxml.jackson.databind.ObjectMapper()
@@ -190,6 +191,7 @@ class AdaptateurDemandeRepository implements DemandeRepository {
                 e.typeDocumentId, e.libelleDocument, e.typeActe, e.modele, e.origine, e.montant, e.motifId, e.libelleMotif,
                 e.lien, e.format, e.adresseLivraison, e.villeLivraison, p, e.dateCreation, e.statut, e.acteId,
                 e.numeroActe, e.noteRecherche, e.signataire, e.dateSignature, e.codeVerification, e.motifRejet,
-                e.dateModification, e.version, historique, lire(e.complements), e.dureeValiditeJours);
+                e.dateModification, e.version, historique, lire(e.complements), e.dureeValiditeJours,
+                e.verificationIdentite);
     }
 }

@@ -23,11 +23,21 @@ public class ServiceDemandes implements GererMesDemandes, ConsulterDemandes, Ins
     private final EvenementsDemande evenements;
     private final Horloge horloge;
     private final ReferentielDiaspora diaspora;
+    private final PiecesIdentiteRepository pieces;
+    private final TraitementImages images;
+
+    /** Les photos d'identité sont effacées 30 jours après la clôture de la demande. */
+    static final java.time.Duration CONSERVATION_PIECES = java.time.Duration.ofDays(30);
+    static final Set<StatutDemande> CLOSES = EnumSet.of(StatutDemande.SIGNEE, StatutDemande.LIVREE,
+            StatutDemande.REJETEE, StatutDemande.ANNULEE);
 
     public ServiceDemandes(DemandeRepository demandes, CatalogueRepository catalogue, GenerateurReference references,
                            RegistreCivil registre, ServiceDocuments documents, EvenementsDemande evenements,
-                           Horloge horloge, ReferentielDiaspora diaspora) {
+                           Horloge horloge, ReferentielDiaspora diaspora, PiecesIdentiteRepository pieces,
+                           TraitementImages images) {
         this.diaspora = diaspora;
+        this.pieces = pieces;
+        this.images = images;
         this.demandes = demandes;
         this.catalogue = catalogue;
         this.references = references;
@@ -40,7 +50,7 @@ public class ServiceDemandes implements GererMesDemandes, ConsulterDemandes, Ins
     // ---------------------------------------------------------------- citoyen
 
     @Override
-    public Demande deposer(DemandeADeposer c, Demandeur demandeur) {
+    public Demande deposer(DemandeADeposer c, Demandeur demandeur, PiecesDeposees photos) {
         TypeDocument type = catalogue.document(c.typeDocumentId())
                 .orElseThrow(() -> new RegleMetierException("Ce document n'est pas disponible"));
         Motif motif = catalogue.motif(c.motifId()).orElseThrow(() -> new RegleMetierException("Motif inconnu"));
@@ -56,7 +66,15 @@ public class ServiceDemandes implements GererMesDemandes, ConsulterDemandes, Ins
         }
         Demande d = Demande.deposer(reference, demandeur, type, motif, c.precisionMotif(), c.lien(), c.format(),
                 adresse, ville, c.personne(), c.complements(), maintenant);
-        return sauver(d);
+        photos.verifierPour(type);
+        // toutes les photos sont relues et réencodées (métadonnées retirées) avant toute écriture
+        Map<PieceIdentite.Nature, TraitementImages.Image> normalisees = new EnumMap<>(PieceIdentite.Nature.class);
+        photos.photos().forEach((nature, photo) -> normalisees.put(nature, images.normaliser(photo.contenu(), nature.libelle())));
+        Demande enregistree = sauver(d);
+        normalisees.forEach((nature, image) -> pieces.enregistrer(new PieceIdentite(UUID.randomUUID(), enregistree.id(),
+                nature, photos.typePiece(), image.contentType(), image.contenu().length, empreinte(image.contenu()),
+                maintenant, null), image.contenu()));
+        return enregistree;
     }
 
     @Override
@@ -101,10 +119,21 @@ public class ServiceDemandes implements GererMesDemandes, ConsulterDemandes, Ins
     // ---------------------------------------------------------------- délégué
 
     @Override
-    public void valider(UUID id, Acteur delegue) {
+    public void valider(UUID id, Acteur delegue, boolean identiteVerifiee) {
         Demande d = trouver(id);
-        d.valider(delegue, horloge.maintenant());
+        if (d.verificationIdentite() && pieces.pourDemande(id).stream().noneMatch(p -> p.nature() == PieceIdentite.Nature.SELFIE)) {
+            throw new RegleMetierException("Le selfie et la pièce d'identité de cette demande sont introuvables");
+        }
+        d.valider(delegue, identiteVerifiee, horloge.maintenant());
         sauver(d);
+    }
+
+    private static String empreinte(byte[] contenu) {
+        try {
+            return java.util.HexFormat.of().formatHex(java.security.MessageDigest.getInstance("SHA-256").digest(contenu));
+        } catch (java.security.NoSuchAlgorithmException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     @Override

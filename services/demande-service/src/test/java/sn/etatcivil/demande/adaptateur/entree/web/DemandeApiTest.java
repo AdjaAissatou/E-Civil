@@ -198,4 +198,61 @@ class DemandeApiTest {
         org.assertj.core.api.Assertions.assertThat(jdbc.queryForObject(
                 "SELECT COUNT(*) FROM evenement_sortant WHERE contenu LIKE '%\"notifier\":false%'", Long.class)).isEqualTo(1L);
     }
+
+    @Autowired sn.etatcivil.demande.application.port.entree.ConsulterPiecesIdentite piecesIdentite;
+
+    static byte[] photo(int largeur, int hauteur) throws Exception {
+        var image = new java.awt.image.BufferedImage(largeur, hauteur, java.awt.image.BufferedImage.TYPE_INT_RGB);
+        var sortie = new java.io.ByteArrayOutputStream();
+        javax.imageio.ImageIO.write(image, "png", sortie);
+        return sortie.toByteArray();
+    }
+
+    @Test
+    void uneCopieLitteraleExigeLaPieceDIdentiteEtLeSelfie() throws Exception {
+        String depot = DEPOT.replace("\"typeDocumentId\":1", "\"typeDocumentId\":2");
+        mvc.perform(post("/api/demandes").contentType(MediaType.APPLICATION_JSON).content(depot).with(FATOU))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.detail").value(org.hamcrest.Matchers.containsString("pièce d'identité")));
+        var demande = new org.springframework.mock.web.MockMultipartFile("demande", "", "application/json", depot.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        var recto = new org.springframework.mock.web.MockMultipartFile("recto", "recto.png", "image/png", photo(800, 500));
+        var verso = new org.springframework.mock.web.MockMultipartFile("verso", "verso.png", "image/png", photo(800, 500));
+        var faux = new org.springframework.mock.web.MockMultipartFile("selfie", "selfie.jpg", "image/jpeg", "<html>".getBytes());
+        mvc.perform(multipart("/api/demandes").file(demande).file(recto).file(verso).file(faux).param("typePiece", "CNI").with(FATOU))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.detail").value("Selfie : le fichier n'est pas une photo"));
+        var minuscule = new org.springframework.mock.web.MockMultipartFile("selfie", "selfie.png", "image/png", photo(100, 80));
+        mvc.perform(multipart("/api/demandes").file(demande).file(recto).file(verso).file(minuscule).param("typePiece", "CNI").with(FATOU))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.detail").value(org.hamcrest.Matchers.containsString("trop petite")));
+        var selfie = new org.springframework.mock.web.MockMultipartFile("selfie", "selfie.png", "image/png", photo(640, 480));
+        String rep = mvc.perform(multipart("/api/demandes").file(demande).file(recto).file(verso).file(selfie).param("typePiece", "CNI").with(FATOU))
+                .andExpect(status().isCreated()).andExpect(jsonPath("$.verificationIdentite").value(true))
+                .andReturn().getResponse().getContentAsString();
+        String id = JsonPath.read(rep, "$.id");
+
+        String pieces = mvc.perform(get("/api/demandes/" + id + "/pieces").with(FATOU)).andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(3)).andReturn().getResponse().getContentAsString();
+        mvc.perform(get("/api/demandes/" + id + "/pieces").with(MOUSSA)).andExpect(status().isNotFound());
+        String selfieId = JsonPath.<List<String>>read(pieces, "$[?(@.nature == 'SELFIE')].id").get(0);
+        // la photo a été réencodée en JPEG (métadonnées retirées) ; seuls les agents qui vérifient l'identité la voient
+        byte[] jpeg = mvc.perform(get("/api/demandes/" + id + "/pieces/" + selfieId).with(DELEGUE))
+                .andExpect(status().isOk()).andExpect(header().string("Cache-Control", "private, no-store"))
+                .andReturn().getResponse().getContentAsByteArray();
+        assertThat(jpeg[0] & 0xFF).isEqualTo(0xFF);
+        assertThat(jpeg[1] & 0xFF).isEqualTo(0xD8);
+        mvc.perform(get("/api/demandes/" + id + "/pieces/" + selfieId).with(AGENT)).andExpect(status().isForbidden());
+        mvc.perform(get("/api/demandes/" + id + "/pieces/" + selfieId).with(FATOU)).andExpect(status().isForbidden());
+
+        mvc.perform(post("/api/demandes/" + id + "/validation").with(DELEGUE)).andExpect(status().isUnprocessableEntity());
+        mvc.perform(post("/api/demandes/" + id + "/validation").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"identiteVerifiee\":true}").with(DELEGUE)).andExpect(status().isOk());
+
+        // 30 jours après la clôture, les photos sont effacées ; il en reste la trace
+        jdbc.update("UPDATE demande SET statut = 'ANNULEE', date_modification = DATEADD('DAY', -31, CURRENT_TIMESTAMP) WHERE id = ?",
+                java.util.UUID.fromString(id));
+        assertThat(piecesIdentite.purger()).isEqualTo(3);
+        mvc.perform(get("/api/demandes/" + id + "/pieces/" + selfieId).with(DELEGUE)).andExpect(status().isUnprocessableEntity());
+        mvc.perform(get("/api/demandes/" + id + "/pieces").with(FATOU)).andExpect(jsonPath("$[0].datePurge").isNotEmpty());
+    }
 }

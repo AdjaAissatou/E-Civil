@@ -27,4 +27,5 @@ class TypeDocumentEntite {
     @Column(name = "est_original") boolean estOriginal;
     @Column(name = "copie_de_id") Long copieDeId;
     boolean actif;
+    @Column(name = "verification_identite") boolean verificationIdentite;
 }

@@ -109,4 +109,6 @@ class DemandeEntite {
     String complements;
     @Column(name = "duree_validite_jours")
     Integer dureeValiditeJours;
+    @Column(name = "verification_identite")
+    boolean verificationIdentite;
 }

@@ -59,9 +59,23 @@ class ServiceDemandesTest {
         public Optional<ActeRetrouve> parId(UUID id) { return Optional.of(acte(true, TypeActe.NAISSANCE)); }
     };
 
+    final Map<UUID, byte[]> photos = new HashMap<>();
+    final List<PieceIdentite> piecesStockees = new ArrayList<>();
+    final PiecesIdentiteRepository piecesEnMemoire = new PiecesIdentiteRepository() {
+        public void enregistrer(PieceIdentite p, byte[] c) { piecesStockees.add(p); photos.put(p.id(), c); }
+        public List<PieceIdentite> pourDemande(UUID d) { return piecesStockees.stream().filter(p -> p.demandeId().equals(d)).toList(); }
+        public Optional<byte[]> contenu(UUID d, UUID p) { return Optional.ofNullable(photos.get(p)); }
+        public int purger(Set<StatutDemande> s, java.time.Instant a, java.time.Instant m) { return 0; }
+    };
+
     final ServiceDemandes service = new ServiceDemandes(depot, catalogue, annee -> "DEM-" + annee + "-" + (++compteur),
             registre, doc -> { documents.add(doc); return "ABCDE-23456"; },
-            (d, c) -> evenements.add(c.nouveau().name()), () -> MAINTENANT, diaspora());
+            (d, c) -> evenements.add(c.nouveau().name()), () -> MAINTENANT, diaspora(), piecesEnMemoire,
+            (contenu, libelle) -> {
+                if (contenu[0] != 'J') throw new RegleMetierException(libelle + " : le fichier n'est pas une photo");
+                return new TraitementImages.Image(contenu, "image/jpeg");
+            });
+
 
     static ReferentielDiaspora diaspora() {
         MissionDiplomatique paris = new MissionDiplomatique(7L, "Consulat", "Consulat du Sénégal à Paris", 5L, "France", "Paris",
@@ -255,5 +269,59 @@ class ServiceDemandesTest {
         assertThat(d.villeLivraison()).isEqualTo("Paris (France)");
         assertThatThrownBy(() -> service.deposer(new DemandeADeposer(1L, 1L, null, LienDemandeur.MOI_MEME, FormatDocument.PHYSIQUE,
                 null, null, fatou(), ComplementsDemande.AUCUN, 99L), FATOU)).hasMessageContaining("Mission");
+    }
+
+    static PiecesDeposees.Photo photo() { return new PiecesDeposees.Photo("JPEG...".getBytes(), "image/jpeg"); }
+
+    @Test
+    void lesDocumentsSensiblesExigentLaPieceDIdentiteEtUnSelfieVerifiesParLeDelegue() {
+        typeCourant = new TypeDocument(1L, "COPIE_NAISSANCE", "Copie littérale d'acte de naissance", "", 6L, "Copie",
+                TypeActe.NAISSANCE, ModeleDocument.COPIE_INTEGRALE, null, null, java.util.EnumSet.of(Champ.PARENTS),
+                2000, 3, 365, null, null, false, null, true, true);
+        DemandeADeposer commande = new DemandeADeposer(1L, 1L, null, LienDemandeur.MOI_MEME, FormatDocument.NUMERIQUE,
+                null, null, fatou());
+        assertThatThrownBy(() -> service.deposer(commande, FATOU)).hasMessageContaining("pièce d'identité");
+        // carte d'identité : recto et verso exigés, plus le selfie
+        Map<PieceIdentite.Nature, PiecesDeposees.Photo> sansVerso = new EnumMap<>(PieceIdentite.Nature.class);
+        sansVerso.put(PieceIdentite.Nature.RECTO, photo());
+        sansVerso.put(PieceIdentite.Nature.SELFIE, photo());
+        assertThatThrownBy(() -> service.deposer(commande, FATOU, new PiecesDeposees(PieceIdentite.TypePiece.CNI, sansVerso)))
+                .hasMessageContaining("verso");
+        Map<PieceIdentite.Nature, PiecesDeposees.Photo> sansSelfie = new EnumMap<>(PieceIdentite.Nature.class);
+        sansSelfie.put(PieceIdentite.Nature.RECTO, photo());
+        assertThatThrownBy(() -> service.deposer(commande, FATOU, new PiecesDeposees(PieceIdentite.TypePiece.PASSEPORT, sansSelfie)))
+                .hasMessageContaining("selfie");
+        Map<PieceIdentite.Nature, PiecesDeposees.Photo> pdf = new EnumMap<>(sansVerso);
+        pdf.put(PieceIdentite.Nature.RECTO, new PiecesDeposees.Photo("%PDF".getBytes(), "application/pdf"));
+        assertThatThrownBy(() -> service.deposer(commande, FATOU, new PiecesDeposees(PieceIdentite.TypePiece.PASSEPORT, pdf)))
+                .hasMessageContaining("JPEG ou PNG");
+        Map<PieceIdentite.Nature, PiecesDeposees.Photo> fausse = new EnumMap<>(sansVerso);
+        fausse.put(PieceIdentite.Nature.SELFIE, new PiecesDeposees.Photo("<script>".getBytes(), "image/jpeg"));
+        assertThatThrownBy(() -> service.deposer(commande, FATOU, new PiecesDeposees(PieceIdentite.TypePiece.PASSEPORT, fausse)))
+                .hasMessageContaining("pas une photo");
+
+        Demande d = service.deposer(commande, FATOU, new PiecesDeposees(PieceIdentite.TypePiece.PASSEPORT, sansVerso));
+        assertThat(d.verificationIdentite()).isTrue();
+        assertThat(piecesStockees).extracting(PieceIdentite::nature)
+                .containsExactlyInAnyOrder(PieceIdentite.Nature.RECTO, PieceIdentite.Nature.SELFIE);
+        assertThat(piecesStockees).allSatisfy(p -> assertThat(p.empreinte()).hasSize(64));
+
+        // le délégué doit attester avoir comparé le selfie à la pièce
+        assertThatThrownBy(() -> service.valider(d.id(), DELEGUE)).hasMessageContaining("Comparez le selfie");
+        service.valider(d.id(), DELEGUE, true);
+        assertThat(stock.get(d.id()).historique()).last().extracting(ChangementStatut::commentaire).asString()
+                .contains("Identité vérifiée");
+    }
+
+    @Test
+    void unExtraitNeDemandeAucunePiece() {
+        Map<PieceIdentite.Nature, PiecesDeposees.Photo> m = new EnumMap<>(PieceIdentite.Nature.class);
+        m.put(PieceIdentite.Nature.SELFIE, photo());
+        assertThatThrownBy(() -> service.deposer(new DemandeADeposer(1L, 1L, null, LienDemandeur.MOI_MEME,
+                FormatDocument.NUMERIQUE, null, null, fatou()), FATOU, new PiecesDeposees(PieceIdentite.TypePiece.CNI, m)))
+                .hasMessageContaining("aucune pièce");
+        Demande d = deposer();
+        service.valider(d.id(), DELEGUE);
+        assertThat(stock.get(d.id()).statut()).isEqualTo(StatutDemande.A_PAYER);
     }
 }

@@ -37,12 +37,26 @@ public class TypeDocument {
     private boolean estOriginal;
     private Long copieDeId;
     private boolean actif;
+    private boolean verificationIdentite;
 
-    /** Reconstitution depuis le stockage. */
     public TypeDocument(Long id, String code, String libelle, String description, Long natureId, String libelleNature,
                         TypeActe typeActe, ModeleDocument modele, OrigineActe origine, String typeMention, Set<Champ> champs,
                         int tarif, int delaiJours, Integer dureeValiditeJours, String motsCles, String piecesAFournir,
                         boolean estOriginal, Long copieDeId, boolean actif) {
+        this(id, code, libelle, description, natureId, libelleNature, typeActe, modele, origine, typeMention, champs, tarif,
+                delaiJours, dureeValiditeJours, motsCles, piecesAFournir, estOriginal, copieDeId, actif, false);
+    }
+
+    /**
+     * Reconstitution depuis le stockage.
+     *
+     * @param verificationIdentite le demandeur joint une photo de sa pièce d'identité et un selfie, que le délégué compare
+     */
+    public TypeDocument(Long id, String code, String libelle, String description, Long natureId, String libelleNature,
+                        TypeActe typeActe, ModeleDocument modele, OrigineActe origine, String typeMention, Set<Champ> champs,
+                        int tarif, int delaiJours, Integer dureeValiditeJours, String motsCles, String piecesAFournir,
+                        boolean estOriginal, Long copieDeId, boolean actif, boolean verificationIdentite) {
+        this.verificationIdentite = verificationIdentite;
         this.id = id;
         this.code = code;
         this.libelle = libelle;
@@ -75,7 +89,16 @@ public class TypeDocument {
     public record Caracteristiques(String libelle, String description, Long natureId, TypeActe typeActe,
                                    ModeleDocument modele, OrigineActe origine, String typeMention, Set<Champ> champs,
                                    int tarif, int delaiJours, Integer dureeValiditeJours, String motsCles,
-                                   String piecesAFournir, boolean estOriginal, Long copieDeId, boolean actif) {}
+                                   String piecesAFournir, boolean estOriginal, Long copieDeId, boolean actif,
+                                   boolean verificationIdentite) {
+        public Caracteristiques(String libelle, String description, Long natureId, TypeActe typeActe,
+                                ModeleDocument modele, OrigineActe origine, String typeMention, Set<Champ> champs,
+                                int tarif, int delaiJours, Integer dureeValiditeJours, String motsCles,
+                                String piecesAFournir, boolean estOriginal, Long copieDeId, boolean actif) {
+            this(libelle, description, natureId, typeActe, modele, origine, typeMention, champs, tarif, delaiJours,
+                    dureeValiditeJours, motsCles, piecesAFournir, estOriginal, copieDeId, actif, false);
+        }
+    }
 
     public static TypeDocument creer(String code, Caracteristiques c) {
         String k = code == null ? "" : code.trim().toUpperCase(Locale.ROOT).replace(' ', '_').replace('-', '_');
@@ -142,6 +165,7 @@ public class TypeDocument {
         this.estOriginal = c.estOriginal();
         this.copieDeId = c.copieDeId();
         this.actif = c.actif();
+        this.verificationIdentite = c.verificationIdentite();
     }
 
     private static void verifierTarifEtDelai(int tarif, int delaiJours) {
@@ -182,4 +206,6 @@ public class TypeDocument {
     public boolean estOriginal() { return estOriginal; }
     public Long copieDeId() { return copieDeId; }
     public boolean actif() { return actif; }
+    /** Le demandeur doit joindre sa pièce d'identité et un selfie ; le délégué les compare avant de valider. */
+    public boolean verificationIdentite() { return verificationIdentite; }
 }

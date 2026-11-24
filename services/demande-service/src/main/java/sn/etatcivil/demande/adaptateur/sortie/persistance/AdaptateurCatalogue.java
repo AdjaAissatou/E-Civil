@@ -64,6 +64,7 @@ class AdaptateurCatalogue implements CatalogueRepository {
         e.estOriginal = t.estOriginal();
         e.copieDeId = t.copieDeId();
         e.actif = t.actif();
+        e.verificationIdentite = t.verificationIdentite();
         return types.saveAndFlush(e).id;
     }
 
@@ -131,6 +132,6 @@ class AdaptateurCatalogue implements CatalogueRepository {
                 .map(Champ::valueOf).collect(Collectors.toCollection(() -> EnumSet.noneOf(Champ.class)));
         return new TypeDocument(e.id, e.code, e.libelle, e.description, e.natureId, natures.get(e.natureId), e.typeActe,
                 e.modele, e.origine, e.typeMention, champs, e.tarif, e.delaiJours, e.dureeValiditeJours, e.motsCles,
-                e.piecesAFournir, e.estOriginal, e.copieDeId, e.actif);
+                e.piecesAFournir, e.estOriginal, e.copieDeId, e.actif, e.verificationIdentite);
     }
 }

@@ -8,7 +8,12 @@ import java.util.UUID;
 
 /** Cas d'usage du citoyen. */
 public interface GererMesDemandes {
-    Demande deposer(DemandeADeposer commande, Demandeur demandeur);
+    default Demande deposer(DemandeADeposer commande, Demandeur demandeur) {
+        return deposer(commande, demandeur, sn.etatcivil.demande.domaine.PiecesDeposees.AUCUNE);
+    }
+
+    /** Dépôt avec la pièce d'identité et le selfie, pour les documents qui exigent la vérification d'identité. */
+    Demande deposer(DemandeADeposer commande, Demandeur demandeur, sn.etatcivil.demande.domaine.PiecesDeposees pieces);
 
     void annuler(UUID id, String demandeurId);
 
