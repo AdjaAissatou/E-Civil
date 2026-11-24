@@ -51,6 +51,7 @@
                     <p class="small text-muted mb-2" th:if="${t.copieDeId != null and libelles[t.copieDeId] != null}">
                         <i class="bi bi-files me-1"></i>Copie de : <span th:text="${libelles[t.copieDeId]}"></span></p>
                     <p class="small text-muted mb-2" th:if="${t.estOriginal}"><i class="bi bi-award me-1"></i>Document original</p>
+                    <p class="small text-muted mb-2" th:if="${t.verificationIdentite}"><i class="bi bi-shield-check me-1"></i>Pièce d'identité et selfie demandés</p>
                     <details class="small mb-2" th:if="${t.piecesAFournir}">
                         <summary>Pièces à fournir</summary>
                         <span th:text="${t.piecesAFournir}"></span>

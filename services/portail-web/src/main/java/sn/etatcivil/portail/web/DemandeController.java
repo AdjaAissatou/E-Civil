@@ -78,7 +78,10 @@ class DemandeController {
         if (erreurs.hasErrors()) return formulaire(model, f, type);
         Vues.Demande d;
         try {
-            d = api.deposer(f);
+            d = type.verificationIdentite() ? api.deposer(f, f.getTypePiece(), photos(f)) : api.deposer(f);
+        } catch (java.io.IOException e) {
+            model.addAttribute("erreur", "Les photos n'ont pas pu être lues : envoyez-les de nouveau.");
+            return formulaire(model, f, type);
         } catch (ApiException e) {
             model.addAttribute("erreur", e.getMessage());
             return formulaire(model, f, type);
@@ -133,6 +136,18 @@ class DemandeController {
         model.addAttribute("missions", missions);
         model.addAttribute("diaspora", profil != null && profil.diaspora());
         return "citoyen/nouvelle";
+    }
+
+    private static java.util.Map<String, Api.Photo> photos(Formulaires.Demande f) throws java.io.IOException {
+        java.util.Map<String, Api.Photo> m = new java.util.LinkedHashMap<>();
+        m.put("recto", photo(f.getRecto()));
+        m.put("verso", "CNI".equals(f.getTypePiece()) ? photo(f.getVerso()) : null);
+        m.put("selfie", photo(f.getSelfie()));
+        return m;
+    }
+
+    private static Api.Photo photo(org.springframework.web.multipart.MultipartFile f) throws java.io.IOException {
+        return f == null || f.isEmpty() ? null : new Api.Photo(f.getOriginalFilename(), f.getBytes(), f.getContentType());
     }
 
     /** Profil de l'inscription, s'il est disponible (le formulaire fonctionne sans). */

@@ -65,7 +65,7 @@ class ConfigurationSecurite {
                         .contentSecurityPolicy(c -> c.policyDirectives(
                                 "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; "
                                         + "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
-                                        + "font-src 'self' https://cdn.jsdelivr.net; img-src 'self' data:; "
+                                        + "font-src 'self' https://cdn.jsdelivr.net; img-src 'self' data: blob:; media-src 'self' blob:; "
                                         + "form-action 'self' " + keycloak + " https://app.paydunya.com https://paydunya.com; "
                                         + "frame-ancestors 'none'")))
                 .build();

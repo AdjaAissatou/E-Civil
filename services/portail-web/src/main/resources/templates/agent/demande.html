@@ -35,11 +35,30 @@
         </div>
 
         <div class="col-lg-5">
+            <div class="card mb-3 border-warning-subtle" th:if="${d.verificationIdentite}"><div class="card-body">
+                <h2 class="h6 text-brun"><i class="bi bi-shield-check me-1"></i>Vérification d'identité</h2>
+                <p th:if="${pieces.isEmpty()}" class="small text-muted mb-0">Aucune photo n'est jointe à cette demande.</p>
+                <th:block th:unless="${pieces.isEmpty()}">
+                    <p class="small text-muted" th:text="${pieces[0].libelleTypePiece} + ' et selfie déposés le ' + ${@dates.heure(pieces[0].dateDepot)}"></p>
+                    <div class="row g-2 photos-identite" sec:authorize="hasAnyRole('DEMANDES_VALIDER','DOCUMENTS_SIGNER','DEMANDES_SUPERVISER')">
+                        <div class="col-6" th:each="p : ${pieces}">
+                            <div class="small fw-semibold mb-1" th:text="${p.libelle}"></div>
+                            <img th:unless="${p.purgee()}" th:src="@{/back-office/demandes/{id}/pieces/{p}(id=${d.id},p=${p.id})}" th:alt="${p.libelle}" loading="lazy">
+                            <div th:if="${p.purgee()}" class="small text-muted">effacée le <span th:text="${@dates.jour(p.datePurge)}"></span></div>
+                        </div>
+                    </div>
+                </th:block>
+            </div></div>
             <div class="card mb-3"><div class="card-body">
                 <h2 class="h6 text-brun">Actions</h2>
 
                 <div sec:authorize="hasRole('DEMANDES_VALIDER')" th:if="${s == 'SOUMISE'}" class="mb-3">
                     <form th:action="@{/delegue/demandes/{id}/validation(id=${d.id})}" method="post">
+                        <div class="form-check mb-2" th:if="${d.verificationIdentite}">
+                            <input class="form-check-input" type="checkbox" id="identiteVerifiee" name="identiteVerifiee" value="true" required>
+                            <label class="form-check-label small" for="identiteVerifiee">J'ai comparé le selfie à la pièce d'identité :
+                                il s'agit de la même personne et la pièce est lisible et valide.</label>
+                        </div>
                         <button class="btn btn-success w-100" type="submit"><i class="bi bi-check2 me-1"></i>Valider et ouvrir au paiement</button>
                     </form>
                 </div>

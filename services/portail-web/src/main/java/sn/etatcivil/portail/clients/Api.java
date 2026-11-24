@@ -145,6 +145,37 @@ public class Api {
                 .retrieve().body(Demande.class));
     }
 
+    /** Photo transmise telle que le navigateur l'a envoyée ; demande-service la contrôle et la réencode. */
+    public record Photo(String nom, byte[] contenu, String contentType) {}
+
+    /** Dépôt avec la pièce d'identité et le selfie (multipart). */
+    public Demande deposer(Object depot, String typePiece, Map<String, Photo> photos) {
+        var corps = new org.springframework.http.client.MultipartBodyBuilder();
+        corps.part("demande", depot, MediaType.APPLICATION_JSON);
+        if (typePiece != null) corps.part("typePiece", typePiece);
+        photos.forEach((nom, p) -> {
+            if (p == null || p.contenu().length == 0) return;
+            corps.part(nom, new org.springframework.core.io.ByteArrayResource(p.contenu()) {
+                @Override public String getFilename() { return p.nom() == null ? nom : p.nom(); }
+            }, MediaType.parseMediaType(p.contentType() == null ? "application/octet-stream" : p.contentType()));
+        });
+        return appeler(() -> http.post().uri("/api/demandes").contentType(MediaType.MULTIPART_FORM_DATA).body(corps.build())
+                .retrieve().body(Demande.class));
+    }
+
+    public List<PieceIdentite> piecesIdentite(UUID demandeId) {
+        try {
+            return appeler(() -> http.get().uri("/api/demandes/{id}/pieces", demandeId).retrieve()
+                    .body(new ParameterizedTypeReference<List<PieceIdentite>>() {}));
+        } catch (ApiException e) {
+            return List.of();
+        }
+    }
+
+    public byte[] photoIdentite(UUID demandeId, UUID pieceId) {
+        return appeler(() -> http.get().uri("/api/demandes/{id}/pieces/{p}", demandeId, pieceId).retrieve().body(byte[].class));
+    }
+
     public List<Demande> mesDemandes() {
         return get("/api/demandes/mes-demandes", new ParameterizedTypeReference<>() {});
     }

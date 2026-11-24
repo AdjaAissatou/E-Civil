@@ -52,6 +52,9 @@
         <dt class="col-sm-4">Montant</dt><dd class="col-sm-8" th:text="${#numbers.formatInteger(d.montant, 1, 'WHITESPACE')} + ' FCFA'"></dd>
         <dt class="col-sm-4" th:if="${d.numeroActe}">Acte</dt><dd class="col-sm-8" th:if="${d.numeroActe}" th:text="${d.numeroActe}"></dd>
         <dt class="col-sm-4" th:if="${d.surComparution()}">Acte</dt><dd class="col-sm-8" th:if="${d.surComparution()}">aucun : document établi sur comparution devant l'officier</dd>
+        <dt class="col-sm-4" th:if="${d.verificationIdentite}">Identité</dt>
+        <dd class="col-sm-8" th:if="${d.verificationIdentite}">pièce d'identité et selfie joints, vérifiés par le délégué ;
+            effacés 30 jours après la clôture de la demande</dd>
         <dt class="col-sm-4" th:if="${d.dureeValiditeJours}">Validité</dt>
         <dd class="col-sm-8" th:if="${d.dureeValiditeJours}" th:text="${d.dureeValiditeJours} + ' jours à compter de la signature'"></dd>
         <dt class="col-sm-4" th:if="${d.codeVerification}">Code de vérification</dt>

@@ -84,6 +84,11 @@
                                 th:selected="${t != null and t.copieDeId == o.id}"></option>
                     </select></div>
                 <div class="col-12 form-check ms-2">
+                    <input class="form-check-input" type="checkbox" id="verificationIdentite" name="verificationIdentite" value="true"
+                           th:checked="${t != null and t.verificationIdentite}">
+                    <label class="form-check-label" for="verificationIdentite">Vérification d'identité (pièce et selfie)</label>
+                    <div class="form-text">À exiger pour les documents sensibles : copie intégrale, mentions, certificats sur la personne.</div></div>
+                <div class="col-12 form-check ms-2">
                     <input class="form-check-input" type="checkbox" id="actif" name="actif" value="true" th:checked="${t == null or t.actif}">
                     <label class="form-check-label" for="actif">Proposé aux citoyens</label></div>
             </div></div>

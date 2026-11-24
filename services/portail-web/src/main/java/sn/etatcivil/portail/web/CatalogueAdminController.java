@@ -47,8 +47,10 @@ class CatalogueAdminController {
                        @RequestParam(required = false) Integer dureeValiditeJours, @RequestParam(required = false) String motsCles,
                        @RequestParam(required = false) String piecesAFournir,
                        @RequestParam(defaultValue = "false") boolean estOriginal, @RequestParam(required = false) Long copieDeId,
-                       @RequestParam(defaultValue = "false") boolean actif, RedirectAttributes flash) {
+                       @RequestParam(defaultValue = "false") boolean actif,
+                       @RequestParam(defaultValue = "false") boolean verificationIdentite, RedirectAttributes flash) {
         Map<String, Object> corps = new HashMap<>();
+        corps.put("verificationIdentite", verificationIdentite);
         corps.put("code", code);
         corps.put("libelle", libelle);
         corps.put("description", description);

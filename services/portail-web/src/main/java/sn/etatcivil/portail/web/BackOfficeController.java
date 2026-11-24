@@ -102,6 +102,7 @@ class BackOfficeController {
         Vues.Demande d = api.demande(id);
         model.addAttribute("d", d);
         model.addAttribute("paiements", api.paiements(id));
+        model.addAttribute("pieces", d.verificationIdentite() ? api.piecesIdentite(id) : List.of());
         if (d.acteId() != null && "ACTE_TROUVE".equals(d.statut())) {
             try {
                 model.addAttribute("acte", api.acte(d.acteId()));
@@ -114,9 +115,19 @@ class BackOfficeController {
 
     // ---------------------------------------------------------------- actions
 
+    /** Photo d'identité, servie sans cache ; demande-service vérifie que l'agent a le droit de la voir. */
+    @GetMapping("/back-office/demandes/{id}/pieces/{pieceId}")
+    org.springframework.http.ResponseEntity<byte[]> photo(@PathVariable UUID id, @PathVariable UUID pieceId) {
+        return org.springframework.http.ResponseEntity.ok()
+                .contentType(org.springframework.http.MediaType.IMAGE_JPEG)
+                .header(org.springframework.http.HttpHeaders.CACHE_CONTROL, "private, no-store")
+                .header("X-Content-Type-Options", "nosniff")
+                .body(api.photoIdentite(id, pieceId));
+    }
+
     @PostMapping("/delegue/demandes/{id}/validation")
-    String valider(@PathVariable UUID id, RedirectAttributes flash) {
-        api.action(id, "validation", null);
+    String valider(@PathVariable UUID id, @RequestParam(defaultValue = "false") boolean identiteVerifiee, RedirectAttributes flash) {
+        api.action(id, "validation", Map.of("identiteVerifiee", String.valueOf(identiteVerifiee)));
         flash.addFlashAttribute("succes", "Demande validée : le demandeur est invité à payer en ligne.");
         return "redirect:/delegue";
     }

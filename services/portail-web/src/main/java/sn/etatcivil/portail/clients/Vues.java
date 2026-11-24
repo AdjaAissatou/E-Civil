@@ -24,7 +24,18 @@ public final class Vues {
                                int tarif, int delaiJours, boolean actif,
                                Long natureId, String libelleNature, String libelleModele, String typeMention,
                                List<String> champs, Integer dureeValiditeJours, String motsCles, String piecesAFournir,
-                               boolean estOriginal, Long copieDeId, boolean exigeActe) {
+                               boolean estOriginal, Long copieDeId, boolean exigeActe, boolean verificationIdentite) {
+
+        public TypeDocument(Long id, String code, String libelle, String description, String typeActe,
+                            boolean concerneUnCouple, boolean copieIntegrale, String modele, String origine,
+                            int tarif, int delaiJours, boolean actif,
+                            Long natureId, String libelleNature, String libelleModele, String typeMention,
+                            List<String> champs, Integer dureeValiditeJours, String motsCles, String piecesAFournir,
+                            boolean estOriginal, Long copieDeId, boolean exigeActe) {
+            this(id, code, libelle, description, typeActe, concerneUnCouple, copieIntegrale, modele, origine, tarif,
+                    delaiJours, actif, natureId, libelleNature, libelleModele, typeMention, champs, dureeValiditeJours,
+                    motsCles, piecesAFournir, estOriginal, copieDeId, exigeActe, false);
+        }
 
         public TypeDocument(Long id, String code, String libelle, String description, String typeActe,
                             boolean concerneUnCouple, boolean copieIntegrale, String modele, String origine,
@@ -149,7 +160,26 @@ public final class Vues {
                           UUID acteId, String numeroActe, String noteRecherche, String signataire, Instant dateSignature,
                           String codeVerification, String motifRejet, Instant dateCreation, Instant dateModification,
                           List<Historique> historique, ComplementsDemande complements, Integer dureeValiditeJours,
-                          Boolean exigeActe) {
+                          Boolean exigeActe, boolean verificationIdentite) {
+
+        public Demande(UUID id, String reference, String statut, String libelleStatut, String explicationStatut,
+                       boolean terminee, String demandeurId, String demandeurNom, String demandeurEmail,
+                       Long typeDocumentId, String libelleDocument, String typeActe, boolean copieIntegrale, int montant,
+                       String motif, String lien, String format, String adresseLivraison, String villeLivraison,
+                       String nom, String prenom, String sexe, LocalDate dateNaissance, String lieuNaissance,
+                       String nomPere, String prenomPere, String nomMere, String prenomMere,
+                       String nomConjoint, String prenomConjoint, LocalDate dateEvenement,
+                       UUID acteId, String numeroActe, String noteRecherche, String signataire, Instant dateSignature,
+                       String codeVerification, String motifRejet, Instant dateCreation, Instant dateModification,
+                       List<Historique> historique, ComplementsDemande complements, Integer dureeValiditeJours,
+                       Boolean exigeActe) {
+            this(id, reference, statut, libelleStatut, explicationStatut, terminee, demandeurId, demandeurNom,
+                    demandeurEmail, typeDocumentId, libelleDocument, typeActe, copieIntegrale, montant, motif, lien, format,
+                    adresseLivraison, villeLivraison, nom, prenom, sexe, dateNaissance, lieuNaissance, nomPere, prenomPere,
+                    nomMere, prenomMere, nomConjoint, prenomConjoint, dateEvenement, acteId, numeroActe, noteRecherche,
+                    signataire, dateSignature, codeVerification, motifRejet, dateCreation, dateModification, historique,
+                    complements, dureeValiditeJours, exigeActe, false);
+        }
 
         public Demande(UUID id, String reference, String statut, String libelleStatut, String explicationStatut,
                        boolean terminee, String demandeurId, String demandeurNom, String demandeurEmail,
@@ -166,7 +196,7 @@ public final class Vues {
                     adresseLivraison, villeLivraison, nom, prenom, sexe, dateNaissance, lieuNaissance, nomPere, prenomPere,
                     nomMere, prenomMere, nomConjoint, prenomConjoint, dateEvenement, acteId, numeroActe, noteRecherche,
                     signataire, dateSignature, codeVerification, motifRejet, dateCreation, dateModification, historique,
-                    null, null, true);
+                    null, null, true, false);
         }
 
         /** Document établi sur comparution devant l'officier, sans acte du registre. */
@@ -377,4 +407,11 @@ public final class Vues {
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record TypeMention(String code, String libelle, List<String> actes) {}
+
+    /** Photo d'identité jointe à une demande (sans son contenu). */
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record PieceIdentite(UUID id, String nature, String libelle, String typePiece, String libelleTypePiece,
+                                int taille, Instant dateDepot, Instant datePurge) {
+        public boolean purgee() { return datePurge != null; }
+    }
 }

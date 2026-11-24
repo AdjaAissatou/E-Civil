@@ -41,7 +41,7 @@
             : 'Ce document concerne un acte dressé à l\'étranger et transcrit sur les registres sénégalais.'"></span>
     </div>
 
-    <form th:action="@{/demandes}" th:object="${demande}" method="post" novalidate>
+    <form th:action="@{/demandes}" th:object="${demande}" method="post" novalidate enctype="multipart/form-data">
         <input type="hidden" th:field="*{typeDocumentId}">
 
         <div class="card mb-3"><div class="card-body">
@@ -208,6 +208,49 @@
             <span class="text-danger"> *</span>
             <textarea class="form-control" rows="3" th:field="*{precisions}" maxlength="1000"
                       th:classappend="${#fields.hasErrors('precisions')} ? 'is-invalid'"></textarea>
+        </div></div>
+
+        <div class="card mb-3 border-warning-subtle" th:if="${type.verificationIdentite}"><div class="card-body">
+            <h2 class="h6 text-brun"><i class="bi bi-shield-check me-1"></i>Vérification de votre identité</h2>
+            <p class="small text-muted">Ce document est sensible : joignez la photo de votre pièce d'identité et prenez un selfie.
+                Le délégué compare les deux avant de valider la demande. Seuls les agents chargés de cette vérification voient
+                ces photos ; elles sont effacées 30 jours après la clôture de la demande.</p>
+            <div class="mb-3">
+                <span class="form-label d-block">Pièce présentée<span class="text-danger"> *</span></span>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" th:field="*{typePiece}" value="CNI" id="piece-cni">
+                    <label class="form-check-label" for="piece-cni">Carte nationale d'identité</label></div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" th:field="*{typePiece}" value="PASSEPORT" id="piece-passeport">
+                    <label class="form-check-label" for="piece-passeport">Passeport</label></div>
+            </div>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label" for="recto"><span id="libelle-recto">Carte d'identité : recto</span><span class="text-danger"> *</span></label>
+                    <input class="form-control" type="file" id="recto" name="recto" accept="image/jpeg,image/png" capture="environment" required>
+                    <img class="photo-apercu d-none mt-2" alt="Aperçu" data-apercu="recto">
+                </div>
+                <div class="col-md-6" id="bloc-verso">
+                    <label class="form-label" for="verso">Carte d'identité : verso<span class="text-danger"> *</span></label>
+                    <input class="form-control" type="file" id="verso" name="verso" accept="image/jpeg,image/png" capture="environment">
+                    <img class="photo-apercu d-none mt-2" alt="Aperçu" data-apercu="verso">
+                </div>
+                <div class="col-12">
+                    <label class="form-label" for="selfie">Selfie<span class="text-danger"> *</span></label>
+                    <p class="small text-muted mb-2">Visage de face, bien éclairé, sans lunettes de soleil ni couvre-chef qui masque le visage.</p>
+                    <div class="selfie-zone">
+                        <video id="camera" class="d-none" playsinline muted aria-label="Caméra"></video>
+                        <img id="apercu-selfie" class="photo-apercu d-none" alt="Votre selfie" data-apercu="selfie">
+                        <div class="d-flex flex-wrap gap-2 mt-2">
+                            <button type="button" class="btn btn-outline-primary btn-sm d-none" id="ouvrir-camera">
+                                <i class="bi bi-camera me-1"></i>Prendre le selfie avec la caméra</button>
+                            <button type="button" class="btn btn-primary btn-sm d-none" id="capturer"><i class="bi bi-record-circle me-1"></i>Prendre la photo</button>
+                        </div>
+                        <input class="form-control mt-2" type="file" id="selfie" name="selfie" accept="image/jpeg,image/png" capture="user" required>
+                    </div>
+                </div>
+            </div>
+            <p class="small text-muted mt-2 mb-0">Formats JPEG ou PNG, 5 Mo au plus par photo. Les informations doivent être lisibles.</p>
         </div></div>
 
         <button class="btn btn-primary btn-lg" type="submit">Envoyer la demande</button>

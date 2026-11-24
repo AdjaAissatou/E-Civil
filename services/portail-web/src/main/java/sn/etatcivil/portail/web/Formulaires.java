@@ -10,6 +10,21 @@ public final class Formulaires {
     private Formulaires() {}
 
     public static class Demande {
+        /** Vérification d'identité (documents sensibles) : envoyées à part, jamais dans le JSON de la demande. */
+        private String typePiece = "CNI";
+        private org.springframework.web.multipart.MultipartFile recto;
+        private org.springframework.web.multipart.MultipartFile verso;
+        private org.springframework.web.multipart.MultipartFile selfie;
+
+        @com.fasterxml.jackson.annotation.JsonIgnore public String getTypePiece() { return typePiece; }
+        public void setTypePiece(String v) { typePiece = v; }
+        @com.fasterxml.jackson.annotation.JsonIgnore public org.springframework.web.multipart.MultipartFile getRecto() { return recto; }
+        public void setRecto(org.springframework.web.multipart.MultipartFile v) { recto = v; }
+        @com.fasterxml.jackson.annotation.JsonIgnore public org.springframework.web.multipart.MultipartFile getVerso() { return verso; }
+        public void setVerso(org.springframework.web.multipart.MultipartFile v) { verso = v; }
+        @com.fasterxml.jackson.annotation.JsonIgnore public org.springframework.web.multipart.MultipartFile getSelfie() { return selfie; }
+        public void setSelfie(org.springframework.web.multipart.MultipartFile v) { selfie = v; }
+
         @NotNull private Long typeDocumentId;
         @NotNull(message = "choisissez un motif") private Long motifId;
         @Size(max = 255) private String precisionMotif;

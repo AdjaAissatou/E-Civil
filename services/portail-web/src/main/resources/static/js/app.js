@@ -112,3 +112,61 @@ document.addEventListener('click', function (e) {
   radios.forEach(r => r.addEventListener('change', appliquer));
   appliquer();
 })();
+
+
+/* Vérification d'identité : pièce présentée, aperçus, selfie pris avec la caméra (ou à défaut un fichier) */
+(function () {
+  const selfie = document.getElementById('selfie');
+  if (!selfie) return;
+  const verso = document.getElementById('bloc-verso');
+  const radios = document.querySelectorAll('input[name="typePiece"]');
+  const libelleRecto = document.getElementById('libelle-recto');
+  const pieceChoisie = () => {
+    const passeport = Array.from(radios).some(r => r.checked && r.value === 'PASSEPORT');
+    verso.classList.toggle('d-none', passeport);
+    verso.querySelector('input').required = !passeport;
+    libelleRecto.textContent = passeport ? 'Passeport : page avec la photo' : "Carte d'identité : recto";
+  };
+  radios.forEach(r => r.addEventListener('change', pieceChoisie));
+  pieceChoisie();
+
+  const apercu = (input) => {
+    const img = document.querySelector('[data-apercu="' + input.name + '"]');
+    if (!img) return;
+    const f = input.files && input.files[0];
+    if (f) { img.src = URL.createObjectURL(f); img.classList.remove('d-none'); } else { img.classList.add('d-none'); }
+  };
+  document.querySelectorAll('input[type="file"][name="recto"], input[type="file"][name="verso"], #selfie')
+    .forEach(i => i.addEventListener('change', () => apercu(i)));
+
+  const ouvrir = document.getElementById('ouvrir-camera');
+  const capturer = document.getElementById('capturer');
+  const video = document.getElementById('camera');
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || typeof DataTransfer === 'undefined') return;
+  ouvrir.classList.remove('d-none');
+  let flux = null;
+  ouvrir.addEventListener('click', async () => {
+    try {
+      flux = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 1280 } }, audio: false });
+      video.srcObject = flux; video.classList.remove('d-none'); await video.play();
+      capturer.classList.remove('d-none'); ouvrir.classList.add('d-none');
+    } catch (e) {
+      ouvrir.textContent = 'Caméra indisponible : choisissez une photo ci-dessous';
+      ouvrir.disabled = true;
+    }
+  });
+  capturer.addEventListener('click', () => {
+    const toile = document.createElement('canvas');
+    toile.width = video.videoWidth; toile.height = video.videoHeight;
+    toile.getContext('2d').drawImage(video, 0, 0);
+    toile.toBlob(blob => {
+      const dt = new DataTransfer();
+      dt.items.add(new File([blob], 'selfie.jpg', { type: 'image/jpeg' }));
+      selfie.files = dt.files;
+      apercu(selfie);
+      flux.getTracks().forEach(t => t.stop());
+      video.classList.add('d-none'); capturer.classList.add('d-none');
+      ouvrir.classList.remove('d-none'); ouvrir.innerHTML = '<i class="bi bi-camera me-1"></i>Reprendre le selfie';
+    }, 'image/jpeg', 0.9);
+  });
+})();
