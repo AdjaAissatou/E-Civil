@@ -1,5 +1,8 @@
 package sn.etatcivil.portail.web;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import jakarta.validation.Valid;
 import org.springframework.http.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -29,8 +32,22 @@ class DemandeController {
 
     @GetMapping
     String mesDemandes(Model model) {
-        model.addAttribute("demandes", api.mesDemandes());
+        List<Vues.Demande> demandes = api.mesDemandes();
+        model.addAttribute("demandes", demandes);
+        // compteurs par étape, comme le tableau de bord du citoyen de la version 1
+        java.util.Map<String, Long> etapes = new java.util.LinkedHashMap<>();
+        etapes.put("En examen", compter(demandes, "SOUMISE"));
+        etapes.put("À payer", compter(demandes, "A_PAYER"));
+        etapes.put("En traitement", compter(demandes, "PAYEE", "ACTE_TROUVE", "ACTE_INTROUVABLE"));
+        etapes.put("Délivrées", compter(demandes, "SIGNEE", "LIVREE"));
+        etapes.put("Rejetées ou annulées", compter(demandes, "REJETEE", "ANNULEE"));
+        model.addAttribute("etapes", etapes);
         return "citoyen/demandes";
+    }
+
+    private static long compter(List<Vues.Demande> demandes, String... statuts) {
+        List<String> s = List.of(statuts);
+        return demandes.stream().filter(d -> s.contains(d.statut())).count();
     }
 
     @GetMapping("/nouvelle")
@@ -42,6 +59,15 @@ class DemandeController {
         Utilisateur moi = Utilisateur.depuis(u);
         f.setNom(moi.nom());
         f.setPrenom(moi.prenom());
+        Vues.ProfilPersonnel profil = profil();
+        if (profil != null) {
+            // informations de l'inscription : identité, profession et domicile de la personne
+            f.setSexe(profil.sexe());
+            f.setDateNaissance(profil.dateNaissance());
+            f.setLieuNaissance(profil.lieuNaissance());
+            f.setProfession(profil.profession());
+            f.setResidence(profil.residence());
+        }
         return formulaire(model, f, type);
     }
 
@@ -94,7 +120,36 @@ class DemandeController {
     private String formulaire(Model model, Formulaires.Demande f, Vues.TypeDocument type) {
         model.addAttribute("demande", f);
         model.addAttribute("type", type);
-        model.addAttribute("motifs", api.motifs());
+        model.addAttribute("motifs", api.motifs(type.id()));
+        model.addAttribute("typesMentions", typesMentions(type));
+        // retrait à une mission diplomatique : celles qui couvrent le pays de résidence d'abord
+        Vues.ProfilPersonnel profil = profil();
+        List<Vues.Mission> missions = new ArrayList<>(api.missions(null));
+        if (profil != null && profil.diaspora() && profil.paysResidence() != null) {
+            String pays = profil.paysResidence();
+            missions.sort(java.util.Comparator.comparing((Vues.Mission m) -> !pays.equalsIgnoreCase(m.pays())));
+            model.addAttribute("paysResidence", pays);
+        }
+        model.addAttribute("missions", missions);
+        model.addAttribute("diaspora", profil != null && profil.diaspora());
         return "citoyen/nouvelle";
+    }
+
+    /** Profil de l'inscription, s'il est disponible (le formulaire fonctionne sans). */
+    private Vues.ProfilPersonnel profil() {
+        try {
+            return api.monProfil();
+        } catch (ApiException e) {
+            return null;
+        }
+    }
+
+    private List<Vues.TypeMention> typesMentions(Vues.TypeDocument type) {
+        if (!type.demande("MENTION")) return List.of();
+        try {
+            return api.typesMentions().stream().filter(t -> t.actes().contains(type.typeActe())).toList();
+        } catch (ApiException e) {
+            return List.of();
+        }
     }
 }

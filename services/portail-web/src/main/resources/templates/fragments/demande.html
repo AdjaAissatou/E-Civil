@@ -12,6 +12,36 @@
         <dt class="col-sm-4" th:if="${d.dateEvenement}">Date de l'événement</dt>
         <dd class="col-sm-8" th:if="${d.dateEvenement}" th:text="${#temporals.format(d.dateEvenement, 'dd/MM/yyyy')}"></dd>
     </dl>
+    <th:block th:with="c=${d.complements}" th:if="${d.complements != null and !d.complements.vide()}">
+        <hr>
+        <h3 class="h6 text-muted">Informations complémentaires</h3>
+        <dl class="row fiche mb-0">
+            <th:block th:with="sit=${T(sn.etatcivil.portail.clients.Vues.Acte).situation(c.profession, c.residence)}">
+                <dt class="col-sm-4" th:if="${sit}">Profession, domicile</dt><dd class="col-sm-8" th:if="${sit}" th:text="${sit}"></dd>
+            </th:block>
+            <th:block th:with="sit=${T(sn.etatcivil.portail.clients.Vues.Acte).situation(c.professionPere, c.residencePere)}">
+                <dt class="col-sm-4" th:if="${sit}">Père</dt><dd class="col-sm-8" th:if="${sit}" th:text="${sit}"></dd>
+            </th:block>
+            <th:block th:with="sit=${T(sn.etatcivil.portail.clients.Vues.Acte).situation(c.professionMere, c.residenceMere)}">
+                <dt class="col-sm-4" th:if="${sit}">Mère</dt><dd class="col-sm-8" th:if="${sit}" th:text="${sit}"></dd>
+            </th:block>
+            <dt class="col-sm-4" th:if="${c.dateNaissanceConjoint != null or c.lieuNaissanceConjoint != null}">Conjoint né(e)</dt>
+            <dd class="col-sm-8" th:if="${c.dateNaissanceConjoint != null or c.lieuNaissanceConjoint != null}"
+                th:text="(${c.dateNaissanceConjoint} ? ${#temporals.format(c.dateNaissanceConjoint, 'dd/MM/yyyy')} : '') + (${c.lieuNaissanceConjoint} ? ' à ' + ${c.lieuNaissanceConjoint} : '')"></dd>
+            <th:block th:with="sit=${T(sn.etatcivil.portail.clients.Vues.Acte).situation(c.professionConjoint, c.residenceConjoint)}">
+                <dt class="col-sm-4" th:if="${sit}">Conjoint</dt><dd class="col-sm-8" th:if="${sit}" th:text="${sit}"></dd>
+            </th:block>
+            <dt class="col-sm-4" th:if="${c.temoin1}">Témoins</dt>
+            <dd class="col-sm-8" th:if="${c.temoin1}" th:text="${c.temoin1} + (${c.temoin2} ? ' ; ' + ${c.temoin2} : '')"></dd>
+            <dt class="col-sm-4" th:if="${c.lieuDeces}">Lieu du décès</dt><dd class="col-sm-8" th:if="${c.lieuDeces}" th:text="${c.lieuDeces}"></dd>
+            <dt class="col-sm-4" th:if="${c.causeDeces}">Cause du décès</dt><dd class="col-sm-8" th:if="${c.causeDeces}" th:text="${c.causeDeces}"></dd>
+            <dt class="col-sm-4" th:if="${c.medecin}">Médecin</dt>
+            <dd class="col-sm-8" th:if="${c.medecin}" th:text="${c.medecin} + (${c.adresseMedecin} ? ', ' + ${c.adresseMedecin} : '')"></dd>
+            <dt class="col-sm-4" th:if="${c.typeMention}">Mention marginale</dt>
+            <dd class="col-sm-8" th:if="${c.typeMention}" th:text="${c.typeMention} + (${c.detailsMention} ? ' — ' + ${c.detailsMention} : '')"></dd>
+            <dt class="col-sm-4" th:if="${c.precisions}">Précisions</dt><dd class="col-sm-8" th:if="${c.precisions}" th:text="${c.precisions}"></dd>
+        </dl>
+    </th:block>
     <hr>
     <dl class="row fiche mb-0">
         <dt class="col-sm-4">Motif</dt><dd class="col-sm-8" th:text="${d.motif}"></dd>
@@ -21,6 +51,9 @@
         <dd class="col-sm-8" th:if="${d.adresseLivraison}" th:text="${d.adresseLivraison} + ', ' + ${d.villeLivraison}"></dd>
         <dt class="col-sm-4">Montant</dt><dd class="col-sm-8" th:text="${#numbers.formatInteger(d.montant, 1, 'WHITESPACE')} + ' FCFA'"></dd>
         <dt class="col-sm-4" th:if="${d.numeroActe}">Acte</dt><dd class="col-sm-8" th:if="${d.numeroActe}" th:text="${d.numeroActe}"></dd>
+        <dt class="col-sm-4" th:if="${d.surComparution()}">Acte</dt><dd class="col-sm-8" th:if="${d.surComparution()}">aucun : document établi sur comparution devant l'officier</dd>
+        <dt class="col-sm-4" th:if="${d.dureeValiditeJours}">Validité</dt>
+        <dd class="col-sm-8" th:if="${d.dureeValiditeJours}" th:text="${d.dureeValiditeJours} + ' jours à compter de la signature'"></dd>
         <dt class="col-sm-4" th:if="${d.codeVerification}">Code de vérification</dt>
         <dd class="col-sm-8" th:if="${d.codeVerification}"><a th:href="@{/verification/{c}(c=${d.codeVerification})}" th:text="${d.codeVerification}"></a></dd>
     </dl>

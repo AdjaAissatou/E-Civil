@@ -64,11 +64,13 @@
                 </div>
 
                 <div sec:authorize="hasRole('DOCUMENTS_SIGNER')" th:if="${s == 'ACTE_TROUVE'}" class="mb-3">
-                    <p class="small">Vérifiez que l'acte du registre correspond bien à la demande, puis signez.</p>
+                    <p class="small" th:unless="${d.surComparution()}">Vérifiez que l'acte du registre correspond bien à la demande, puis signez.</p>
+                    <p class="small" th:if="${d.surComparution()}">Document établi sur comparution : vérifiez l'identité de la
+                        personne, ses témoins et sa déclaration, puis signez.</p>
                     <form class="mb-2" th:action="@{/officier/demandes/{id}/signature(id=${d.id})}" method="post">
                         <button class="btn btn-success w-100" type="submit"><i class="bi bi-pen me-1"></i>Signer et délivrer</button>
                     </form>
-                    <form th:action="@{/officier/demandes/{id}/contestation(id=${d.id})}" method="post">
+                    <form th:unless="${d.surComparution()}" th:action="@{/officier/demandes/{id}/contestation(id=${d.id})}" method="post">
                         <textarea class="form-control mb-2" name="raison" rows="2" required placeholder="Pourquoi cet acte ne correspond-il pas ?"></textarea>
                         <button class="btn btn-outline-danger w-100" type="submit">Ce n'est pas le bon acte</button>
                     </form>

@@ -1,5 +1,8 @@
 package sn.etatcivil.portail.web;
 
+import org.springframework.format.annotation.DateTimeFormat;
+import java.time.LocalDate;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -38,27 +41,40 @@ class BackOfficeController {
 
     // ---------------------------------------------------------------- files d'attente
 
+    /** Filtres communs des files (comme les écrans du délégué et de l'officier de la version 1). */
+    @ModelAttribute("filtre")
+    Api.FiltreDemandes filtre(@RequestParam(required = false) String reference,
+                              @RequestParam(required = false) Long typeDocument,
+                              @RequestParam(required = false) String format,
+                              @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate du,
+                              @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate au) {
+        return new Api.FiltreDemandes(reference, typeDocument, format == null || format.isBlank() ? null : format, du, au);
+    }
+
     @GetMapping("/delegue")
-    String delegue(@RequestParam(defaultValue = "0") int page, Model model) {
+    String delegue(@ModelAttribute("filtre") Api.FiltreDemandes f, @RequestParam(defaultValue = "0") int page, Model model) {
         return file(model, "Demandes à examiner", "Vérifiez la cohérence de chaque demande avant de l'ouvrir au paiement.",
-                List.of("SOUMISE"), page);
+                List.of("SOUMISE"), f, page, List.of("SOUMISE", "A_PAYER", "SIGNEE", "LIVREE", "REJETEE"));
     }
 
     @GetMapping("/delegue/livraisons")
-    String livraisons(@RequestParam(defaultValue = "0") int page, Model model) {
-        return file(model, "Documents signés", "Les documents papier sont à imprimer puis à expédier.", List.of("SIGNEE"), page);
+    String livraisons(@ModelAttribute("filtre") Api.FiltreDemandes f, @RequestParam(defaultValue = "0") int page, Model model) {
+        return file(model, "Documents signés", "Les documents papier sont à imprimer puis à expédier (ou à remettre à la "
+                + "mission diplomatique indiquée).", List.of("SIGNEE"), f, page, List.of("SIGNEE", "LIVREE"));
     }
 
     @GetMapping("/registre")
-    String registre(@RequestParam(defaultValue = "0") int page, Model model) {
+    String registre(@ModelAttribute("filtre") Api.FiltreDemandes f, @RequestParam(defaultValue = "0") int page, Model model) {
         return file(model, "Actes non retrouvés", "Retrouvez l'acte dans les registres papier, transcrivez-le puis relancez la "
                 + "recherche ou rattachez-le par son numéro. Une validation d'acte relance aussi automatiquement les demandes.",
-                List.of("ACTE_INTROUVABLE", "PAYEE"), page);
+                List.of("ACTE_INTROUVABLE", "PAYEE"), f, page, List.of("PAYEE", "ACTE_INTROUVABLE", "ACTE_TROUVE"));
     }
 
     @GetMapping("/officier")
-    String officier(Model model) {
-        model.addAttribute("aSigner", api.demandes(List.of("ACTE_TROUVE"), null, 0).contenu());
+    String officier(@ModelAttribute("filtre") Api.FiltreDemandes f, Model model) {
+        model.addAttribute("aSigner", api.demandes(List.of("ACTE_TROUVE"), f, 0).contenu());
+        compteurs(model, f, List.of("ACTE_TROUVE", "SIGNEE", "REJETEE"));
+        model.addAttribute("documents", documentsDuCatalogue());
         try {
             model.addAttribute("aValider", api.actes(null, "SAISI", null, 0).contenu());
         } catch (ApiException e) {
@@ -69,14 +85,15 @@ class BackOfficeController {
     }
 
     @GetMapping("/back-office/demandes")
-    String toutes(@RequestParam(required = false) String statut, @RequestParam(required = false) String reference,
+    String toutes(@RequestParam(required = false) String statut, @ModelAttribute("filtre") Api.FiltreDemandes f,
                   @RequestParam(defaultValue = "0") int page, Model model) {
         model.addAttribute("titre", "Toutes les demandes");
-        model.addAttribute("page", api.demandes(statut == null || statut.isBlank() ? null : List.of(statut), reference, page));
-        model.addAttribute("filtres", true);
+        model.addAttribute("page", api.demandes(statut == null || statut.isBlank() ? null : List.of(statut), f, page));
+        model.addAttribute("tousStatuts", true);
         model.addAttribute("statuts", STATUTS);
         model.addAttribute("statut", statut);
-        model.addAttribute("reference", reference);
+        compteurs(model, f, List.copyOf(STATUTS.keySet()));
+        model.addAttribute("documents", documentsDuCatalogue());
         return "agent/demandes";
     }
 
@@ -157,10 +174,33 @@ class BackOfficeController {
         return "redirect:/officier";
     }
 
-    private String file(Model model, String titre, String aide, List<String> statuts, int page) {
+    private String file(Model model, String titre, String aide, List<String> statuts, Api.FiltreDemandes f, int page,
+                        List<String> compteurs) {
         model.addAttribute("titre", titre);
         model.addAttribute("aide", aide);
-        model.addAttribute("page", api.demandes(statuts, null, page));
+        model.addAttribute("page", api.demandes(statuts, f, page));
+        compteurs(model, f, compteurs);
+        model.addAttribute("documents", documentsDuCatalogue());
         return "agent/demandes";
+    }
+
+    /** Nombre de demandes par statut pour les filtres en cours (cartes en tête de file). */
+    private void compteurs(Model model, Api.FiltreDemandes f, List<String> statuts) {
+        Map<String, Map.Entry<String, Long>> c = new LinkedHashMap<>();
+        try {
+            Map<String, Long> n = api.statistiquesDemandes(f);
+            statuts.forEach(s -> c.put(s, Map.entry(STATUTS.get(s), n.getOrDefault(s, 0L))));
+        } catch (ApiException e) {
+            // compteurs secondaires : la file reste affichée
+        }
+        model.addAttribute("compteurs", c);
+    }
+
+    private List<Vues.TypeDocument> documentsDuCatalogue() {
+        try {
+            return api.documents().stream().sorted(java.util.Comparator.comparing(Vues.TypeDocument::libelle)).toList();
+        } catch (ApiException e) {
+            return List.of();
+        }
     }
 }

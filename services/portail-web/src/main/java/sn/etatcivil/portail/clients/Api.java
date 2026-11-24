@@ -41,6 +41,98 @@ public class Api {
         return get("/api/catalogue/motifs", new ParameterizedTypeReference<>() {});
     }
 
+    /** Motifs proposés pour une variété (communs et propres), avec leurs pièces à fournir. */
+    public List<Motif> motifs(Long typeDocumentId) {
+        return appeler(() -> http.get().uri(u -> u.path("/api/catalogue/motifs").queryParam("document", typeDocumentId).build())
+                .retrieve().body(new ParameterizedTypeReference<List<Motif>>() {}));
+    }
+
+    public List<Motif> tousLesMotifs() {
+        return get("/api/catalogue/motifs/tous", new ParameterizedTypeReference<>() {});
+    }
+
+    public List<Nature> natures(boolean activesSeulement) {
+        return appeler(() -> http.get().uri(u -> u.path("/api/catalogue/natures").queryParam("actives", activesSeulement).build())
+                .retrieve().body(new ParameterizedTypeReference<List<Nature>>() {}));
+    }
+
+    public ReferentielsCatalogue referentielsCatalogue() {
+        return appeler(() -> http.get().uri("/api/catalogue/referentiels").retrieve().body(ReferentielsCatalogue.class));
+    }
+
+    public TypeDocument creerDocument(Map<String, Object> corps) {
+        return appeler(() -> http.post().uri("/api/catalogue/documents").contentType(MediaType.APPLICATION_JSON).body(corps)
+                .retrieve().body(TypeDocument.class));
+    }
+
+    public TypeDocument modifierDocumentComplet(Long id, Map<String, Object> corps) {
+        return appeler(() -> http.put().uri("/api/catalogue/documents/{id}/caracteristiques", id)
+                .contentType(MediaType.APPLICATION_JSON).body(corps).retrieve().body(TypeDocument.class));
+    }
+
+    public Nature enregistrerNature(Long id, Map<String, Object> corps) {
+        return appeler(() -> (id == null ? http.post().uri("/api/catalogue/natures") : http.put().uri("/api/catalogue/natures/{id}", id))
+                .contentType(MediaType.APPLICATION_JSON).body(corps).retrieve().body(Nature.class));
+    }
+
+    public Motif enregistrerMotif(Long id, Map<String, Object> corps) {
+        return appeler(() -> (id == null ? http.post().uri("/api/catalogue/motifs") : http.put().uri("/api/catalogue/motifs/{id}", id))
+                .contentType(MediaType.APPLICATION_JSON).body(corps).retrieve().body(Motif.class));
+    }
+
+    // ---------------------------------------------------------------- diaspora
+
+    public ReferentielDiaspora diaspora() {
+        try {
+            return appeler(() -> http.get().uri("/api/catalogue/diaspora").retrieve().body(ReferentielDiaspora.class));
+        } catch (ApiException e) {
+            return new ReferentielDiaspora(List.of(), List.of(), List.of());
+        }
+    }
+
+    public List<Mission> missions(Long paysId) {
+        try {
+            return appeler(() -> http.get().uri(u -> {
+                u.path("/api/catalogue/diaspora/missions");
+                if (paysId != null) u.queryParam("pays", paysId);
+                return u.build();
+            }).retrieve().body(new ParameterizedTypeReference<List<Mission>>() {}));
+        } catch (ApiException e) {
+            return List.of();
+        }
+    }
+
+    public List<Mission> toutesLesMissions() {
+        return get("/api/catalogue/diaspora/missions/toutes", new ParameterizedTypeReference<>() {});
+    }
+
+    public Mission enregistrerMission(Long id, Map<String, Object> corps) {
+        return appeler(() -> (id == null ? http.post().uri("/api/catalogue/diaspora/missions")
+                : http.put().uri("/api/catalogue/diaspora/missions/{id}", id))
+                .contentType(MediaType.APPLICATION_JSON).body(corps).retrieve().body(Mission.class));
+    }
+
+    public Pays ajouterPays(Map<String, Object> corps) {
+        return appeler(() -> http.post().uri("/api/catalogue/diaspora/pays").contentType(MediaType.APPLICATION_JSON)
+                .body(corps).retrieve().body(Pays.class));
+    }
+
+    // ---------------------------------------------------------------- mon compte
+
+    public ProfilPersonnel monProfil() {
+        return appeler(() -> http.get().uri("/api/habilitations/moi").retrieve().body(ProfilPersonnel.class));
+    }
+
+    public ProfilPersonnel modifierMonProfil(ProfilPersonnel p) {
+        return appeler(() -> http.put().uri("/api/habilitations/moi").contentType(MediaType.APPLICATION_JSON).body(p)
+                .retrieve().body(ProfilPersonnel.class));
+    }
+
+    public void preferencesNotifications(boolean notifications) {
+        envoyer(() -> http.put().uri("/api/demandes/preferences").contentType(MediaType.APPLICATION_JSON)
+                .body(Map.of("notifications", notifications)).retrieve().toBodilessEntity());
+    }
+
     public void modifierDocument(Long id, int tarif, int delaiJours, boolean actif) {
         envoyer(() -> http.put().uri("/api/catalogue/documents/{id}", id).contentType(MediaType.APPLICATION_JSON)
                 .body(Map.of("tarif", tarif, "delaiJours", delaiJours, "actif", actif)).retrieve().toBodilessEntity());
@@ -62,15 +154,39 @@ public class Api {
     }
 
     public Page<Demande> demandes(Collection<String> statuts, String reference, int page) {
+        return demandes(statuts, new FiltreDemandes(reference, null, null, null, null), page);
+    }
+
+    /** Filtres des files des agents ; chaque critère vide est ignoré. */
+    public record FiltreDemandes(String reference, Long typeDocument, String format, java.time.LocalDate du, java.time.LocalDate au) {
+        public static final FiltreDemandes AUCUN = new FiltreDemandes(null, null, null, null, null);
+
+        void appliquer(UriBuilder u) {
+            if (reference != null && !reference.isBlank()) u.queryParam("reference", reference.trim());
+            if (typeDocument != null) u.queryParam("typeDocument", typeDocument);
+            if (format != null && !format.isBlank()) u.queryParam("format", format);
+            if (du != null) u.queryParam("du", du);
+            if (au != null) u.queryParam("au", au);
+        }
+    }
+
+    public Page<Demande> demandes(Collection<String> statuts, FiltreDemandes f, int page) {
         return appeler(() -> http.get().uri(u -> {
             if (statuts != null) statuts.forEach(s -> u.queryParam("statut", s));
-            if (reference != null && !reference.isBlank()) u.queryParam("reference", reference.trim());
+            f.appliquer(u);
             return u.path("/api/demandes").queryParam("page", page).build();
         }).retrieve().body(new ParameterizedTypeReference<Page<Demande>>() {}));
     }
 
     public Map<String, Long> statistiquesDemandes() {
-        return get("/api/demandes/statistiques", new ParameterizedTypeReference<>() {});
+        return statistiquesDemandes(FiltreDemandes.AUCUN);
+    }
+
+    public Map<String, Long> statistiquesDemandes(FiltreDemandes f) {
+        return appeler(() -> http.get().uri(u -> {
+            f.appliquer(u);
+            return u.path("/api/demandes/statistiques").build();
+        }).retrieve().body(new ParameterizedTypeReference<Map<String, Long>>() {}));
     }
 
     /** Action sur une demande : validation, annulation, recherche, signature… */

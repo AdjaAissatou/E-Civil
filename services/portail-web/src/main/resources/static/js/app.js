@@ -71,3 +71,44 @@ document.addEventListener('click', function (e) {
   const b = e.target.closest('[data-confirmation]');
   if (b && !window.confirm(b.dataset.confirmation)) e.preventDefault();
 });
+
+/* Formulaire de demande : pièces à fournir selon le motif, adresse masquée en cas de retrait à une mission */
+(function () {
+  const motif = document.getElementById('motifId');
+  const pieces = document.getElementById('pieces-motif');
+  if (motif && pieces) {
+    const afficher = () => {
+      const o = motif.options[motif.selectedIndex];
+      const p = o && o.dataset.pieces;
+      pieces.textContent = p ? 'Pièces à fournir pour ce motif : ' + p : '';
+    };
+    motif.addEventListener('change', afficher);
+    afficher();
+  }
+  const mission = document.getElementById('missionRetraitId');
+  const adresse = document.getElementById('bloc-adresse');
+  if (mission && adresse) {
+    const appliquer = () => {
+      const retrait = mission.value !== '';
+      adresse.classList.toggle('d-none', retrait);
+      adresse.querySelectorAll('input').forEach(i => { if (retrait) i.required = false; });
+    };
+    mission.addEventListener('change', appliquer);
+    document.querySelectorAll('input[name="format"]').forEach(r => r.addEventListener('change', appliquer));
+    appliquer();
+  }
+})();
+
+/* Mon compte : le pays de résidence ne concerne que la diaspora */
+(function () {
+  const bloc = document.getElementById('bloc-pays');
+  if (!bloc) return;
+  const radios = document.querySelectorAll('input[name="typeUtilisateur"]');
+  const appliquer = () => {
+    const diaspora = Array.from(radios).some(r => r.checked && r.value === 'DIASPORA');
+    bloc.classList.toggle('d-none', !diaspora);
+    bloc.querySelector('input').required = diaspora;
+  };
+  radios.forEach(r => r.addEventListener('change', appliquer));
+  appliquer();
+})();

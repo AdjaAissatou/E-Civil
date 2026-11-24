@@ -6,6 +6,14 @@
         <h1 class="h3 mb-0">Mes demandes</h1>
         <a class="btn btn-primary" th:href="@{/documents}"><i class="bi bi-plus-lg me-1"></i>Nouvelle demande</a>
     </div>
+    <div class="row g-2 mb-3" th:unless="${#lists.isEmpty(demandes)}">
+        <div class="col-6 col-md" th:each="e : ${etapes}">
+            <div class="card h-100"><div class="card-body py-2">
+                <div class="small text-muted" th:text="${e.key}"></div>
+                <div class="fs-4 fw-semibold" th:text="${e.value}">0</div>
+            </div></div>
+        </div>
+    </div>
     <div th:if="${#lists.isEmpty(demandes)}" class="card"><div class="card-body text-center py-5 text-muted">
         Vous n'avez encore fait aucune demande. <a th:href="@{/documents}">Choisissez un document</a> pour commencer.
     </div></div>

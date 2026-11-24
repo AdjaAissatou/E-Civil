@@ -3,6 +3,8 @@
 <body>
 <main class="container py-4">
     <h1 class="h3">Espace de l'officier de l'état civil</h1>
+    <div th:replace="~{fragments/filtres :: compteurs(${compteurs})}"></div>
+    <form th:replace="~{fragments/filtres :: formulaire(${filtre}, ${documents}, false)}"></form>
 
     <h2 class="h5 mt-4">Documents à signer <span class="badge text-bg-info" th:text="${#lists.size(aSigner)}"></span></h2>
     <div class="card"><div class="table-responsive">
@@ -14,7 +16,7 @@
                 <td class="fw-semibold" th:text="${d.reference}"></td>
                 <td th:text="${d.libelleDocument}"></td>
                 <td th:text="${d.personneConcernee}"></td>
-                <td th:text="${d.numeroActe}"></td>
+                <td th:text="${d.surComparution()} ? 'sur comparution' : ${d.numeroActe}"></td>
                 <td class="text-end"><a class="btn btn-primary btn-sm" th:href="@{/back-office/demandes/{id}(id=${d.id})}">Contrôler et signer</a></td>
             </tr>
             </tbody>

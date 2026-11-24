@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: page('Mon compte', ~{::main})}">
+<body>
+<main class="container py-4" style="max-width: 960px" th:with="p=${profil}">
+    <div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-3">
+        <div>
+            <span class="surtitre">Mon compte</span>
+            <h1 class="h3 mb-0" th:text="${p.prenom} + ' ' + ${p.nom}"></h1>
+            <div class="text-muted" th:text="${p.email}"></div>
+        </div>
+        <a class="btn btn-contour btn-sm" th:href="@{/compte/securite}" target="_blank" rel="noopener">
+            <i class="bi bi-shield-lock me-1"></i>Mot de passe et sécurité</a>
+    </div>
+
+    <form method="post" th:action="@{/compte}" class="row g-4">
+        <div class="col-lg-7">
+            <div class="card mb-4"><div class="card-body">
+                <h2 class="h6 text-brun">Informations personnelles</h2>
+                <p class="small text-muted">Elles préremplissent vos demandes de documents.</p>
+                <div class="row g-3">
+                    <div class="col-md-6"><label class="form-label" for="prenom">Prénom(s)</label>
+                        <input class="form-control" id="prenom" name="prenom" required maxlength="100" th:value="${p.prenom}"></div>
+                    <div class="col-md-6"><label class="form-label" for="nom">Nom</label>
+                        <input class="form-control" id="nom" name="nom" required maxlength="100" th:value="${p.nom}"></div>
+                    <div class="col-md-4"><label class="form-label" for="sexe">Sexe</label>
+                        <select class="form-select" id="sexe" name="sexe">
+                            <option value="">—</option>
+                            <option value="F" th:selected="${p.sexe == 'F'}">Féminin</option>
+                            <option value="M" th:selected="${p.sexe == 'M'}">Masculin</option>
+                        </select></div>
+                    <div class="col-md-4"><label class="form-label" for="dateNaissance">Date de naissance</label>
+                        <input class="form-control" id="dateNaissance" name="dateNaissance" type="date" th:value="${p.dateNaissance}"></div>
+                    <div class="col-md-4"><label class="form-label" for="lieuNaissance">Lieu de naissance</label>
+                        <input class="form-control" id="lieuNaissance" name="lieuNaissance" maxlength="150" th:value="${p.lieuNaissance}"></div>
+                    <div class="col-md-6"><label class="form-label" for="telephone">Téléphone</label>
+                        <input class="form-control" id="telephone" name="telephone" type="tel" maxlength="20"
+                               placeholder="+221 77 123 45 67" th:value="${p.telephone}"></div>
+                    <div class="col-md-6"><label class="form-label" for="numeroCni">N° de carte d'identité</label>
+                        <input class="form-control" id="numeroCni" name="numeroCni" maxlength="30" th:value="${p.numeroCni}"></div>
+                    <div class="col-md-8"><label class="form-label" for="profession">Profession</label>
+                        <input class="form-control" id="profession" name="profession" maxlength="150" th:value="${p.profession}"></div>
+                    <div class="col-md-4"><label class="form-label" for="nombreEnfants">Nombre d'enfants</label>
+                        <input class="form-control" id="nombreEnfants" name="nombreEnfants" type="number" min="0" max="50" th:value="${p.nombreEnfants}"></div>
+                </div>
+            </div></div>
+
+            <div class="card"><div class="card-body">
+                <h2 class="h6 text-brun">Résidence</h2>
+                <div class="d-flex gap-4 mb-3">
+                    <div class="form-check"><input class="form-check-input" type="radio" name="typeUtilisateur" id="resident"
+                                                   value="RESIDENT" th:checked="${!p.diaspora()}">
+                        <label class="form-check-label" for="resident">Je réside au Sénégal</label></div>
+                    <div class="form-check"><input class="form-check-input" type="radio" name="typeUtilisateur" id="diaspora"
+                                                   value="DIASPORA" th:checked="${p.diaspora()}">
+                        <label class="form-check-label" for="diaspora">Je réside à l'étranger (diaspora)</label></div>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-8"><label class="form-label" for="residence">Adresse</label>
+                        <input class="form-control" id="residence" name="residence" maxlength="255" th:value="${p.residence}"></div>
+                    <div class="col-md-4"><label class="form-label" for="localite">Commune ou ville</label>
+                        <input class="form-control" id="localite" name="localite" maxlength="150" th:value="${p.localite}"></div>
+                    <div class="col-md-8" id="bloc-pays"><label class="form-label" for="paysResidence">Pays de résidence</label>
+                        <input class="form-control" id="paysResidence" name="paysResidence" list="liste-pays" maxlength="150"
+                               th:value="${p.paysResidence}">
+                        <datalist id="liste-pays"><option th:each="x : ${pays}" th:value="${x.nom}"></option></datalist>
+                        <div class="form-text">Vos documents papier pourront être retirés à la mission diplomatique qui couvre ce pays.</div>
+                    </div>
+                </div>
+            </div></div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="card mb-4"><div class="card-body">
+                <h2 class="h6 text-brun">Préférences</h2>
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" role="switch" id="notifications" name="notifications"
+                           value="true" th:checked="${p.notifications}">
+                    <label class="form-check-label" for="notifications">Recevoir un email à chaque étape de mes demandes</label>
+                </div>
+                <label class="form-label" for="langue">Langue du portail</label>
+                <select class="form-select" id="langue" name="langue">
+                    <option value="fr" th:selected="${p.langue == 'fr'}">Français</option>
+                    <option value="wo" th:selected="${p.langue == 'wo'}">Wolof</option>
+                    <option value="en" th:selected="${p.langue == 'en'}">English</option>
+                </select>
+                <div class="form-text">Le menu et les pages principales sont traduits ; le reste s'affiche en français.</div>
+            </div></div>
+            <button class="btn btn-primary w-100" type="submit"><i class="bi bi-check2 me-1"></i>Enregistrer</button>
+        </div>
+    </form>
+</main>
+</body>
+</html>
