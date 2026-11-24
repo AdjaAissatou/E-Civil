@@ -1,0 +1,34 @@
+spring:
+  application:
+    name: habilitation-service
+  config:
+    import: optional:file:.env[.properties],optional:file:../../.env[.properties]
+  datasource:
+    url: ${HABILITATION_DB_URL:jdbc:postgresql://localhost:5432/habilitation}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:}
+  jpa:
+    hibernate.ddl-auto: validate
+    open-in-view: false
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_URL_PUBLIQUE:http://localhost:8180}/realms/ecivil
+          jwk-set-uri: ${KEYCLOAK_URL_INTERNE:http://localhost:8180}/realms/ecivil/protocol/openid-connect/certs
+
+ecivil:
+  keycloak:
+    # API d'administration de Keycloak (réseau interne), avec le compte administrateur de .env
+    url: ${KEYCLOAK_URL_INTERNE:http://localhost:8180}
+    realm: ecivil
+
+server:
+  port: ${PORT:8086}
+  error:
+    include-message: never
+    include-stacktrace: never
+
+management:
+  endpoints.web.exposure.include: health
+  endpoint.health.probes.enabled: true

@@ -39,11 +39,20 @@ class ConfigurationSecurite {
                 .authorizeHttpRequests(a -> a
                         .requestMatchers("/", "/documents", "/inscription", "/verification/**", "/css/**", "/js/**", "/fonts/**", "/images/**",
                                 "/favicon_io/**", "/mairie.png", "/error", "/actuator/health/**").permitAll()
-                        .requestMatchers("/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/delegue/**").hasAnyRole("DELEGUE", "ADMIN")
-                        .requestMatchers("/registre/**").hasAnyRole("AGENT_REGISTRE", "OFFICIER", "ADMIN")
-                        .requestMatchers("/officier/**").hasAnyRole("OFFICIER", "ADMIN")
-                        .requestMatchers("/back-office/**").hasAnyRole("DELEGUE", "AGENT_REGISTRE", "OFFICIER", "ADMIN")
+                        // chaque espace exige une permission ; les services la vérifient à nouveau sur chaque action
+                        .requestMatchers("/admin/utilisateurs/**").hasRole("UTILISATEURS_GERER")
+                        .requestMatchers("/admin/profils/**", "/admin/roles/**", "/admin/permissions/**").hasRole("HABILITATIONS_GERER")
+                        .requestMatchers("/admin/journal/**").hasRole("JOURNAL_CONSULTER")
+                        .requestMatchers("/admin/documents/**", "/admin/natures/**", "/admin/motifs/**", "/admin/missions/**")
+                                .hasRole("CATALOGUE_GERER")
+                        .requestMatchers("/admin", "/admin/").hasAnyRole("STATISTIQUES_CONSULTER", "UTILISATEURS_GERER", "HABILITATIONS_GERER",
+                                "CATALOGUE_GERER", "JOURNAL_CONSULTER")
+                        .requestMatchers("/admin/**").denyAll()
+                        .requestMatchers("/delegue/**").hasAnyRole("DEMANDES_VALIDER", "DOCUMENTS_LIVRER")
+                        .requestMatchers("/registre/**").hasAnyRole("REGISTRE_CONSULTER", "DEMANDES_RECHERCHER")
+                        .requestMatchers("/officier/**").hasAnyRole("DOCUMENTS_SIGNER", "REGISTRE_VALIDER")
+                        .requestMatchers("/back-office/**").hasRole("DEMANDES_CONSULTER")
+                        .requestMatchers("/demandes/**", "/paiements/**").hasRole("DEMANDES_DEPOSER")
                         .anyRequest().authenticated())
                 .oauth2Login(o -> o
                         .loginPage("/oauth2/authorization/keycloak")
@@ -56,7 +65,7 @@ class ConfigurationSecurite {
                         .contentSecurityPolicy(c -> c.policyDirectives(
                                 "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; "
                                         + "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
-                                        + "font-src 'self' https://cdn.jsdelivr.net; img-src 'self' data:; "
+                                        + "font-src 'self' https://cdn.jsdelivr.net; img-src 'self' data: blob:; media-src 'self' blob:; "
                                         + "form-action 'self' " + keycloak + " https://app.paydunya.com https://paydunya.com; "
                                         + "frame-ancestors 'none'")))
                 .build();
@@ -82,7 +91,7 @@ class ConfigurationSecurite {
         return attributs instanceof org.springframework.web.context.request.ServletRequestAttributes s ? s.getRequest() : null;
     }
 
-    /** Rôles Keycloak (claim realm_access.roles du jeton d'identité) → ROLE_CITOYEN, ROLE_OFFICIER… */
+    /** Rôles et permissions Keycloak (claim realm_access.roles du jeton d'identité) → ROLE_OFFICIER, ROLE_DOCUMENTS_SIGNER… */
     private static GrantedAuthoritiesMapper rolesKeycloak() {
         return (Collection<? extends GrantedAuthority> autorites) -> {
             Set<GrantedAuthority> resultat = new HashSet<>(autorites);

@@ -1,0 +1,63 @@
+classDiagram
+    direction TB
+
+    class Utilisateur {
+        -String id
+        -String email
+        -String prenom
+        -String nom
+        -boolean actif
+        -Instant dateCreation
+        +nomComplet() String
+        +permissionsEffectives() Set~Permission~
+    }
+
+    class Profil {
+        -String id
+        -String nom
+        -String description
+        -boolean parDefaut
+        +modifier(nom, description, roles) void
+        +verifierSuppressible(nombreMembres) void
+    }
+
+    class Role["Rôle"] {
+        -String code
+        -String libelle
+        -String description
+        -boolean deBase
+        +creer(code, libelle, description, permissions)$ Role
+        +modifier(libelle, description, permissions) void
+        +verifierSuppressible() void
+    }
+
+    class Permission {
+        -String code
+        -String libelle
+        -String description
+        -String avantage
+        -String interdiction
+        -String famille
+        +avecTextes(libelle, description, avantage, interdiction) Permission
+    }
+
+    class Operation["Opération (journal)"] {
+        -Instant date
+        -String auteur
+        -TypeOperation type
+        -String cible
+        -String detail
+    }
+
+    class Organisation {
+        <<règle>>
+        +verifierAdministrationPreservee(auteur) void
+    }
+
+    Utilisateur "0..*" --> "1..*" Profil : membre de
+    Profil "0..*" --> "1..*" Role : regroupe
+    Role "0..*" --> "1..*" Permission : accorde
+    Utilisateur "1" <-- "0..*" Operation : auteur / cible
+    Organisation ..> Utilisateur : vérifie
+    Organisation ..> Profil
+    Organisation ..> Role

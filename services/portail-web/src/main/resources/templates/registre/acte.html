@@ -3,42 +3,92 @@
       th:replace="~{fragments/layout :: page(${a.numeroActe}, ~{::main})}">
 <body>
 <main class="container py-4" style="max-width: 900px">
-    <a th:href="@{/registre/actes}" class="small"><i class="bi bi-arrow-left"></i> Registre</a>
+    <a th:href="@{/registre/actes}" class="small"><i class="bi bi-arrow-left"></i> <th:block th:text="#{registre.acte.registre}">Registre</th:block></a>
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 my-2">
-        <h1 class="h3 mb-0" th:text="'Acte de ' + ${#strings.toLowerCase(a.libelleType)} + ' n° ' + ${a.numeroActe}"></h1>
+        <h1 class="h3 mb-0" th:text="#{registre.acte.acte_de} + ${#strings.toLowerCase(a.libelleType)} + #{registre.acte.n} + ${a.numeroActe}"></h1>
         <span th:class="${a.estValide()} ? 'badge text-bg-success fs-6' : 'badge text-bg-warning fs-6'"
-              th:text="${a.estValide()} ? 'Validé' : 'En attente de validation'"></span>
+              th:text="${a.estValide()} ? #{registre.acte.valide} : #{registre.acte.en_attente_de_validation}"></span>
     </div>
     <div class="card mb-3"><div class="card-body">
         <dl class="row fiche mb-0">
-            <dt class="col-sm-4">Centre</dt><dd class="col-sm-8" th:text="${a.centre} + (${a.commune} ? ' (' + ${a.commune} + ')' : '')"></dd>
-            <dt class="col-sm-4">Registre papier</dt><dd class="col-sm-8" th:text="'Année ' + ${a.annee} + (${a.volume} ? ', volume ' + ${a.volume} : '') + (${a.folio} ? ', folio ' + ${a.folio} : '')"></dd>
+            <dt class="col-sm-4"><th:block th:text="#{agent.demande.centre}">Centre</th:block></dt><dd class="col-sm-8" th:text="${a.centre} + (${a.commune} ? ' (' + ${a.commune} + ')' : '')"></dd>
+            <dt class="col-sm-4"><th:block th:text="#{registre.acte.registre_papier}">Registre papier</th:block></dt><dd class="col-sm-8" th:text="#{registre.acte.annee} + ${a.annee} + (${a.volume} ? #{registre.acte.volume} + ${a.volume} : '') + (${a.folio} ? #{registre.acte.folio} + ${a.folio} : '')"></dd>
             <th:block th:if="${a.libelleOrigine}">
-                <dt class="col-sm-4">Origine</dt><dd class="col-sm-8" th:text="${a.libelleOrigine} + ' — ' + ${a.referenceOrigine}"></dd>
+                <dt class="col-sm-4"><th:block th:text="#{registre.acte.origine}">Origine</th:block></dt><dd class="col-sm-8" th:text="${a.libelleOrigine} + ' — ' + ${a.referenceOrigine}"></dd>
             </th:block>
-            <dt class="col-sm-4">Événement</dt><dd class="col-sm-8" th:text="${#temporals.format(a.dateEvenement, 'dd/MM/yyyy')} + ' à ' + ${a.lieuEvenement}"></dd>
-            <dt class="col-sm-4">Titulaire</dt><dd class="col-sm-8" th:text="${a.prenom} + ' ' + ${a.nom} + (${a.sexe} ? ' (' + ${a.sexe} + ')' : '')"></dd>
-            <dt class="col-sm-4" th:if="${a.dateNaissance}">Naissance</dt>
-            <dd class="col-sm-8" th:if="${a.dateNaissance}" th:text="${#temporals.format(a.dateNaissance, 'dd/MM/yyyy')} + (${a.lieuNaissance} ? ' à ' + ${a.lieuNaissance} : '')"></dd>
-            <dt class="col-sm-4" th:if="${a.nomPere}">Père</dt><dd class="col-sm-8" th:if="${a.nomPere}" th:text="${a.prenomPere} + ' ' + ${a.nomPere}"></dd>
-            <dt class="col-sm-4" th:if="${a.nomMere}">Mère</dt><dd class="col-sm-8" th:if="${a.nomMere}" th:text="${a.prenomMere} + ' ' + ${a.nomMere}"></dd>
-            <dt class="col-sm-4" th:if="${a.nomConjoint}">Conjoint</dt><dd class="col-sm-8" th:if="${a.nomConjoint}" th:text="${a.prenomConjoint} + ' ' + ${a.nomConjoint}"></dd>
-            <dt class="col-sm-4" th:if="${a.heureDeces}">Heure du décès</dt><dd class="col-sm-8" th:if="${a.heureDeces}" th:text="${a.heureDeces}"></dd>
-            <dt class="col-sm-4" th:if="${a.causeDeces}">Cause</dt><dd class="col-sm-8" th:if="${a.causeDeces}" th:text="${a.causeDeces}"></dd>
-            <dt class="col-sm-4" th:if="${a.temoin1}">Témoins</dt><dd class="col-sm-8" th:if="${a.temoin1}" th:text="${a.temoin1} + (${a.temoin2} ? ', ' + ${a.temoin2} : '')"></dd>
-            <dt class="col-sm-4" th:if="${a.mentionsMarginales}">Mentions marginales</dt><dd class="col-sm-8" th:if="${a.mentionsMarginales}" th:text="${a.mentionsMarginales}"></dd>
-            <dt class="col-sm-4" th:if="${a.observations}">Observations</dt><dd class="col-sm-8" th:if="${a.observations}" th:text="${a.observations}"></dd>
-            <dt class="col-sm-4">Saisi par</dt><dd class="col-sm-8" th:text="${a.agentSaisie} + ' le ' + ${@dates.heure(a.dateSaisie)}"></dd>
+            <dt class="col-sm-4"><th:block th:text="#{agent.demande.evenement}">Événement</th:block></dt><dd class="col-sm-8" th:text="${#temporals.format(a.dateEvenement, 'dd/MM/yyyy')} + #{agent.demande.a} + ${a.lieuEvenement}"></dd>
+            <dt class="col-sm-4"><th:block th:text="#{agent.demande.titulaire}">Titulaire</th:block></dt><dd class="col-sm-8" th:text="${a.prenom} + ' ' + ${a.nom} + (${a.sexe} ? ' (' + ${a.sexe} + ')' : '')"></dd>
+            <dt class="col-sm-4" th:if="${a.dateNaissance}"><th:block th:text="#{accueil.naissance}">Naissance</th:block></dt>
+            <dd class="col-sm-8" th:if="${a.dateNaissance}" th:text="${#temporals.format(a.dateNaissance, 'dd/MM/yyyy')} + (${a.lieuNaissance} ? #{agent.demande.a} + ${a.lieuNaissance} : '')"></dd>
+            <th:block th:with="sit=${T(sn.etatcivil.portail.clients.Vues.Acte).situation(a.profession, a.domicile)}">
+                <dt class="col-sm-4" th:if="${sit}"><th:block th:text="#{fragments.demande.profession_domicile}">Profession, domicile</th:block></dt><dd class="col-sm-8" th:if="${sit}" th:text="${sit}"></dd>
+            </th:block>
+            <th:block th:with="sit=${T(sn.etatcivil.portail.clients.Vues.Acte).situation(a.professionPere, a.domicilePere)}">
+                <dt class="col-sm-4" th:if="${a.nomPere}"><th:block th:text="#{agent.demande.pere}">Père</th:block></dt><dd class="col-sm-8" th:if="${a.nomPere}" th:text="${a.prenomPere} + ' ' + ${a.nomPere} + (${sit} ? ', ' + ${sit} : '')"></dd>
+            </th:block>
+            <th:block th:with="sit=${T(sn.etatcivil.portail.clients.Vues.Acte).situation(a.professionMere, a.domicileMere)}">
+                <dt class="col-sm-4" th:if="${a.nomMere}"><th:block th:text="#{agent.demande.mere}">Mère</th:block></dt><dd class="col-sm-8" th:if="${a.nomMere}" th:text="${a.prenomMere} + ' ' + ${a.nomMere} + (${sit} ? ', ' + ${sit} : '')"></dd>
+            </th:block>
+            <th:block th:with="sit=${T(sn.etatcivil.portail.clients.Vues.Acte).situation(a.professionConjoint, a.domicileConjoint)}">
+                <dt class="col-sm-4" th:if="${a.nomConjoint}"><th:block th:text="#{agent.demande.conjoint}">Conjoint</th:block></dt><dd class="col-sm-8" th:if="${a.nomConjoint}" th:text="${a.prenomConjoint} + ' ' + ${a.nomConjoint} + (${sit} ? ', ' + ${sit} : '')"></dd>
+            </th:block>
+            <dt class="col-sm-4" th:if="${a.heureDeces}"><th:block th:text="#{registre.acte.heure_du_deces}">Heure du décès</th:block></dt><dd class="col-sm-8" th:if="${a.heureDeces}" th:text="${a.heureDeces}"></dd>
+            <dt class="col-sm-4" th:if="${a.causeDeces}"><th:block th:text="#{registre.acte.cause}">Cause</th:block></dt><dd class="col-sm-8" th:if="${a.causeDeces}" th:text="${a.causeDeces}"></dd>
+            <dt class="col-sm-4" th:if="${a.medecin}"><th:block th:text="#{fragments.demande.medecin}">Médecin</th:block></dt><dd class="col-sm-8" th:if="${a.medecin}" th:text="${a.medecin}"></dd>
+            <dt class="col-sm-4" th:if="${a.temoin1}"><th:block th:text="#{citoyen.nouvelle.temoins}">Témoins</th:block></dt><dd class="col-sm-8" th:if="${a.temoin1}" th:text="${a.temoin1} + (${a.temoin2} ? ', ' + ${a.temoin2} : '')"></dd>
+            <dt class="col-sm-4" th:if="${a.observations}"><th:block th:text="#{registre.acte.observations}">Observations</th:block></dt><dd class="col-sm-8" th:if="${a.observations}" th:text="${a.observations}"></dd>
+            <dt class="col-sm-4"><th:block th:text="#{officier.accueil.saisi_par}">Saisi par</th:block></dt><dd class="col-sm-8" th:text="${a.agentSaisie} + #{registre.acte.le} + ${@dates.heure(a.dateSaisie)}"></dd>
         </dl>
     </div></div>
-    <div class="d-flex gap-2">
-        <a class="btn btn-outline-primary" th:href="@{/registre/actes/{id}/modifier(id=${a.id})}"
-           th:text="${a.estValide()} ? 'Ajouter une mention marginale' : 'Corriger la saisie'"></a>
-        <form sec:authorize="hasAnyRole('OFFICIER','ADMIN')" th:unless="${a.estValide()}"
+    <div class="card mb-3"><div class="card-body">
+        <h2 class="h6 text-brun"><th:block th:text="#{registre.acte.mentions_marginales}">Mentions marginales</th:block></h2>
+        <p th:if="${a.mentions == null or a.mentions.isEmpty()}" class="small text-muted"><th:block th:text="#{registre.acte.aucune_mention_en_marge_de_cet}">Aucune mention en marge de cet acte.</th:block></p>
+        <ul class="list-unstyled mb-0">
+            <li th:each="m : ${a.mentions}" class="py-2 border-bottom">
+                <span class="fw-semibold" th:text="${m.texte}"></span>
+                <span class="d-block small text-muted" th:text="#{registre.acte.portee_par} + ${m.agent}"></span>
+            </li>
+        </ul>
+        <form sec:authorize="hasRole('REGISTRE_SAISIR')" class="row g-2 mt-2" method="post"
+              th:action="@{/registre/actes/{id}/mentions(id=${a.id})}">
+            <div class="col-md-4"><label class="form-label small" for="m-type"><th:block th:text="#{registre.acte.mention}">Mention</th:block></label>
+                <select class="form-select form-select-sm" id="m-type" name="type" required>
+                    <option th:each="t : ${typesMentions}" th:value="${t.code}" th:text="${t.libelle}"></option>
+                </select></div>
+            <div class="col-md-3"><label class="form-label small" for="m-date"><th:block th:text="#{admin.onglets.date}">Date</th:block></label>
+                <input class="form-control form-control-sm" id="m-date" type="date" name="date" required></div>
+            <div class="col-md-5"><label class="form-label small" for="m-ref"><th:block th:text="#{registre.acte.reference_jugement_acte}">Référence (jugement, acte…)</th:block></label>
+                <input class="form-control form-control-sm" id="m-ref" name="reference" maxlength="300"></div>
+            <div class="col-md-9"><label class="form-label small" for="m-det"><th:block th:text="#{admin.document.contenu}">Contenu</th:block></label>
+                <input class="form-control form-control-sm" id="m-det" name="details" maxlength="1000"
+                       placeholder="ex. avec Seynabou Diouf, acte M-2000-000001" th:placeholder="#{registre.acte.ex_avec_seynabou_diouf_acte_m}"></div>
+            <div class="col-md-3 d-flex align-items-end"><button class="btn btn-outline-primary btn-sm w-100" type="submit"><th:block th:text="#{registre.acte.porter_la_mention}">Porter la mention</th:block></button></div>
+        </form>
+    </div></div>
+
+    <div class="d-flex gap-2 mb-4">
+        <a class="btn btn-outline-primary" sec:authorize="hasRole('REGISTRE_SAISIR')" th:href="@{/registre/actes/{id}/modifier(id=${a.id})}"
+           th:text="${a.estValide()} ? #{registre.acte.completer_les_observations} : #{registre.acte.corriger_la_saisie}"></a>
+        <form sec:authorize="hasRole('REGISTRE_VALIDER')" th:unless="${a.estValide()}"
               th:action="@{/officier/actes/{id}/validation(id=${a.id})}" method="post">
-            <button class="btn btn-success" type="submit">Valider cet acte</button>
+            <button class="btn btn-success" type="submit"><th:block th:text="#{registre.acte.valider_cet_acte}">Valider cet acte</th:block></button>
         </form>
     </div>
+
+    <div class="card"><div class="card-body">
+        <h2 class="h6 text-brun"><th:block th:text="#{registre.acte.journal_de_l_acte}">Journal de l'acte</th:block></h2>
+        <p th:if="${journal.isEmpty()}" class="small text-muted mb-0"><th:block th:text="#{registre.acte.aucune_operation_enregistree}">Aucune opération enregistrée.</th:block></p>
+        <ul class="list-unstyled mb-0">
+            <li th:each="o : ${journal}" class="py-2 border-bottom">
+                <div class="d-flex justify-content-between gap-2">
+                    <span class="fw-semibold small" th:text="${o.libelleAction}"></span>
+                    <span class="small text-muted text-nowrap" th:text="${@dates.heure(o.date)}"></span>
+                </div>
+                <div class="small text-muted" style="white-space: pre-line" th:text="${o.detail}"></div>
+                <div class="small" th:text="#{admin.accueil.par} + ${o.auteur}"></div>
+            </li>
+        </ul>
+    </div></div>
 </main>
 </body>
 </html>

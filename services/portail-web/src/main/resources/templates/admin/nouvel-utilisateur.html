@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: page(#{admin.accueil.nouvel_agent}, ~{::main})}">
+<body>
+<main class="container py-4">
+    <a class="small text-decoration-none" th:href="@{/admin/utilisateurs}"><i class="bi bi-arrow-left me-1"></i><th:block th:text="#{admin.onglets.utilisateurs}">Utilisateurs</th:block></a>
+    <h1 class="h3 mt-2"><th:block th:text="#{admin.accueil.nouvel_agent}">Nouvel agent</th:block></h1>
+    <p class="text-muted"><th:block th:text="#{admin.nouvel-utilisateur.le_compte_est_cree_avec_un}">Le compte est créé avec un mot de passe provisoire, que la personne devra remplacer à sa première connexion.</th:block></p>
+
+    <form th:action="@{/admin/utilisateurs}" method="post" class="row g-4">
+        <div class="col-lg-5">
+            <div class="card"><div class="card-body">
+                <h2 class="h6 text-brun"><th:block th:text="#{admin.nouvel-utilisateur.identite}">Identité</th:block></h2>
+                <div class="mb-3"><label class="form-label" for="prenom"><th:block th:text="#{admin.nouvel-utilisateur.prenom}">Prénom</th:block></label>
+                    <input class="form-control" id="prenom" name="prenom" required maxlength="100" th:value="${param.prenom}"></div>
+                <div class="mb-3"><label class="form-label" for="nom"><th:block th:text="#{accueil.nom}">Nom</th:block></label>
+                    <input class="form-control" id="nom" name="nom" required maxlength="100" th:value="${param.nom}"></div>
+                <div class="mb-3"><label class="form-label" for="email"><th:block th:text="#{admin.nouvel-utilisateur.adresse_email}">Adresse email</th:block></label>
+                    <input class="form-control" id="email" name="email" type="email" required th:value="${param.email}">
+                    <div class="form-text"><th:block th:text="#{admin.nouvel-utilisateur.elle_sert_d_identifiant_de_connexion}">Elle sert d'identifiant de connexion.</th:block></div></div>
+                <div class="mb-1"><label class="form-label" for="motDePasse"><th:block th:text="#{admin.nouvel-utilisateur.mot_de_passe_provisoire}">Mot de passe provisoire</th:block></label>
+                    <input class="form-control" id="motDePasse" name="motDePasse" type="text" required minlength="8" maxlength="64"
+                           autocomplete="off">
+                    <div class="form-text"><th:block th:text="#{admin.nouvel-utilisateur.8_caracteres_au_moins_transmettez_le}">8 caractères au moins. Transmettez-le à la personne par un canal sûr.</th:block></div></div>
+            </div></div>
+        </div>
+        <div class="col-lg-7">
+            <div class="card"><div class="card-body">
+                <h2 class="h6 text-brun"><th:block th:text="#{admin.onglets.profils}">Profils</th:block></h2>
+                <p class="small text-muted"><th:block th:text="#{admin.nouvel-utilisateur.les_droits_de_l_agent_sont}">Les droits de l'agent sont ceux des rôles de ses profils.</th:block></p>
+                <div class="form-check mb-2" th:each="p : ${profils}">
+                    <input class="form-check-input" type="checkbox" name="profil" th:value="${p.id}" th:id="'p-' + ${p.id}">
+                    <label class="form-check-label" th:for="'p-' + ${p.id}">
+                        <span class="fw-semibold" th:text="${p.nom}"></span>
+                        <span th:if="${p.parDefaut}" class="etiquette ms-1"><th:block th:text="#{admin.nouvel-utilisateur.par_defaut}">par défaut</th:block></span>
+                        <span class="d-block small text-muted" th:text="${p.description}"></span>
+                    </label>
+                </div>
+            </div></div>
+            <div class="text-end mt-3">
+                <a class="btn btn-contour" th:href="@{/admin/utilisateurs}"><th:block th:text="#{admin.missions.annuler}">Annuler</th:block></a>
+                <button class="btn btn-primary" type="submit"><i class="bi bi-person-check me-1"></i><th:block th:text="#{admin.nouvel-utilisateur.creer_le_compte}">Créer le compte</th:block></button>
+            </div>
+        </div>
+    </form>
+</main>
+</body>
+</html>

@@ -22,8 +22,10 @@ class EcouteurDemandes {
 
     @RabbitListener(queues = "notification-service")
     void recevoir(EnveloppeEvenement e) {
-        idempotence.traiter(e, DemandeStatutChange.class, d -> notification.notifier(new ChangementDemande(d.demandeId(),
-                d.reference(), d.nouveauStatut(), d.emailDemandeur(), d.prenomDemandeur(), d.libelleDocument(),
-                d.personneConcernee(), d.montant(), d.format(), d.motifRejet())));
+        idempotence.traiter(e, DemandeStatutChange.class, d -> {
+            if (!d.emailsAcceptes()) return; // le demandeur a désactivé les notifications dans « Mon compte »
+            notification.notifier(new ChangementDemande(d.demandeId(), d.reference(), d.nouveauStatut(), d.emailDemandeur(),
+                    d.prenomDemandeur(), d.libelleDocument(), d.personneConcernee(), d.montant(), d.format(), d.motifRejet()));
+        });
     }
 }

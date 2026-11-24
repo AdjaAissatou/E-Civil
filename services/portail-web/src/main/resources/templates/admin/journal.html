@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: page(#{admin.onglets.journal}, ~{::main})}">
+<body>
+<main class="container py-4">
+    <span class="surtitre"><th:block th:text="#{admin.onglets.administration}">Administration</th:block></span>
+    <h1 class="h3"><th:block th:text="#{admin.journal.journal_des_operations}">Journal des opérations</th:block></h1>
+    <nav th:replace="~{admin/_onglets :: onglets('journal')}"></nav>
+
+    <p class="text-muted"><th:block th:text="#{admin.journal.toute_modification_des_comptes_profils_roles}">Toute modification des comptes, profils, rôles et permissions y est inscrite, avec son auteur.
+        Le journal ne peut être ni modifié ni effacé.</th:block></p>
+
+    <form class="row g-2 mb-3" method="get" role="search">
+        <div class="col-md-6"><input class="form-control" name="recherche" th:value="${recherche}"
+                                     placeholder="Compte, profil, rôle ou auteur" th:placeholder="#{admin.journal.compte_profil_role_ou_auteur}" aria-label="Rechercher dans le journal" th:aria-label="#{admin.journal.rechercher_dans_le_journal}"></div>
+        <div class="col-md-2"><button class="btn btn-primary w-100" type="submit"><i class="bi bi-search me-1"></i><th:block th:text="#{admin.journal.rechercher}">Rechercher</th:block></button></div>
+        <div class="col-md-2" th:if="${recherche != null and !#strings.isEmpty(recherche)}">
+            <a class="btn btn-contour w-100" th:href="@{/admin/journal}"><th:block th:text="#{admin.journal.effacer}">Effacer</th:block></a></div>
+    </form>
+
+    <div class="card">
+        <div th:replace="~{admin/_onglets :: operations(${operations.contenu}, #{admin.journal.aucune_operation_ne_correspond})}"></div>
+    </div>
+    <div th:replace="~{fragments/pagination :: pages(${operations})}"></div>
+</main>
+</body>
+</html>

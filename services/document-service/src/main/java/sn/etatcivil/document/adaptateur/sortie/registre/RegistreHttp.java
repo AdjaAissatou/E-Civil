@@ -39,14 +39,21 @@ class RegistreHttp implements RegistreActes {
                     String prenomPere, String nomMere, String prenomMere, String nomConjoint, String prenomConjoint,
                     java.time.LocalDate dateNaissanceConjoint, String lieuNaissanceConjoint, String heureDeces,
                     String causeDeces, String temoin1, String temoin2, String mentionsMarginales, String observations,
-                    String origine, String referenceOrigine) {
+                    String origine, String referenceOrigine, String profession, String domicile, String professionPere,
+                    String domicilePere, String professionMere, String domicileMere, String professionConjoint,
+                    String domicileConjoint, String medecin, List<MentionJson> mentions) {
         ContenuActe versDomaine() {
             return new ContenuActe(typeActe, numeroActe, annee, statut, centre, commune, volume, folio, dateEvenement,
                     lieuEvenement, nom, prenom, sexe, dateNaissance, lieuNaissance, nomPere, prenomPere, nomMere,
                     prenomMere, nomConjoint, prenomConjoint, dateNaissanceConjoint, lieuNaissanceConjoint, heureDeces,
-                    causeDeces, temoin1, temoin2, mentionsMarginales, observations, origine, referenceOrigine);
+                    causeDeces, temoin1, temoin2, mentionsMarginales, observations, origine, referenceOrigine,
+                    profession, domicile, professionPere, domicilePere, professionMere, domicileMere, professionConjoint,
+                    domicileConjoint, medecin);
         }
     }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    record MentionJson(String type, String texte) {}
 
     record PersonneJson(String nom, String prenom, java.time.LocalDate dateNaissance) {}
 
@@ -59,6 +66,13 @@ class RegistreHttp implements RegistreActes {
         } catch (HttpClientErrorException.NotFound e) {
             throw new RegleMetierException("L'acte n'existe pas dans le registre national");
         }
+    }
+
+    @Override
+    public List<String> mentions(UUID acteId, String type) {
+        ActeJson a = http.get().uri("/{id}", acteId).retrieve().body(ActeJson.class);
+        return a == null || a.mentions() == null ? List.of()
+                : a.mentions().stream().filter(m -> type.equals(m.type())).map(MentionJson::texte).toList();
     }
 
     /** Le titulaire de l'acte de mariage est le mari, sauf si l'acte indique le contraire (sexe F). */

@@ -1,5 +1,7 @@
 package sn.etatcivil.registre.adaptateur.entree.web;
 
+import sn.etatcivil.registre.domaine.TypeMention;
+
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -12,6 +14,7 @@ import sn.etatcivil.registre.domaine.ResultatRecherche;
 import sn.etatcivil.registre.domaine.SituationCivile;
 import sn.etatcivil.registre.domaine.StatutActe;
 import sn.etatcivil.registre.domaine.TypeActe;
+import sn.etatcivil.socle.securite.Permissions;
 import sn.etatcivil.socle.securite.UtilisateurJwt;
 
 import java.util.List;
@@ -22,8 +25,8 @@ import java.util.UUID;
 @RequestMapping("/api/registre/actes")
 class ActeController {
 
-    private static final String AGENTS = "hasAnyRole('AGENT_REGISTRE','OFFICIER','ADMIN')";
-    private static final String AGENTS_OU_SERVICES = "hasAnyRole('AGENT_REGISTRE','OFFICIER','ADMIN','SERVICE')";
+    private static final String CONSULTER = Permissions.A_REGISTRE_CONSULTER;
+    private static final String CONSULTER_OU_SERVICES = "hasAnyRole('REGISTRE_CONSULTER','SERVICE')";
 
     private final TranscrireActe transcription;
     private final ConsulterActes consultation;
@@ -39,38 +42,63 @@ class ActeController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize(AGENTS)
+    @PreAuthorize(Permissions.A_REGISTRE_SAISIR)
     ActeReponse transcrire(@Valid @RequestBody ActeRequete requete, @AuthenticationPrincipal Jwt jwt) {
         UtilisateurJwt agent = UtilisateurJwt.depuis(jwt);
         return ActeReponse.de(transcription.transcrire(requete.versDomaine(), agent.nomComplet() + " <" + agent.email() + ">"));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize(AGENTS)
-    ActeReponse corriger(@PathVariable UUID id, @Valid @RequestBody ActeRequete requete) {
-        return ActeReponse.de(transcription.corriger(id, requete.versDomaine()));
+    @PreAuthorize(Permissions.A_REGISTRE_SAISIR)
+    ActeReponse corriger(@PathVariable UUID id, @Valid @RequestBody ActeRequete requete, @AuthenticationPrincipal Jwt jwt) {
+        return ActeReponse.de(transcription.corriger(id, requete.versDomaine(), agent(jwt)));
     }
 
     @PostMapping("/{id}/validation")
-    @PreAuthorize("hasAnyRole('OFFICIER','ADMIN')")
-    ActeReponse valider(@PathVariable UUID id) {
-        return ActeReponse.de(transcription.valider(id));
+    @PreAuthorize(Permissions.A_REGISTRE_VALIDER)
+    ActeReponse valider(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt) {
+        return ActeReponse.de(transcription.valider(id, agent(jwt)));
+    }
+
+    public record MentionRequete(@jakarta.validation.constraints.NotNull TypeMention type,
+                                 @jakarta.validation.constraints.NotNull @jakarta.validation.constraints.PastOrPresent java.time.LocalDate date,
+                                 @jakarta.validation.constraints.Size(max = 300) String reference,
+                                 @jakarta.validation.constraints.Size(max = 1000) String details) {}
+
+    @PostMapping("/{id}/mentions")
+    @PreAuthorize(Permissions.A_REGISTRE_SAISIR)
+    ActeReponse ajouterMention(@PathVariable UUID id, @Valid @RequestBody MentionRequete r, @AuthenticationPrincipal Jwt jwt) {
+        return ActeReponse.de(transcription.ajouterMention(id, r.type(), r.date(), r.reference(), r.details(), agent(jwt)));
+    }
+
+    public record EntreeJournalReponse(java.time.Instant date, String auteur, String action, String libelleAction, String detail) {}
+
+    @GetMapping("/{id}/journal")
+    @PreAuthorize(CONSULTER)
+    List<EntreeJournalReponse> journal(@PathVariable UUID id) {
+        return consultation.journal(id).stream().map(e -> new EntreeJournalReponse(e.date(), e.auteur(), e.action().name(),
+                e.action().libelle(), e.detail())).toList();
+    }
+
+    private static String agent(Jwt jwt) {
+        UtilisateurJwt u = UtilisateurJwt.depuis(jwt);
+        return u.nomComplet() + " <" + u.email() + ">";
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize(AGENTS_OU_SERVICES)
+    @PreAuthorize(CONSULTER_OU_SERVICES)
     ActeReponse obtenir(@PathVariable UUID id) {
         return ActeReponse.de(consultation.obtenir(id));
     }
 
     @GetMapping("/numero/{numero}")
-    @PreAuthorize(AGENTS_OU_SERVICES)
+    @PreAuthorize(CONSULTER_OU_SERVICES)
     ActeReponse parNumero(@PathVariable String numero) {
         return ActeReponse.de(consultation.parNumero(numero));
     }
 
     @GetMapping
-    @PreAuthorize(AGENTS)
+    @PreAuthorize(CONSULTER)
     PageReponse<ActeReponse> lister(@RequestParam(required = false) TypeActe type,
                                     @RequestParam(required = false) StatutActe statut,
                                     @RequestParam(required = false) String nom,
@@ -82,7 +110,7 @@ class ActeController {
     }
 
     @PostMapping("/recherche")
-    @PreAuthorize(AGENTS_OU_SERVICES)
+    @PreAuthorize(CONSULTER_OU_SERVICES)
     ResultatRechercheReponse rechercher(@Valid @RequestBody RechercheRequete requete) {
         ResultatRecherche r = consultation.rechercher(requete.versDomaine());
         return new ResultatRechercheReponse(r.resultat(), r.actes().stream().map(ActeReponse::de).toList());
@@ -94,24 +122,25 @@ class ActeController {
     }
 
     public record MariageReponse(ActeReponse acte, String nomConjoint, String prenomConjoint, boolean dissous,
-                                 ActeReponse dissolution) {}
+                                 ActeReponse dissolution, String mentionDissolution) {}
 
     public record SituationReponse(List<MariageReponse> mariages, List<ActeReponse> deces) {}
 
     public record ParentsRequete(@Valid PersonneRequete pere, @Valid PersonneRequete mere) {}
 
     @PostMapping("/situation")
-    @PreAuthorize(AGENTS_OU_SERVICES)
+    @PreAuthorize(CONSULTER_OU_SERVICES)
     SituationReponse situation(@Valid @RequestBody PersonneRequete personne) {
         SituationCivile s = consultation.situation(personne.versDomaine());
         return new SituationReponse(
                 s.mariages().stream().map(m -> new MariageReponse(ActeReponse.de(m.acte()), m.conjoint().nom(),
-                        m.conjoint().prenom(), m.dissous(), m.dissous() ? ActeReponse.de(m.dissolution()) : null)).toList(),
+                        m.conjoint().prenom(), m.dissous(), m.dissolution() != null ? ActeReponse.de(m.dissolution()) : null,
+                        m.mentionDivorce() != null ? m.mentionDivorce().texte() : null)).toList(),
                 s.deces().stream().map(ActeReponse::de).toList());
     }
 
     @PostMapping("/enfants")
-    @PreAuthorize(AGENTS_OU_SERVICES)
+    @PreAuthorize(CONSULTER_OU_SERVICES)
     List<ActeReponse> enfants(@Valid @RequestBody ParentsRequete parents) {
         if (parents.pere() == null || parents.mere() == null) {
             throw new sn.etatcivil.registre.domaine.RegleMetierException("Le père et la mère sont obligatoires");
@@ -121,7 +150,7 @@ class ActeController {
     }
 
     @GetMapping("/statistiques")
-    @PreAuthorize(AGENTS)
+    @PreAuthorize("hasAnyRole('REGISTRE_CONSULTER','STATISTIQUES_CONSULTER')")
     Statistiques statistiques() {
         return consultation.statistiques();
     }

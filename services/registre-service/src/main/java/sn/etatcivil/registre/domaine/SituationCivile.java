@@ -11,7 +11,12 @@ public record SituationCivile(List<Mariage> mariages, List<Acte> deces) {
 
     /** Un mariage est dissous par un divorce du même couple ou par le décès du conjoint, postérieurs au mariage. */
     public record Mariage(Acte acte, Personne conjoint, Acte dissolution) {
-        public boolean dissous() { return dissolution != null; }
+        /** Dissous par un acte (divorce, décès du conjoint) ou par une mention de divorce en marge du mariage. */
+        public boolean dissous() { return dissolution != null || mentionDivorce() != null; }
+
+        public Mention mentionDivorce() {
+            return acte.mentions(TypeMention.DIVORCE).stream().findFirst().orElse(null);
+        }
     }
 
     /**

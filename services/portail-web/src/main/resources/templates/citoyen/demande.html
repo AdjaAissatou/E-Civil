@@ -3,11 +3,11 @@
 <body>
 <main class="container pb-5">
     <div class="entete-page">
-        <a th:href="@{/demandes}" class="fil"><i class="bi bi-arrow-left"></i> Mes demandes</a>
+        <a th:href="@{/demandes}" class="fil"><i class="bi bi-arrow-left"></i> <th:block th:text="#{citoyen.demande.mes_demandes}">Mes demandes</th:block></a>
         <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
             <div>
                 <h1 th:text="${d.libelleDocument}">Document</h1>
-                <span class="text-muted" th:text="'Demande ' + ${d.reference} + ' · déposée le ' + ${@dates.jour(d.dateCreation)} + ' · pour ' + ${d.personneConcernee}"></span>
+                <span class="text-muted" th:text="#{citoyen.demande.demande} + ${d.reference} + #{citoyen.demande.deposee_le} + ${@dates.jour(d.dateCreation)} + #{citoyen.demande.pour} + ${d.personneConcernee}"></span>
             </div>
             <span th:replace="~{fragments/statut :: badge(${d.statut}, ${d.libelleStatut})}"></span>
         </div>
@@ -17,7 +17,7 @@
         <div th:replace="~{fragments/suivi :: suivi(${d})}"></div>
         <p class="text-center mb-0 mt-3" th:classappend="${d.arretee} ? 'text-danger' : ''">
             <i class="bi bi-info-circle me-1"></i><span th:text="${d.statut == 'ACTE_INTROUVABLE' and d.noteRecherche != null}
-                ? ${d.noteRecherche} + ' Un agent examine votre demande.' : ${d.explicationStatut}"></span>
+                ? ${d.noteRecherche} + #{citoyen.demande.un_agent_examine_votre_demande} : (${#messages.msgOrNull('statut.' + d.statut + '.explication')} ?: ${d.explicationStatut})"></span>
             <span th:if="${d.motifRejet}" th:text="' — ' + ${d.motifRejet}"></span>
         </p>
     </div></div>
@@ -26,34 +26,34 @@
         <div class="col-lg-7">
             <div class="card mb-4 action-paiement" th:if="${d.statut == 'A_PAYER'}"><div class="card-body d-flex flex-column flex-md-row gap-4 align-items-md-center">
                 <div class="flex-grow-1">
-                    <span class="surtitre">Prochaine étape</span>
-                    <h2 class="h4 mt-2 mb-1">Réglez votre demande</h2>
-                    <p class="mb-0">Paiement sécurisé par PayDunya : Wave, Orange Money, Free Money ou carte bancaire.</p>
+                    <span class="surtitre"><th:block th:text="#{citoyen.demande.prochaine_etape}">Prochaine étape</th:block></span>
+                    <h2 class="h4 mt-2 mb-1"><th:block th:text="#{citoyen.demande.reglez_votre_demande}">Réglez votre demande</th:block></h2>
+                    <p class="mb-0"><th:block th:text="#{citoyen.demande.paiement_securise_par_paydunya_wave_orange}">Paiement sécurisé par PayDunya : Wave, Orange Money, Free Money ou carte bancaire.</th:block></p>
                 </div>
                 <div class="text-md-end">
                     <div class="montant-du"><span th:text="${#numbers.formatInteger(d.montant, 1, 'WHITESPACE')}">1 000</span> <small>FCFA</small></div>
                     <form th:if="${paiementDisponible}" th:action="@{/paiements/demandes/{id}(id=${d.id})}" method="post" class="mt-2">
-                        <button class="btn btn-or btn-lg" type="submit"><i class="bi bi-lock-fill me-2"></i>Payer en ligne</button>
+                        <button class="btn btn-or btn-lg" type="submit"><i class="bi bi-lock-fill me-2"></i><th:block th:text="#{citoyen.demande.payer_en_ligne}">Payer en ligne</th:block></button>
                     </form>
-                    <p th:unless="${paiementDisponible}" class="text-danger small mb-0 mt-2">Paiement momentanément indisponible.</p>
+                    <p th:unless="${paiementDisponible}" class="text-danger small mb-0 mt-2"><th:block th:text="#{citoyen.demande.paiement_momentanement_indisponible}">Paiement momentanément indisponible.</th:block></p>
                 </div>
             </div></div>
 
             <div class="card mb-4 action-document" th:if="${d.documentDisponible and d.numerique}"><div class="card-body d-flex flex-column flex-md-row gap-4 align-items-md-center">
                 <div class="icone-document"><i class="bi bi-file-earmark-check"></i></div>
                 <div class="flex-grow-1">
-                    <h2 class="h4 mb-1">Votre document est prêt</h2>
-                    <p class="mb-0">Signé par <strong th:text="${d.signataire}"></strong> · code <strong th:text="${d.codeVerification}"></strong></p>
+                    <h2 class="h4 mb-1"><th:block th:text="#{citoyen.demande.votre_document_est_pret}">Votre document est prêt</th:block></h2>
+                    <p class="mb-0"><th:block th:text="#{citoyen.demande.signe_par}">Signé par</th:block> <strong th:text="${d.signataire}"></strong> · code <strong th:text="${d.codeVerification}"></strong></p>
                 </div>
                 <a class="btn btn-primary btn-lg" th:href="@{/demandes/{id}/document.pdf(id=${d.id})}" target="_blank">
-                    <i class="bi bi-download me-2"></i>Télécharger</a>
+                    <i class="bi bi-download me-2"></i><th:block th:text="#{citoyen.demande.telecharger}">Télécharger</th:block></a>
             </div></div>
 
             <div th:replace="~{fragments/demande :: resume(${d})}"></div>
 
             <form th:if="${d.statut == 'SOUMISE' or d.statut == 'A_PAYER'}"
                   th:action="@{/demandes/{id}/annulation(id=${d.id})}" method="post">
-                <button class="btn btn-link text-danger px-0" type="submit"><i class="bi bi-x-circle me-1"></i>Annuler cette demande</button>
+                <button class="btn btn-link text-danger px-0" type="submit"><i class="bi bi-x-circle me-1"></i><th:block th:text="#{citoyen.demande.annuler_cette_demande}">Annuler cette demande</th:block></button>
             </form>
         </div>
         <div class="col-lg-5">

@@ -1,0 +1,118 @@
+<!-- Dossier de renseignement d'une demande : registres papier consultés par le chargé de renseignement -->
+<div xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+     th:fragment="dossier(d, r)" class="card mb-3 border-warning-subtle" id="renseignement"
+     th:with="enAttente=${d.statut == 'PAYEE' or d.statut == 'ACTE_INTROUVABLE'}, enCours=${r == null ? enAttente : r.enCours()}">
+    <div class="card-body">
+        <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-2">
+            <h2 class="h6 text-brun mb-0"><i class="bi bi-archive me-1"></i><th:block th:text="#{renseignement.titre}">Renseignement : recherche dans les registres papier</th:block></h2>
+            <div class="d-flex gap-1">
+                <span th:if="${r != null and r.urgent}" class="badge text-bg-danger" th:text="#{renseignement.urgent}">Urgent</span>
+                <span th:if="${r != null}" class="badge text-bg-light border" th:text="#{'renseignement.etat.' + ${r.etat}}">En cours</span>
+            </div>
+        </div>
+
+        <p class="small text-muted mb-2" th:if="${r == null}" th:text="#{renseignement.aucun_dossier}">Aucun registre papier n'a encore été consulté pour cette demande.</p>
+        <p class="small mb-2" th:if="${r != null and r.agentNom != null}">
+            <th:block th:text="#{renseignement.pris_en_charge_par}">Pris en charge par</th:block>
+            <strong th:text="${r.agentNom}"></strong>
+            <span class="text-muted" th:if="${r.datePriseEnCharge}" th:text="${' (' + @dates.heure(r.datePriseEnCharge) + ')'}"></span>
+        </p>
+
+        <!-- Prise en charge et priorité -->
+        <div sec:authorize="hasRole('DEMANDES_RECHERCHER')" th:if="${enCours}" class="d-flex flex-wrap gap-2 mb-3">
+            <form th:if="${r == null or r.agentId == null or r.agentId != #authentication.name}" th:action="@{/registre/demandes/{id}/renseignement/prise-en-charge(id=${d.id})}" method="post">
+                <button class="btn btn-sm btn-outline-primary" type="submit"><i class="bi bi-person-check me-1"></i><th:block th:text="#{renseignement.prendre_en_charge}">Prendre en charge</th:block></button>
+            </form>
+            <form th:action="@{/registre/demandes/{id}/renseignement/priorite(id=${d.id})}" method="post">
+                <input type="hidden" name="urgent" th:value="${r == null or !r.urgent}">
+                <button class="btn btn-sm btn-outline-danger" type="submit" th:text="${r != null and r.urgent} ? #{renseignement.retirer_urgence} : #{renseignement.marquer_urgent}">Marquer urgent</button>
+            </form>
+        </div>
+
+        <!-- Registres consultés -->
+        <div class="table-responsive" th:if="${r != null and !r.consultations.isEmpty()}">
+            <table class="table table-sm small align-middle">
+                <thead><tr><th th:text="#{renseignement.registre}">Registre</th><th th:text="#{renseignement.constat}">Constat</th><th th:text="#{renseignement.par}">Par</th></tr></thead>
+                <tbody>
+                <tr th:each="c : ${r.consultations}">
+                    <td>
+                        <div th:text="${c.registre}"></div>
+                        <div class="text-muted" th:if="${c.folio}" th:text="#{renseignement.folio} + ' ' + ${c.folio}"></div>
+                    </td>
+                    <td>
+                        <span th:classappend="${c.resultat == 'ACTE_PRESENT'} ? 'text-success fw-semibold' : (${c.resultat == 'ABSENT'} ? '' : 'text-danger')"
+                              th:text="#{'renseignement.resultat.' + ${c.resultat}}"></span>
+                        <div class="text-muted" th:if="${c.note}" th:text="${c.note}"></div>
+                    </td>
+                    <td class="text-muted"><div th:text="${c.agent}"></div><div th:text="${@dates.heure(c.date)}"></div></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Consigner une consultation -->
+        <th:block sec:authorize="hasRole('DEMANDES_RECHERCHER')" th:if="${enCours}">
+            <h3 class="h6 mt-2" th:text="#{renseignement.consigner_titre}">Consigner un registre consulté</h3>
+            <form class="row g-2 mb-2 align-items-end" method="get" th:action="@{/back-office/demandes/{id}(id=${d.id})}">
+                <div class="col-auto">
+                    <label class="form-label small mb-0" for="annee" th:text="#{renseignement.annee_recherchee}">Année des registres</label>
+                    <input class="form-control form-control-sm" id="annee" name="annee" type="number" min="1900" max="2100" style="width: 7rem" th:value="${anneeRecherchee}">
+                </div>
+                <div class="col-auto"><button class="btn btn-sm btn-outline-secondary" type="submit" th:text="#{renseignement.afficher_registres}">Afficher les registres</button></div>
+            </form>
+            <div class="alert alert-secondary small" th:if="${registresIndisponibles}" th:text="#{renseignement.registres_indisponibles}">La liste des registres ne répond pas.</div>
+            <p class="small text-muted" th:if="${registresSuggeres != null and registresSuggeres.isEmpty() and registresIndisponibles != true}">
+                <th:block th:text="#{renseignement.aucun_registre}">Aucun registre enregistré pour ce type d'acte et cette période.</th:block>
+                <a sec:authorize="hasRole('REGISTRE_SAISIR')" th:href="@{/registre/centres}" th:text="#{renseignement.enregistrer_registres}">Enregistrer les registres d'un centre</a>
+            </p>
+            <form th:if="${registresSuggeres != null and !registresSuggeres.isEmpty()}" class="row g-2" method="post"
+                  th:action="@{/registre/demandes/{id}/renseignement/consultations(id=${d.id})}">
+                <div class="col-12">
+                    <label class="form-label small mb-0" for="registreId" th:text="#{renseignement.registre}">Registre</label>
+                    <select class="form-select form-select-sm" id="registreId" name="registreId" required>
+                        <option value="" th:text="#{citoyen.nouvelle.choisissez}">Choisissez…</option>
+                        <option th:each="g : ${registresSuggeres}" th:value="${g.id}"
+                                th:text="${g.libelle} + (${g.consultable} ? '' : ' — ' + #{'registre.etat.' + ${g.etat}}) + (${g.numerise} ? ' — ' + #{registre.numerise} : '')"></option>
+                    </select>
+                </div>
+                <div class="col-sm-7">
+                    <label class="form-label small mb-0" for="resultat" th:text="#{renseignement.constat}">Constat</label>
+                    <select class="form-select form-select-sm" id="resultat" name="resultat" required>
+                        <option th:each="x : ${resultats}" th:value="${x}" th:text="#{'renseignement.resultat.' + ${x}}"></option>
+                    </select>
+                </div>
+                <div class="col-sm-5">
+                    <label class="form-label small mb-0" for="folio" th:text="#{renseignement.folio}">Folio</label>
+                    <input class="form-control form-control-sm" id="folio" name="folio" maxlength="30">
+                </div>
+                <div class="col-12">
+                    <label class="form-label small mb-0" for="note" th:text="#{renseignement.note}">Note</label>
+                    <textarea class="form-control form-control-sm" id="note" name="note" rows="2" maxlength="1000"
+                              th:placeholder="#{renseignement.note_aide}"></textarea>
+                </div>
+                <div class="col-12"><button class="btn btn-sm btn-primary" type="submit"><i class="bi bi-plus-lg me-1"></i><th:block th:text="#{renseignement.consigner}">Consigner</th:block></button></div>
+            </form>
+            <p class="small text-muted mt-2 mb-0" th:text="#{renseignement.acte_present_aide}">Si l'acte est dans un registre, transcrivez-le dans le registre national puis rattachez-le à la demande.</p>
+        </th:block>
+
+        <!-- Conclusion négative -->
+        <th:block sec:authorize="hasRole('DEMANDES_RECHERCHER')"
+                  th:if="${enCours and d.statut == 'ACTE_INTROUVABLE' and r != null and !r.consultations.isEmpty()}">
+            <hr>
+            <form th:action="@{/registre/demandes/{id}/renseignement/conclusion(id=${d.id})}" method="post">
+                <label class="form-label small" for="motifNonTrouve" th:text="#{renseignement.conclure_titre}">Conclure : l'acte n'existe pas dans les registres</label>
+                <textarea class="form-control form-control-sm mb-2" id="motifNonTrouve" name="motif" rows="2" required maxlength="1000"
+                          th:placeholder="#{renseignement.conclure_aide}"></textarea>
+                <button class="btn btn-sm btn-outline-danger w-100" type="submit" th:text="#{renseignement.conclure}">Conclure : acte non trouvé (la demande est rejetée)</button>
+            </form>
+        </th:block>
+
+        <div class="alert alert-light border small mt-2 mb-0" th:if="${r != null and r.dateConclusion != null}">
+            <div>
+                <strong th:text="#{renseignement.etat.NON_TROUVE}">Acte non trouvé</strong> —
+                <span th:text="${r.motifNonTrouve}"></span>
+                <div class="text-muted" th:text="${r.agentConclusion} + ', ' + ${@dates.heure(r.dateConclusion)}"></div>
+            </div>
+        </div>
+    </div>
+</div>

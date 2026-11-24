@@ -1,2 +1,2 @@
 <span xmlns:th="http://www.thymeleaf.org" th:fragment="badge(code, libelle)"
-      th:class="'pastille pastille-' + ${T(sn.etatcivil.portail.clients.Vues).couleur(code)}" th:text="${libelle}">Statut</span>
+      th:class="'pastille pastille-' + ${T(sn.etatcivil.portail.clients.Vues).couleur(code)}" th:text="${#messages.msgOrNull('statut.' + code)} ?: ${libelle}">Statut</span>

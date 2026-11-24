@@ -26,4 +26,10 @@ public interface ConsulterActes {
     List<Acte> enfants(Personne pere, Personne mere);
 
     Statistiques statistiques();
+
+    /** Opérations faites sur l'acte, de la plus récente à la plus ancienne. */
+    List<sn.etatcivil.registre.domaine.EntreeJournal> journal(UUID id);
+
+    /** Référentiel des communes, par région. */
+    List<sn.etatcivil.registre.domaine.Commune> communes();
 }

@@ -1,0 +1,50 @@
+<!-- Compteurs par statut et filtres des files des agents (document, format, période, référence) -->
+<div xmlns:th="http://www.thymeleaf.org" th:fragment="compteurs(compteurs)" class="row g-2 mb-3" th:if="${compteurs != null and !compteurs.isEmpty()}">
+    <div class="col-6 col-md" th:each="c : ${compteurs}">
+        <div class="card h-100"><div class="card-body py-2">
+            <div class="small text-muted" th:text="${#messages.msg('statut.' + c.key)}"></div>
+            <div class="fs-4 fw-semibold" th:text="${c.value.value}">0</div>
+        </div></div>
+    </div>
+</div>
+
+<form xmlns:th="http://www.thymeleaf.org" th:fragment="formulaire(filtre, documents, avecStatut)" class="row g-2 mb-3 align-items-end" method="get">
+    <div class="col-md-2" th:if="${avecStatut}">
+        <label class="form-label small" for="f-statut"><th:block th:text="#{agent.demande.statut}">Statut</th:block></label>
+        <select class="form-select form-select-sm" id="f-statut" name="statut">
+            <option value=""><th:block th:text="#{documents.tous}">Tous</th:block></option>
+            <option th:each="s : ${statuts}" th:value="${s.key}" th:text="${#messages.msg('statut.' + s.key)}" th:selected="${s.key == statut}"></option>
+        </select>
+    </div>
+    <div class="col-md-3">
+        <label class="form-label small" for="f-type"><th:block th:text="#{fragments.filtres.type_de_document}">Type de document</th:block></label>
+        <select class="form-select form-select-sm" id="f-type" name="typeDocument">
+            <option value=""><th:block th:text="#{fragments.filtres.tous_les_types}">Tous les types</th:block></option>
+            <option th:each="t : ${documents}" th:value="${t.id}" th:text="${t.libelle}" th:selected="${filtre.typeDocument == t.id}"></option>
+        </select>
+    </div>
+    <div class="col-md-2">
+        <label class="form-label small" for="f-format"><th:block th:text="#{agent.demandes.format}">Format</th:block></label>
+        <select class="form-select form-select-sm" id="f-format" name="format">
+            <option value=""><th:block th:text="#{documents.tous}">Tous</th:block></option>
+            <option value="NUMERIQUE" th:selected="${filtre.format == 'NUMERIQUE'}"><th:block th:text="#{agent.demandes.numerique}">Numérique</th:block></option>
+            <option value="PHYSIQUE" th:selected="${filtre.format == 'PHYSIQUE'}"><th:block th:text="#{agent.demandes.papier}">Papier</th:block></option>
+        </select>
+    </div>
+    <div class="col-md-2">
+        <label class="form-label small" for="f-du"><th:block th:text="#{fragments.filtres.deposee_du}">Déposée du</th:block></label>
+        <input class="form-control form-control-sm" id="f-du" type="date" name="du" th:value="${filtre.du}">
+    </div>
+    <div class="col-md-2">
+        <label class="form-label small" for="f-au">au</label>
+        <input class="form-control form-control-sm" id="f-au" type="date" name="au" th:value="${filtre.au}">
+    </div>
+    <div class="col-md-2">
+        <label class="form-label small" for="f-ref"><th:block th:text="#{agent.demandes.reference}">Référence</th:block></label>
+        <input class="form-control form-control-sm" id="f-ref" name="reference" placeholder="DEM-…" th:value="${filtre.reference}">
+    </div>
+    <div class="col-md-auto d-flex gap-1">
+        <button class="btn btn-primary btn-sm" type="submit"><i class="bi bi-funnel me-1"></i><th:block th:text="#{fragments.filtres.filtrer}">Filtrer</th:block></button>
+        <a class="btn btn-contour btn-sm" th:href="@{''}"><th:block th:text="#{admin.journal.effacer}">Effacer</th:block></a>
+    </div>
+</form>

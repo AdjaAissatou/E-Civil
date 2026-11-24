@@ -1,5 +1,10 @@
 package sn.etatcivil.document.application.service;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
+import sn.etatcivil.document.domaine.Constats;
+import sn.etatcivil.document.domaine.RegleMetierException;
+
 import sn.etatcivil.document.application.CasDUsage;
 import sn.etatcivil.document.application.port.entree.DelivrerDocuments;
 import sn.etatcivil.document.application.port.sortie.DocumentRepository;
@@ -37,11 +42,21 @@ public class ServiceDocuments implements DelivrerDocuments {
     public DocumentDelivre delivrer(DocumentADelivrer c) {
         Optional<DocumentDelivre> existant = documents.parDemande(c.demandeId());
         if (existant.isPresent()) return existant.get();
-        ContenuActe contenu = registre.contenu(c.acteId());   // relu au moment même de la signature
         String modele = c.modele() == null ? "EXTRAIT" : c.modele();
-        List<Complements.Enfant> enfants = "LIVRET_FAMILLE".equals(modele) && "MARIAGE".equals(contenu.typeActe())
+        // relu au moment même de la signature ; un document établi sur comparution ne s'appuie sur aucun acte
+        ContenuActe contenu = c.acteId() == null ? null : registre.contenu(c.acteId());
+        List<Complements.Enfant> enfants = contenu != null && "LIVRET_FAMILLE".equals(modele) && "MARIAGE".equals(contenu.typeActe())
                 ? registre.enfants(contenu) : List.of();
-        Complements complements = new Complements(modele, c.motif(), c.constat(), enfants);
+        String mention = null;
+        if ("EXTRAIT_MENTION".equals(modele)) {
+            List<String> mentions = contenu == null || c.typeMention() == null ? List.of() : registre.mentions(c.acteId(), c.typeMention());
+            if (mentions.isEmpty()) throw new RegleMetierException("La mention demandée ne figure pas en marge de l'acte");
+            mention = String.join(" ; ", mentions);
+        }
+        String constat = c.constat() != null ? c.constat() : Constats.pour(modele, contenu, c.declaration(), mention);
+        LocalDate valableJusquAu = c.dureeValiditeJours() == null ? null
+                : LocalDate.ofInstant(horloge.maintenant(), ZoneId.of("Africa/Dakar")).plusDays(c.dureeValiditeJours());
+        Complements complements = new Complements(modele, c.motif(), constat, enfants, valableJusquAu, c.declaration(), mention);
         String code;
         do {
             code = DocumentDelivre.nouveauCode(aleatoire);

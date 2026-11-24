@@ -1,5 +1,7 @@
 package sn.etatcivil.registre.adaptateur.entree.web;
 
+import sn.etatcivil.registre.domaine.DetailsActe;
+
 import jakarta.validation.constraints.*;
 import sn.etatcivil.registre.domaine.DonneesActe;
 import sn.etatcivil.registre.domaine.OrigineActe;
@@ -33,15 +35,20 @@ public record ActeRequete(
         @Size(max = 255) String causeDeces,
         @Size(max = 200) String temoin1,
         @Size(max = 200) String temoin2,
-        @Size(max = 2000) String mentionsMarginales,
         @Size(max = 2000) String observations,
         OrigineActe origine,
-        @Size(max = 500) String referenceOrigine) {
+        @Size(max = 500) String referenceOrigine,
+        @Size(max = 150) String profession, @Size(max = 200) String domicile,
+        @Size(max = 150) String professionPere, @Size(max = 200) String domicilePere,
+        @Size(max = 150) String professionMere, @Size(max = 200) String domicileMere,
+        @Size(max = 150) String professionConjoint, @Size(max = 200) String domicileConjoint,
+        @Size(max = 200) String medecin) {
 
     DonneesActe versDomaine() {
         return new DonneesActe(typeActe, centre, commune, volume, folio, dateEvenement, lieuEvenement, nom, prenom,
                 sexe, dateNaissance, lieuNaissance, nomPere, prenomPere, nomMere, prenomMere, nomConjoint,
                 prenomConjoint, dateNaissanceConjoint, lieuNaissanceConjoint, heureDeces, causeDeces, temoin1,
-                temoin2, mentionsMarginales, observations, origine, referenceOrigine);
+                temoin2, new DetailsActe(profession, domicile, professionPere, domicilePere, professionMere, domicileMere,
+                professionConjoint, domicileConjoint, medecin), observations, origine, referenceOrigine);
     }
 }

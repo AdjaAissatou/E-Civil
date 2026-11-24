@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: page(#{admin.onglets.profils}, ~{::main})}">
+<body>
+<main class="container py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-3">
+        <div>
+            <span class="surtitre"><th:block th:text="#{admin.onglets.administration}">Administration</th:block></span>
+            <h1 class="h3 mb-0"><th:block th:text="#{admin.onglets.profils}">Profils</th:block></h1>
+        </div>
+        <a class="btn btn-primary btn-sm" th:href="@{/admin/profils/nouveau}"><i class="bi bi-plus-lg me-1"></i><th:block th:text="#{admin.profil.nouveau_profil}">Nouveau profil</th:block></a>
+    </div>
+    <nav th:replace="~{admin/_onglets :: onglets('profils')}"></nav>
+
+    <p class="text-muted"><th:block th:text="#{admin.profils.un_profil_decrit_la_situation_d}">Un profil décrit la situation d'une personne dans l'organisation (délégué de commune, chef de
+        centre…). Il regroupe des rôles ; chaque membre reçoit les permissions de ces rôles.</th:block></p>
+
+    <div class="row g-3">
+        <div class="col-md-6 col-xl-4" th:each="p : ${profils}">
+            <div class="card h-100"><div class="card-body d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-start gap-2">
+                    <h2 class="h5 mb-1" th:text="${p.nom}"></h2>
+                    <span th:if="${p.parDefaut}" class="etiquette"><th:block th:text="#{admin.nouvel-utilisateur.par_defaut}">par défaut</th:block></span>
+                </div>
+                <p class="small text-muted" th:text="${p.description ?: 'Sans description'}"></p>
+                <div class="small fw-semibold text-muted text-uppercase mb-1"><th:block th:text="#{admin.onglets.roles}">Rôles</th:block></div>
+                <div class="mb-3">
+                    <span th:each="code : ${p.roles}" class="etiquette me-1 d-inline-block mb-1"
+                          th:text="${roles[code] != null} ? ${roles[code].libelle} : ${code}"></span>
+                </div>
+                <div class="mt-auto d-flex justify-content-between align-items-center">
+                    <span class="small"><i class="bi bi-people me-1"></i><span th:text="${p.nombreMembres}"></span> membre(s)</span>
+                    <a class="btn btn-outline-primary btn-sm" th:href="@{/admin/profils/{id}(id=${p.id})}"><th:block th:text="#{admin.profils.ouvrir}">Ouvrir</th:block></a>
+                </div>
+            </div></div>
+        </div>
+    </div>
+</main>
+</body>
+</html>

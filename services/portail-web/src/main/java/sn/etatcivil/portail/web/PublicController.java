@@ -1,5 +1,7 @@
 package sn.etatcivil.portail.web;
 
+import java.util.List;
+
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Controller;
@@ -18,9 +20,11 @@ import java.util.Locale;
 class PublicController {
 
     private final Api api;
+    private final org.springframework.web.servlet.LocaleResolver langues;
 
-    PublicController(Api api) {
+    PublicController(Api api, org.springframework.web.servlet.LocaleResolver langues) {
         this.api = api;
+        this.langues = langues;
     }
 
     @GetMapping("/")
@@ -39,9 +43,19 @@ class PublicController {
 
     @GetMapping("/documents")
     String documents(Model model) {
-        model.addAttribute("documents", api.documents().stream()
-                .sorted(java.util.Comparator.comparingInt(Vues.TypeDocument::rangFamille))
+        List<Vues.Nature> natures = api.natures(true);
+        java.util.Map<Long, Integer> rang = new java.util.HashMap<>();
+        for (int i = 0; i < natures.size(); i++) rang.put(natures.get(i).id(), i);
+        List<Vues.TypeDocument> documents = api.documents();
+        model.addAttribute("documents", documents.stream()
+                .sorted(java.util.Comparator.comparingInt((Vues.TypeDocument t) -> rang.getOrDefault(t.natureId(), 999))
+                        .thenComparing(Vues.TypeDocument::libelle))
                 .toList());
+        // seules les natures qui ont des documents disponibles servent de filtre
+        model.addAttribute("natures", natures.stream().filter(n -> documents.stream().anyMatch(t -> n.id().equals(t.natureId()))).toList());
+        java.util.Map<Long, String> libelles = new java.util.HashMap<>();
+        documents.forEach(t -> libelles.put(t.id(), t.libelle()));
+        model.addAttribute("libelles", libelles);
         return "documents";
     }
 
@@ -51,15 +65,24 @@ class PublicController {
         return "redirect:/oauth2/authorization/keycloak?inscription";
     }
 
-    /** Gestion du compte (mot de passe, coordonnées) : console de compte Keycloak. */
-    @GetMapping("/compte")
-    String compte(@org.springframework.beans.factory.annotation.Value("${ecivil.keycloak.url-publique}") String keycloak) {
+    /** Mot de passe, adresse email et sessions : espace sécurisé de Keycloak. */
+    @GetMapping("/compte/securite")
+    String securite(@org.springframework.beans.factory.annotation.Value("${ecivil.keycloak.url-publique}") String keycloak) {
         return "redirect:" + keycloak + "/realms/ecivil/account";
     }
 
     /** Page d'arrivée après connexion, selon le rôle. */
     @GetMapping("/espace")
-    String espace(@AuthenticationPrincipal OidcUser u) {
+    String espace(@AuthenticationPrincipal OidcUser u, jakarta.servlet.http.HttpServletRequest requete,
+                  jakarta.servlet.http.HttpServletResponse reponse) {
+        // à la connexion, la langue choisie dans « Mon compte » s'applique au portail
+        try {
+            var profil = api.monProfil();
+            String langue = profil == null ? null : profil.langue();
+            if (langue != null) langues.setLocale(requete, reponse, Locale.forLanguageTag(langue));
+        } catch (ApiException e) {
+            // profil indisponible : la langue courante reste
+        }
         return "redirect:" + GestionErreursWeb.accueil(Utilisateur.depuis(u));
     }
 

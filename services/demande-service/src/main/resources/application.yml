@@ -1,4 +1,8 @@
 spring:
+  servlet:
+    multipart:
+      max-file-size: 6MB
+      max-request-size: 20MB
   application:
     name: demande-service
   config:
@@ -12,6 +16,8 @@ spring:
     open-in-view: false
   flyway:
     locations: classpath:db/migration,classpath:db/socle
+    # une installation existante a déjà appliqué V900 (socle) : les nouvelles migrations s'y ajoutent
+    out-of-order: true
   rabbitmq:
     host: ${RABBITMQ_HOST:localhost}
     username: ${RABBITMQ_USER:guest}

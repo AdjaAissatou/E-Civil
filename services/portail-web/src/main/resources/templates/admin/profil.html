@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page(${profil} ? ${profil.nom} : #{admin.profil.nouveau_profil}, ~{::main})}">
+<body>
+<main class="container py-4">
+    <a class="small text-decoration-none" th:href="@{/admin/profils}"><i class="bi bi-arrow-left me-1"></i><th:block th:text="#{admin.onglets.profils}">Profils</th:block></a>
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-2 mb-4">
+        <h1 class="h3 mb-0" th:text="${profil} ? ${profil.nom} : #{admin.profil.nouveau_profil}"></h1>
+        <span th:if="${profil != null and profil.parDefaut}" class="pastille pastille-info"><th:block th:text="#{admin.profil.attribue_a_chaque_nouvelle_inscription}">Attribué à chaque nouvelle inscription</th:block></span>
+    </div>
+
+    <div class="row g-4">
+        <form class="col-lg-7" method="post" th:action="${profil} ? @{/admin/profils/{id}(id=${profil.id})} : @{/admin/profils}">
+            <div class="card mb-3"><div class="card-body">
+                <div class="mb-3"><label class="form-label" for="nom"><th:block th:text="#{admin.profil.nom_du_profil}">Nom du profil</th:block></label>
+                    <input class="form-control" id="nom" name="nom" required maxlength="60" th:value="${profil?.nom}"
+                           placeholder="ex. Agent d'accueil" th:placeholder="#{admin.profil.ex_agent_d_accueil}"></div>
+                <div class="mb-0"><label class="form-label" for="description"><th:block th:text="#{admin.natures.description}">Description</th:block></label>
+                    <textarea class="form-control" id="description" name="description" rows="2" maxlength="300"
+                              th:text="${profil?.description}"></textarea></div>
+            </div></div>
+            <div class="card mb-3"><div class="card-body">
+                <h2 class="h6 text-brun"><th:block th:text="#{admin.profil.roles_du_profil}">Rôles du profil</th:block></h2>
+                <p class="small text-muted"><th:block th:text="#{admin.profil.les_membres_recoivent_toutes_les_permissions}">Les membres reçoivent toutes les permissions des rôles cochés.</th:block></p>
+                <div class="form-check py-2 border-bottom" th:each="r : ${roles}">
+                    <input class="form-check-input" type="checkbox" name="role" th:value="${r.code}" th:id="'r-' + ${r.code}"
+                           th:checked="${profil != null and profil.comporte(r.code)}">
+                    <label class="form-check-label w-100" th:for="'r-' + ${r.code}">
+                        <span class="fw-semibold" th:text="${r.libelle}"></span> <code class="small" th:text="${r.code}"></code>
+                        <span class="d-block small text-muted" th:if="${r.description}" th:text="${r.description}"></span>
+                        <span class="d-block small mt-1">
+                            <span th:each="c : ${r.permissions}" class="etiquette me-1 d-inline-block mb-1"
+                                  th:text="${permissions[c] != null} ? ${permissions[c].libelle} : ${c}"></span>
+                        </span>
+                    </label>
+                </div>
+            </div></div>
+            <div class="text-end">
+                <a class="btn btn-contour" th:href="@{/admin/profils}"><th:block th:text="#{admin.missions.annuler}">Annuler</th:block></a>
+                <button class="btn btn-primary" type="submit" th:text="${profil} ? #{admin.document.enregistrer} : #{admin.profil.creer_le_profil}"></button>
+            </div>
+        </form>
+
+        <div class="col-lg-5" th:if="${profil}">
+            <div class="card mb-3"><div class="card-body">
+                <h2 class="h6 text-brun"><th:block th:text="#{admin.profil.membres}">Membres</th:block> <span class="text-muted" th:text="'(' + ${profil.nombreMembres} + ')'"></span></h2>
+                <p th:if="${profil.membres.isEmpty()}" class="small text-muted mb-0"><th:block th:text="#{admin.profil.aucun_membre}">Aucun membre.</th:block></p>
+                <ul class="list-unstyled mb-0" style="max-height: 420px; overflow-y: auto">
+                    <li th:each="m : ${profil.membres}" class="py-2 border-bottom d-flex justify-content-between gap-2">
+                        <span>
+                            <a class="fw-semibold" th:href="@{/admin/utilisateurs/{id}(id=${m.id})}" th:text="${m.nomComplet}"></a>
+                            <span class="d-block small text-muted" th:text="${m.email}"></span>
+                        </span>
+                        <span th:unless="${m.actif}" class="pastille pastille-danger align-self-center"><th:block th:text="#{admin.profil.desactive}">Désactivé</th:block></span>
+                    </li>
+                </ul>
+            </div></div>
+            <form class="card border-danger-subtle" th:action="@{/admin/profils/{id}/suppression(id=${profil.id})}" method="post"
+                  th:unless="${profil.parDefaut}"><div class="card-body">
+                <h2 class="h6 text-danger"><th:block th:text="#{admin.profil.supprimer_le_profil}">Supprimer le profil</th:block></h2>
+                <p class="small text-muted"><th:block th:text="#{admin.profil.possible_seulement_lorsque_le_profil_n}">Possible seulement lorsque le profil n'a plus aucun membre.</th:block></p>
+                <button class="btn btn-outline-danger btn-sm" type="submit" th:disabled="${profil.nombreMembres > 0}"
+                        data-confirmation="Supprimer définitivement ce profil ?" th:data-confirmation="#{admin.profil.supprimer_definitivement_ce_profil}"><th:block th:text="#{admin.profil.supprimer}">Supprimer</th:block></button>
+            </div></form>
+        </div>
+    </div>
+</main>
+</body>
+</html>

@@ -12,7 +12,17 @@ public interface ServiceDocuments {
      */
     record DocumentADelivrer(UUID demandeId, String reference, String demandeurId, String libelleDocument,
                              String modele, UUID acteId, String format, String signataire,
-                             String motif, String constat) {}
+                             String motif, String constat,
+                             sn.etatcivil.demande.domaine.PersonneConcernee personne,
+                             sn.etatcivil.demande.domaine.ComplementsDemande complements,
+                             Integer dureeValiditeJours, String typeMention) {
+
+        public DocumentADelivrer(UUID demandeId, String reference, String demandeurId, String libelleDocument,
+                                 String modele, UUID acteId, String format, String signataire, String motif, String constat) {
+            this(demandeId, reference, demandeurId, libelleDocument, modele, acteId, format, signataire, motif, constat,
+                    null, null, null, null);
+        }
+    }
 
     /** Fige l'acte et produit le document signé ; idempotent par demande. @return le code de vérification. */
     String delivrer(DocumentADelivrer document);

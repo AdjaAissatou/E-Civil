@@ -1,5 +1,7 @@
 package sn.etatcivil.portail.clients;
 
+import sn.etatcivil.portail.i18n.Textes;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.time.Instant;
@@ -21,19 +23,46 @@ public final class Vues {
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record TypeDocument(Long id, String code, String libelle, String description, String typeActe,
                                boolean concerneUnCouple, boolean copieIntegrale, String modele, String origine,
-                               int tarif, int delaiJours, boolean actif) {
+                               int tarif, int delaiJours, boolean actif,
+                               Long natureId, String libelleNature, String libelleModele, String typeMention,
+                               List<String> champs, Integer dureeValiditeJours, String motsCles, String piecesAFournir,
+                               boolean estOriginal, Long copieDeId, boolean exigeActe, boolean verificationIdentite) {
+
+        public TypeDocument(Long id, String code, String libelle, String description, String typeActe,
+                            boolean concerneUnCouple, boolean copieIntegrale, String modele, String origine,
+                            int tarif, int delaiJours, boolean actif,
+                            Long natureId, String libelleNature, String libelleModele, String typeMention,
+                            List<String> champs, Integer dureeValiditeJours, String motsCles, String piecesAFournir,
+                            boolean estOriginal, Long copieDeId, boolean exigeActe) {
+            this(id, code, libelle, description, typeActe, concerneUnCouple, copieIntegrale, modele, origine, tarif,
+                    delaiJours, actif, natureId, libelleNature, libelleModele, typeMention, champs, dureeValiditeJours,
+                    motsCles, piecesAFournir, estOriginal, copieDeId, exigeActe, false);
+        }
+
+        public TypeDocument(Long id, String code, String libelle, String description, String typeActe,
+                            boolean concerneUnCouple, boolean copieIntegrale, String modele, String origine,
+                            int tarif, int delaiJours, boolean actif) {
+            this(id, code, libelle, description, typeActe, concerneUnCouple, copieIntegrale, modele, origine, tarif,
+                    delaiJours, actif, null, null, null, null, List.of(), null, null, null, false, null, true);
+        }
+
+        /** La variété fait-elle remplir cette rubrique (PARENTS, CONJOINT, TEMOINS…) ? */
+        public boolean demande(String champ) { return champs != null && champs.contains(champ); }
+
+        /** Durée de validité lisible (« 3 mois », « 1 an », « illimitée »). */
+        public String libelleValidite() {
+            if (dureeValiditeJours == null) return Textes.t("validite.sans_limite");
+            int j = dureeValiditeJours;
+            if (j % 365 == 0) return j / 365 == 1 ? Textes.t("validite.un_an") : Textes.t("validite.ans", j / 365);
+            if (j % 30 == 0) return Textes.t("validite.mois", j / 30);
+            return Textes.t("validite.jours", j);
+        }
 
         /** Ordre d'affichage des familles dans le catalogue. */
         public static final List<String> FAMILLES = List.of("NAISSANCE", "RECONNAISSANCE", "MARIAGE", "DIVORCE", "DECES", "CERTIFICAT");
 
         public String libelleActe() {
-            return switch (typeActe) {
-                case "NAISSANCE" -> "naissance";
-                case "MARIAGE" -> "mariage";
-                case "DIVORCE" -> "divorce";
-                case "RECONNAISSANCE" -> "reconnaissance";
-                default -> "décès";
-            };
+            return Textes.t("acte.minuscule." + typeActe);
         }
 
         public boolean estCertificat() { return modele != null && modele.startsWith("CERTIFICAT_"); }
@@ -46,15 +75,12 @@ public final class Vues {
         public int rangFamille() { return FAMILLES.indexOf(famille()); }
 
         public String etiquette() {
-            if ("JUGEMENT_SUPPLETIF".equals(origine)) return "Jugement supplétif";
-            if ("TRANSCRIPTION".equals(origine)) return "Transcription";
-            if (modele == null) return copieIntegrale ? "Copie intégrale" : "Extrait";
+            if ("JUGEMENT_SUPPLETIF".equals(origine)) return Textes.t("etiquette.JUGEMENT_SUPPLETIF");
+            if ("TRANSCRIPTION".equals(origine)) return Textes.t("etiquette.TRANSCRIPTION");
+            if (modele == null) return Textes.t(copieIntegrale ? "etiquette.COPIE_INTEGRALE" : "etiquette.EXTRAIT");
             return switch (modele) {
-                case "COPIE_INTEGRALE" -> "Copie intégrale";
-                case "EXTRAIT_SANS_FILIATION" -> "Extrait sans filiation";
-                case "LIVRET_FAMILLE" -> "Duplicata";
-                case "EXTRAIT" -> "Extrait";
-                default -> "Certificat";
+                case "COPIE_INTEGRALE", "EXTRAIT_SANS_FILIATION", "LIVRET_FAMILLE", "EXTRAIT" -> Textes.t("etiquette." + modele);
+                default -> Textes.t("etiquette.CERTIFICAT");
             };
         }
 
@@ -70,7 +96,48 @@ public final class Vues {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public record Motif(Long id, String libelle, boolean autre) {}
+    public record Motif(Long id, String libelle, boolean autre, int ordre, String piecesRequises, Long typeDocumentId) {
+        public Motif(Long id, String libelle, boolean autre) {
+            this(id, libelle, autre, 0, null, null);
+        }
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record Nature(Long id, String code, String libelle, String description, int ordre, boolean active) {}
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record Libelle(String code, String libelle) {}
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record ReferentielsCatalogue(List<Libelle> modeles, List<Libelle> champs, List<Libelle> typesActe,
+                                        List<Libelle> origines) {}
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record Pays(Long id, String nom, String codeIso, String continent, String capitale, String zone) {}
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record Mission(Long id, String type, String nom, Long paysId, String pays, String ville, String codePostal,
+                          String competence, String adresse, String telephone, String email, List<Long> paysCouverts,
+                          boolean active) {}
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record ReferentielDiaspora(List<Pays> pays, List<String> typesMission, List<String> zones) {}
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record ComplementsDemande(String profession, String residence, String professionPere, String residencePere, String professionMere, String residenceMere, LocalDate dateNaissanceConjoint, String lieuNaissanceConjoint, String professionConjoint, String residenceConjoint, String temoin1, String temoin2, String medecin, String adresseMedecin, String causeDeces, String lieuDeces, String typeMention, String detailsMention, String precisions) {
+        public boolean vide() {
+            return java.util.stream.Stream.of(profession, residence, professionPere, residencePere, professionMere, residenceMere, dateNaissanceConjoint, lieuNaissanceConjoint, professionConjoint, residenceConjoint, temoin1, temoin2, medecin, adresseMedecin, causeDeces, lieuDeces, typeMention, detailsMention, precisions).allMatch(java.util.Objects::isNull);
+        }
+    }
+
+    /** Informations personnelles et préférences du compte connecté (« Mon compte »). */
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record ProfilPersonnel(String prenom, String nom, String email, String telephone, String sexe,
+                                  LocalDate dateNaissance, String lieuNaissance, String profession, String residence,
+                                  String localite, Integer nombreEnfants, String numeroCni, String typeUtilisateur,
+                                  String paysResidence, boolean notifications, String langue) {
+        public boolean diaspora() { return "DIASPORA".equals(typeUtilisateur); }
+    }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record Historique(String nouveauStatut, String libelle, String auteur, String commentaire, Instant date) {}
@@ -85,7 +152,48 @@ public final class Vues {
                           String nomConjoint, String prenomConjoint, LocalDate dateEvenement,
                           UUID acteId, String numeroActe, String noteRecherche, String signataire, Instant dateSignature,
                           String codeVerification, String motifRejet, Instant dateCreation, Instant dateModification,
-                          List<Historique> historique) {
+                          List<Historique> historique, ComplementsDemande complements, Integer dureeValiditeJours,
+                          Boolean exigeActe, boolean verificationIdentite) {
+
+        public Demande(UUID id, String reference, String statut, String libelleStatut, String explicationStatut,
+                       boolean terminee, String demandeurId, String demandeurNom, String demandeurEmail,
+                       Long typeDocumentId, String libelleDocument, String typeActe, boolean copieIntegrale, int montant,
+                       String motif, String lien, String format, String adresseLivraison, String villeLivraison,
+                       String nom, String prenom, String sexe, LocalDate dateNaissance, String lieuNaissance,
+                       String nomPere, String prenomPere, String nomMere, String prenomMere,
+                       String nomConjoint, String prenomConjoint, LocalDate dateEvenement,
+                       UUID acteId, String numeroActe, String noteRecherche, String signataire, Instant dateSignature,
+                       String codeVerification, String motifRejet, Instant dateCreation, Instant dateModification,
+                       List<Historique> historique, ComplementsDemande complements, Integer dureeValiditeJours,
+                       Boolean exigeActe) {
+            this(id, reference, statut, libelleStatut, explicationStatut, terminee, demandeurId, demandeurNom,
+                    demandeurEmail, typeDocumentId, libelleDocument, typeActe, copieIntegrale, montant, motif, lien, format,
+                    adresseLivraison, villeLivraison, nom, prenom, sexe, dateNaissance, lieuNaissance, nomPere, prenomPere,
+                    nomMere, prenomMere, nomConjoint, prenomConjoint, dateEvenement, acteId, numeroActe, noteRecherche,
+                    signataire, dateSignature, codeVerification, motifRejet, dateCreation, dateModification, historique,
+                    complements, dureeValiditeJours, exigeActe, false);
+        }
+
+        public Demande(UUID id, String reference, String statut, String libelleStatut, String explicationStatut,
+                       boolean terminee, String demandeurId, String demandeurNom, String demandeurEmail,
+                       Long typeDocumentId, String libelleDocument, String typeActe, boolean copieIntegrale, int montant,
+                       String motif, String lien, String format, String adresseLivraison, String villeLivraison,
+                       String nom, String prenom, String sexe, LocalDate dateNaissance, String lieuNaissance,
+                       String nomPere, String prenomPere, String nomMere, String prenomMere,
+                       String nomConjoint, String prenomConjoint, LocalDate dateEvenement,
+                       UUID acteId, String numeroActe, String noteRecherche, String signataire, Instant dateSignature,
+                       String codeVerification, String motifRejet, Instant dateCreation, Instant dateModification,
+                       List<Historique> historique) {
+            this(id, reference, statut, libelleStatut, explicationStatut, terminee, demandeurId, demandeurNom,
+                    demandeurEmail, typeDocumentId, libelleDocument, typeActe, copieIntegrale, montant, motif, lien, format,
+                    adresseLivraison, villeLivraison, nom, prenom, sexe, dateNaissance, lieuNaissance, nomPere, prenomPere,
+                    nomMere, prenomMere, nomConjoint, prenomConjoint, dateEvenement, acteId, numeroActe, noteRecherche,
+                    signataire, dateSignature, codeVerification, motifRejet, dateCreation, dateModification, historique,
+                    null, null, true, false);
+        }
+
+        /** Document établi sur comparution devant l'officier, sans acte du registre. */
+        public boolean surComparution() { return Boolean.FALSE.equals(exigeActe); }
 
         public String personneConcernee() { return prenom + " " + nom; }
 
@@ -93,16 +201,10 @@ public final class Vues {
 
         public boolean documentDisponible() { return "SIGNEE".equals(statut) || "LIVREE".equals(statut); }
 
-        public String libelleFormat() { return numerique() ? "Numérique (PDF téléchargeable)" : "Papier (livraison ou retrait)"; }
+        public String libelleFormat() { return Textes.t("format." + format); }
 
         public String libelleLien() {
-            return switch (lien) {
-                case "MOI_MEME" -> "Moi-même";
-                case "ENFANT" -> "Mon enfant";
-                case "PARENT" -> "Mon père ou ma mère";
-                case "CONJOINT" -> "Mon conjoint";
-                default -> "Autre (mandataire)";
-            };
+            return Textes.t("lien." + lien);
         }
 
         /** Classe Bootstrap du badge de statut. */
@@ -156,22 +258,42 @@ public final class Vues {
                        String nomConjoint, String prenomConjoint, LocalDate dateNaissanceConjoint, String lieuNaissanceConjoint,
                        String heureDeces, String causeDeces, String temoin1, String temoin2,
                        String mentionsMarginales, String observations, String origine, String referenceOrigine,
-                       String agentSaisie, Instant dateSaisie, Instant dateModification) {
+                       String agentSaisie, Instant dateSaisie, Instant dateModification,
+                       String profession, String domicile, String professionPere, String domicilePere,
+                       String professionMere, String domicileMere, String professionConjoint, String domicileConjoint,
+                       String medecin, List<MentionActe> mentions) {
+
+        public Acte(UUID id, String typeActe, String numeroActe, Integer annee, String statut,
+                    String centre, String commune, String volume, String folio,
+                    LocalDate dateEvenement, String lieuEvenement,
+                    String nom, String prenom, String sexe, LocalDate dateNaissance, String lieuNaissance,
+                    String nomPere, String prenomPere, String nomMere, String prenomMere,
+                    String nomConjoint, String prenomConjoint, LocalDate dateNaissanceConjoint, String lieuNaissanceConjoint,
+                    String heureDeces, String causeDeces, String temoin1, String temoin2,
+                    String mentionsMarginales, String observations, String origine, String referenceOrigine,
+                    String agentSaisie, Instant dateSaisie, Instant dateModification) {
+            this(id, typeActe, numeroActe, annee, statut, centre, commune, volume, folio, dateEvenement, lieuEvenement,
+                    nom, prenom, sexe, dateNaissance, lieuNaissance, nomPere, prenomPere, nomMere, prenomMere,
+                    nomConjoint, prenomConjoint, dateNaissanceConjoint, lieuNaissanceConjoint, heureDeces, causeDeces,
+                    temoin1, temoin2, mentionsMarginales, observations, origine, referenceOrigine, agentSaisie, dateSaisie,
+                    dateModification, null, null, null, null, null, null, null, null, null, List.of());
+        }
+
         public boolean estValide() { return "VALIDE".equals(statut); }
 
+        /** Profession et domicile réunis pour l'affichage (« commerçant, domicilié à Thiès »). */
+        public static String situation(String profession, String domicile) {
+            String p = profession == null ? "" : profession.trim(), d = domicile == null ? "" : domicile.trim();
+            if (p.isEmpty()) return d.isEmpty() ? null : Textes.t("situation.domicilie", d);
+            return d.isEmpty() ? p : Textes.t("situation.profession_domicilie", p, d);
+        }
+
         public String libelleOrigine() {
-            return "JUGEMENT_SUPPLETIF".equals(origine) ? "Jugement supplétif"
-                    : "TRANSCRIPTION".equals(origine) ? "Transcription d'un acte étranger" : null;
+            return "JUGEMENT_SUPPLETIF".equals(origine) || "TRANSCRIPTION".equals(origine) ? Textes.t("origine." + origine) : null;
         }
 
         public String libelleType() {
-            return switch (typeActe) {
-                case "NAISSANCE" -> "Naissance";
-                case "MARIAGE" -> "Mariage";
-                case "DIVORCE" -> "Divorce";
-                case "RECONNAISSANCE" -> "Reconnaissance";
-                default -> "Décès";
-            };
+            return Textes.t("acte." + typeActe);
         }
     }
 
@@ -183,9 +305,124 @@ public final class Vues {
                          String lieuNaissance) {}
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public record Complements(String modele, String motif, String constat, List<Enfant> enfants) {}
+    public record Complements(String modele, String motif, String constat, List<Enfant> enfants, LocalDate valableJusquAu,
+                              Declaration declaration, String mention) {
+        public Complements(String modele, String motif, String constat, List<Enfant> enfants) {
+            this(modele, motif, constat, enfants, null, null, null);
+        }
+
+        /** Le document a cessé d'être valable (date de fin dépassée, heure de Dakar). */
+        public boolean expire() {
+            return valableJusquAu != null && java.time.LocalDate.now(java.time.ZoneId.of("Africa/Dakar")).isAfter(valableJusquAu);
+        }
+    }
+
+    /** Identité et déclaration de la personne, pour un document établi sur comparution. */
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record Declaration(String nom, String prenom, String sexe, LocalDate dateNaissance, String lieuNaissance,
+                              String profession, String residence, String temoin1, String temoin2, String precisions) {}
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record Verification(String libelleDocument, Acte acte, Complements complements, String signataire,
                                Instant dateSignature, String codeVerification, String empreinte) {}
+
+    // ---------------------------------------------------------------- habilitations
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record ProfilResume(String id, String nom) {}
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record Compte(String id, String email, String prenom, String nom, String nomComplet, boolean actif,
+                         Instant dateCreation, List<ProfilResume> profils) {
+        public boolean dansProfil(String profilId) {
+            return profils != null && profils.stream().anyMatch(p -> p.id().equals(profilId));
+        }
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record Permission(String code, String libelle, String description, String avantage, String interdiction,
+                             String famille) {}
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record Role(String code, String libelle, String description, java.util.Set<String> permissions, boolean deBase,
+                       List<ProfilResume> profils) {
+        public boolean accorde(String permission) { return permissions != null && permissions.contains(permission); }
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record Profil(String id, String nom, String description, java.util.Set<String> roles, boolean parDefaut,
+                         int nombreMembres, List<Compte> membres) {
+        public boolean comporte(String role) { return roles != null && roles.contains(role); }
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record Operation(Instant date, String auteur, String type, String libelleType, String cible, String detail) {
+        /** Teinte de la pastille dans le journal. */
+        public String teinte() {
+            if (type == null) return "secondary";
+            if (type.endsWith("SUPPRIME") || type.equals("UTILISATEUR_DESACTIVE")) return "danger";
+            if (type.endsWith("CREE") || type.equals("UTILISATEUR_ACTIVE")) return "success";
+            if (type.equals("INITIALISATION")) return "dark";
+            return "info";
+        }
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record FicheCompte(Compte utilisateur, List<Role> roles, List<Permission> permissions, List<Operation> historique) {}
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record Synthese(long utilisateurs, int profils, int roles, int permissions, List<Operation> dernieresOperations) {}
+
+    // ---------------------------------------------------------------- registre : mentions, journal, référentiels
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record MentionActe(String type, String libelleType, LocalDate date, String reference, String details,
+                              String agent, String texte) {}
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record OperationActe(Instant date, String auteur, String action, String libelleAction, String detail) {}
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record Commune(String nom, String departement, String region) {}
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record TypeMention(String code, String libelle, List<String> actes) {}
+
+    /** Photo d'identité jointe à une demande (sans son contenu). */
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record PieceIdentite(UUID id, String nature, String libelle, String typePiece, String libelleTypePiece,
+                                int taille, Instant dateDepot, Instant datePurge) {
+        public boolean purgee() { return datePurge != null; }
+    }
+
+    // ---------------------------------------------------------------- renseignement
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record CentreEtatCivil(Long id, String nom, String type, String libelleType, String commune, String pays,
+                                  Long rattachementId, String nomRattachement, boolean actif) {
+        public String localisation() { return "CONSULAIRE".equals(type) ? pays : commune; }
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record RegistrePapier(Long id, Long centreId, String nomCentre, String typeActe, int annee, String exemplaire,
+                                 String libelleExemplaire, String volume, String lieuConservation, String etat,
+                                 String libelleEtat, boolean consultable, boolean numerise, String observations, String libelle) {}
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record Consultation(Long registreId, String registre, String resultat, String libelleResultat, String folio,
+                               String note, String agent, Instant date) {}
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record Renseignement(UUID demandeId, String etat, String libelleEtat, boolean urgent, String agentId,
+                                String agentNom, Instant dateOuverture, Instant datePriseEnCharge, String motifNonTrouve,
+                                String agentConclusion, Instant dateConclusion, List<Consultation> consultations) {
+        public boolean enCours() { return "EN_COURS".equals(etat); }
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record ResumeRenseignement(UUID demandeId, boolean urgent, String agentNom, int consultations,
+                                      Instant derniereConsultation) {}
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record StatistiquesRenseignement(long enCours, long urgents, long trouves, long nonTrouves) {}
 }

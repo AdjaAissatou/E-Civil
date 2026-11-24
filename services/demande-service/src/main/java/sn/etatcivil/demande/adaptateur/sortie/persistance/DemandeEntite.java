@@ -103,4 +103,12 @@ class DemandeEntite {
 
     @Version
     Integer version;
+
+    /** Informations complémentaires (rubriques de la variété), en JSON. */
+    @Column(name = "complements")
+    String complements;
+    @Column(name = "duree_validite_jours")
+    Integer dureeValiditeJours;
+    @Column(name = "verification_identite")
+    boolean verificationIdentite;
 }

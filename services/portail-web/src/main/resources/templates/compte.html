@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: page(#{compte.mon_compte}, ~{::main})}">
+<body>
+<main class="container py-4" style="max-width: 960px" th:with="p=${profil}">
+    <div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-3">
+        <div>
+            <span class="surtitre"><th:block th:text="#{compte.mon_compte}">Mon compte</th:block></span>
+            <h1 class="h3 mb-0" th:text="${p.prenom} + ' ' + ${p.nom}"></h1>
+            <div class="text-muted" th:text="${p.email}"></div>
+        </div>
+        <a class="btn btn-contour btn-sm" th:href="@{/compte/securite}" target="_blank" rel="noopener">
+            <i class="bi bi-shield-lock me-1"></i><th:block th:text="#{compte.mot_de_passe_et_securite}">Mot de passe et sécurité</th:block></a>
+    </div>
+
+    <form method="post" th:action="@{/compte}" class="row g-4">
+        <div class="col-lg-7">
+            <div class="card mb-4"><div class="card-body">
+                <h2 class="h6 text-brun"><th:block th:text="#{compte.informations_personnelles}">Informations personnelles</th:block></h2>
+                <p class="small text-muted"><th:block th:text="#{compte.elles_preremplissent_vos_demandes_de_documents}">Elles préremplissent vos demandes de documents.</th:block></p>
+                <div class="row g-3">
+                    <div class="col-md-6"><label class="form-label" for="prenom"><th:block th:text="#{citoyen.nouvelle.prenom_s}">Prénom(s)</th:block></label>
+                        <input class="form-control" id="prenom" name="prenom" required maxlength="100" th:value="${p.prenom}"></div>
+                    <div class="col-md-6"><label class="form-label" for="nom"><th:block th:text="#{accueil.nom}">Nom</th:block></label>
+                        <input class="form-control" id="nom" name="nom" required maxlength="100" th:value="${p.nom}"></div>
+                    <div class="col-md-4"><label class="form-label" for="sexe"><th:block th:text="#{citoyen.nouvelle.sexe}">Sexe</th:block></label>
+                        <select class="form-select" id="sexe" name="sexe">
+                            <option value="">—</option>
+                            <option value="F" th:selected="${p.sexe == 'F'}"><th:block th:text="#{citoyen.nouvelle.feminin}">Féminin</th:block></option>
+                            <option value="M" th:selected="${p.sexe == 'M'}"><th:block th:text="#{citoyen.nouvelle.masculin}">Masculin</th:block></option>
+                        </select></div>
+                    <div class="col-md-4"><label class="form-label" for="dateNaissance"><th:block th:text="#{citoyen.nouvelle.date_de_naissance}">Date de naissance</th:block></label>
+                        <input class="form-control" id="dateNaissance" name="dateNaissance" type="date" th:value="${p.dateNaissance}"></div>
+                    <div class="col-md-4"><label class="form-label" for="lieuNaissance"><th:block th:text="#{citoyen.nouvelle.lieu_de_naissance}">Lieu de naissance</th:block></label>
+                        <input class="form-control" id="lieuNaissance" name="lieuNaissance" maxlength="150" th:value="${p.lieuNaissance}"></div>
+                    <div class="col-md-6"><label class="form-label" for="telephone"><th:block th:text="#{admin.missions.telephone}">Téléphone</th:block></label>
+                        <input class="form-control" id="telephone" name="telephone" type="tel" maxlength="20"
+                               placeholder="+221 77 123 45 67" th:value="${p.telephone}"></div>
+                    <div class="col-md-6"><label class="form-label" for="numeroCni"><th:block th:text="#{compte.n_de_carte_d_identite}">N° de carte d'identité</th:block></label>
+                        <input class="form-control" id="numeroCni" name="numeroCni" maxlength="30" th:value="${p.numeroCni}"></div>
+                    <div class="col-md-8"><label class="form-label" for="profession"><th:block th:text="#{citoyen.nouvelle.profession}">Profession</th:block></label>
+                        <input class="form-control" id="profession" name="profession" maxlength="150" th:value="${p.profession}"></div>
+                    <div class="col-md-4"><label class="form-label" for="nombreEnfants"><th:block th:text="#{compte.nombre_d_enfants}">Nombre d'enfants</th:block></label>
+                        <input class="form-control" id="nombreEnfants" name="nombreEnfants" type="number" min="0" max="50" th:value="${p.nombreEnfants}"></div>
+                </div>
+            </div></div>
+
+            <div class="card"><div class="card-body">
+                <h2 class="h6 text-brun"><th:block th:text="#{compte.residence}">Résidence</th:block></h2>
+                <div class="d-flex gap-4 mb-3">
+                    <div class="form-check"><input class="form-check-input" type="radio" name="typeUtilisateur" id="resident"
+                                                   value="RESIDENT" th:checked="${!p.diaspora()}">
+                        <label class="form-check-label" for="resident"><th:block th:text="#{compte.je_reside_au_senegal}">Je réside au Sénégal</th:block></label></div>
+                    <div class="form-check"><input class="form-check-input" type="radio" name="typeUtilisateur" id="diaspora"
+                                                   value="DIASPORA" th:checked="${p.diaspora()}">
+                        <label class="form-check-label" for="diaspora"><th:block th:text="#{compte.je_reside_a_l_etranger_diaspora}">Je réside à l'étranger (diaspora)</th:block></label></div>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-8"><label class="form-label" for="residence"><th:block th:text="#{admin.missions.adresse}">Adresse</th:block></label>
+                        <input class="form-control" id="residence" name="residence" maxlength="255" th:value="${p.residence}"></div>
+                    <div class="col-md-4"><label class="form-label" for="localite"><th:block th:text="#{compte.commune_ou_ville}">Commune ou ville</th:block></label>
+                        <input class="form-control" id="localite" name="localite" maxlength="150" th:value="${p.localite}"></div>
+                    <div class="col-md-8" id="bloc-pays"><label class="form-label" for="paysResidence"><th:block th:text="#{compte.pays_de_residence}">Pays de résidence</th:block></label>
+                        <input class="form-control" id="paysResidence" name="paysResidence" list="liste-pays" maxlength="150"
+                               th:value="${p.paysResidence}">
+                        <datalist id="liste-pays"><option th:each="x : ${pays}" th:value="${x.nom}"></option></datalist>
+                        <div class="form-text"><th:block th:text="#{compte.vos_documents_papier_pourront_etre_retires}">Vos documents papier pourront être retirés à la mission diplomatique qui couvre ce pays.</th:block></div>
+                    </div>
+                </div>
+            </div></div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="card mb-4"><div class="card-body">
+                <h2 class="h6 text-brun"><th:block th:text="#{compte.preferences}">Préférences</th:block></h2>
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" role="switch" id="notifications" name="notifications"
+                           value="true" th:checked="${p.notifications}">
+                    <label class="form-check-label" for="notifications"><th:block th:text="#{compte.recevoir_un_email_a_chaque_etape}">Recevoir un email à chaque étape de mes demandes</th:block></label>
+                </div>
+                <label class="form-label" for="langue"><th:block th:text="#{compte.langue_du_portail}">Langue du portail</th:block></label>
+                <select class="form-select" id="langue" name="langue">
+                    <option value="fr" th:selected="${p.langue == 'fr'}">Français</option>
+                    <option value="wo" th:selected="${p.langue == 'wo'}">Wolof</option>
+                    <option value="en" th:selected="${p.langue == 'en'}">English</option>
+                </select>
+                <div class="form-text"><th:block th:text="#{compte.le_menu_et_les_pages_principales}">Tout le portail est traduit ; les noms des documents délivrés et les messages des services restent en français.</th:block></div>
+            </div></div>
+            <button class="btn btn-primary w-100" type="submit"><i class="bi bi-check2 me-1"></i><th:block th:text="#{admin.document.enregistrer}">Enregistrer</th:block></button>
+        </div>
+    </form>
+</main>
+</body>
+</html>

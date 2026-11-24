@@ -9,7 +9,11 @@ import java.util.UUID;
 public interface TranscrireActe {
     Acte transcrire(DonneesActe donnees, String agent);
 
-    Acte corriger(UUID id, DonneesActe donnees);
+    Acte corriger(UUID id, DonneesActe donnees, String agent);
 
-    Acte valider(UUID id);
+    Acte valider(UUID id, String agent);
+
+    /** Porte une mention marginale en marge d'un acte. */
+    Acte ajouterMention(UUID id, sn.etatcivil.registre.domaine.TypeMention type, java.time.LocalDate date,
+                        String reference, String details, String agent);
 }

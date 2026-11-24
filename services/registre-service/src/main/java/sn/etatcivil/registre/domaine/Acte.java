@@ -1,5 +1,9 @@
 package sn.etatcivil.registre.domaine;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Objects;
@@ -19,10 +23,16 @@ public class Acte {
     private final Instant dateSaisie;
     private Instant dateModification;
     private final Integer version;
+    private final List<Mention> mentions;
+
+    public Acte(UUID id, String numeroActe, int annee, StatutActe statut, DonneesActe donnees,
+                String agentSaisie, Instant dateSaisie, Instant dateModification, Integer version) {
+        this(id, numeroActe, annee, statut, donnees, agentSaisie, dateSaisie, dateModification, version, List.of());
+    }
 
     /** Reconstitution depuis le stockage (aucune règle n'est rejouée). */
     public Acte(UUID id, String numeroActe, int annee, StatutActe statut, DonneesActe donnees,
-                String agentSaisie, Instant dateSaisie, Instant dateModification, Integer version) {
+                String agentSaisie, Instant dateSaisie, Instant dateModification, Integer version, List<Mention> mentions) {
         this.id = Objects.requireNonNull(id);
         this.numeroActe = numeroActe;
         this.annee = annee;
@@ -32,6 +42,7 @@ public class Acte {
         this.dateSaisie = dateSaisie;
         this.dateModification = dateModification;
         this.version = version;
+        this.mentions = new ArrayList<>(mentions == null ? List.of() : mentions);
     }
 
     /** Transcription d'un acte du registre papier ; le numéro est attribué par le registre. */
@@ -41,13 +52,16 @@ public class Acte {
                 donnees.completer(), agent, maintenant, maintenant, null);
     }
 
-    /** Un acte saisi se corrige librement ; un acte validé n'accepte plus que des mentions marginales. */
+    /**
+     * Un acte saisi se corrige librement ; un acte validé ne change plus : seules ses observations peuvent être
+     * complétées, et il évolue par des mentions marginales.
+     */
     public void corriger(DonneesActe nouvelles, Instant maintenant) {
         if (nouvelles.typeActe() != donnees.typeActe()) {
             throw new RegleMetierException("Le type d'un acte ne peut pas être changé");
         }
         if (statut == StatutActe.VALIDE) {
-            donnees = donnees.avecMentions(nouvelles.mentionsMarginales(), nouvelles.observations());
+            donnees = donnees.avecObservations(nouvelles.observations());
         } else {
             nouvelles.verifierCoherence();
             if (nouvelles.dateEvenement().getYear() != annee) {
@@ -56,6 +70,30 @@ public class Acte {
             donnees = nouvelles.completer();
         }
         dateModification = maintenant;
+    }
+
+    /** Porte une mention en marge de l'acte (saisi ou validé). */
+    public void ajouterMention(Mention mention, Instant maintenant) {
+        if (!mention.type().sApplique(donnees.typeActe())) {
+            throw new RegleMetierException("Une " + mention.type().libelle().toLowerCase(java.util.Locale.ROOT)
+                    + " ne se porte pas en marge d'un acte de " + donnees.typeActe().name().toLowerCase(java.util.Locale.ROOT));
+        }
+        if (mention.date().isBefore(donnees.dateEvenement())) {
+            throw new RegleMetierException("La mention ne peut pas précéder l'acte (" + donnees.dateEvenement() + ")");
+        }
+        mentions.add(mention);
+        dateModification = maintenant;
+    }
+
+    /** Mentions de ce type, dans l'ordre chronologique. */
+    public List<Mention> mentions(TypeMention type) {
+        return mentions.stream().filter(m -> m.type() == type).sorted(Comparator.comparing(Mention::date)).toList();
+    }
+
+    /** Texte des mentions marginales, une par ligne (rendu des documents). */
+    public String texteMentions() {
+        return mentions.stream().sorted(Comparator.comparing(Mention::date)).map(Mention::texte)
+                .reduce((a, b) -> a + "\n" + b).orElse(null);
     }
 
     public void valider(Instant maintenant) {
@@ -151,4 +189,5 @@ public class Acte {
     public Instant dateSaisie() { return dateSaisie; }
     public Instant dateModification() { return dateModification; }
     public Integer version() { return version; }
+    public List<Mention> mentions() { return mentions.stream().sorted(Comparator.comparing(Mention::date)).toList(); }
 }

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{fragments/layout :: page(#{nav.centres}, ~{::main})}">
+<body>
+<main class="container py-4">
+    <h1 class="h3 mb-1" th:text="#{nav.centres}">Centres et registres papier</h1>
+    <p class="text-muted" th:text="#{centres.aide}">Chaque centre tient un registre par type d'acte et par année, en deux exemplaires : l'un reste au centre, l'autre est déposé au greffe du tribunal. Indiquer leur état oriente les recherches du chargé de renseignement.</p>
+
+    <form class="row g-2 mb-3" method="get">
+        <div class="col-md-5"><input class="form-control" name="recherche" th:value="${recherche}" th:placeholder="#{centres.rechercher}" placeholder="Nom, commune ou pays"></div>
+        <div class="col-md-4">
+            <select class="form-select" name="type">
+                <option value="" th:text="#{fragments.filtres.tous_les_types}">Tous les types</option>
+                <option th:each="t : ${typesCentre}" th:value="${t}" th:text="#{'centre.type.' + ${t}}" th:selected="${t == type}"></option>
+            </select>
+        </div>
+        <div class="col-md-3"><button class="btn btn-primary w-100" type="submit" th:text="#{admin.journal.rechercher}">Rechercher</button></div>
+    </form>
+
+    <div class="row g-3">
+        <div class="col-lg-8">
+            <div class="card"><div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead><tr><th th:text="#{centres.centre}">Centre</th><th th:text="#{admin.missions.type}">Type</th><th th:text="#{centres.localisation}">Commune ou pays</th><th th:text="#{centres.rattache_a}">Rattaché à</th></tr></thead>
+                    <tbody>
+                    <tr th:if="${centres.isEmpty()}"><td colspan="4" class="text-center text-muted py-4" th:text="#{centres.aucun}">Aucun centre.</td></tr>
+                    <tr th:each="c : ${centres}" th:classappend="${!c.actif} ? 'text-muted'">
+                        <td><a class="fw-semibold" th:href="@{/registre/centres/{id}(id=${c.id})}" th:text="${c.nom}"></a></td>
+                        <td class="small" th:text="#{'centre.type.' + ${c.type}}"></td>
+                        <td class="small" th:text="${c.localisation()}"></td>
+                        <td class="small" th:text="${c.nomRattachement}"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div></div>
+        </div>
+        <div class="col-lg-4" sec:authorize="hasRole('REGISTRE_SAISIR')">
+            <div class="card"><div class="card-body">
+                <h2 class="h6 text-brun" th:text="#{centres.nouveau}">Nouveau centre</h2>
+                <form method="post" th:action="@{/registre/centres}">
+                    <div th:replace="~{registre/centres :: champs(null)}"></div>
+                    <button class="btn btn-primary w-100" type="submit" th:text="#{centres.enregistrer}">Enregistrer</button>
+                </form>
+            </div></div>
+        </div>
+    </div>
+</main>
+
+<!-- Champs communs à la création et à la modification d'un centre -->
+<th:block th:fragment="champs(c)">
+    <div class="mb-2">
+        <label class="form-label small mb-0" for="nom" th:text="#{centres.nom}">Nom</label>
+        <input class="form-control" id="nom" name="nom" required maxlength="150" th:value="${c?.nom}">
+    </div>
+    <div class="mb-2">
+        <label class="form-label small mb-0" for="typeCentre" th:text="#{admin.missions.type}">Type</label>
+        <select class="form-select" id="typeCentre" name="type" required>
+            <option th:each="t : ${typesCentre}" th:value="${t}" th:text="#{'centre.type.' + ${t}}" th:selected="${c != null and t == c.type}"></option>
+        </select>
+    </div>
+    <div class="mb-2">
+        <label class="form-label small mb-0" for="communeCentre" th:text="#{centres.commune}">Commune (centre principal ou secondaire)</label>
+        <input class="form-control" id="communeCentre" name="commune" list="communes" maxlength="150" th:value="${c?.commune}">
+        <datalist id="communes"><option th:each="m : ${communes}" th:value="${m.nom}" th:text="${m.region}"></option></datalist>
+    </div>
+    <div class="mb-2">
+        <label class="form-label small mb-0" for="paysCentre" th:text="#{centres.pays}">Pays (centre consulaire)</label>
+        <input class="form-control" id="paysCentre" name="pays" maxlength="150" th:value="${c?.pays}">
+    </div>
+    <div class="mb-2">
+        <label class="form-label small mb-0" for="rattachement" th:text="#{centres.rattachement}">Centre principal de rattachement (centre secondaire)</label>
+        <select class="form-select" id="rattachement" name="rattachementId">
+            <option value="" th:text="#{centres.aucun_rattachement}">Aucun</option>
+            <option th:each="p : ${principaux}" th:if="${c == null or p.id != c.id}" th:value="${p.id}" th:text="${p.nom}"
+                    th:selected="${c != null and p.id == c.rattachementId}"></option>
+        </select>
+    </div>
+    <input type="hidden" name="actifPresent" value="1">
+    <div class="form-check mb-3">
+        <input class="form-check-input" type="checkbox" id="actifCentre" name="actif" value="1" th:checked="${c == null or c.actif}">
+        <label class="form-check-label small" for="actifCentre" th:text="#{centres.actif}">Centre en activité</label>
+    </div>
+</th:block>
+</body>
+</html>

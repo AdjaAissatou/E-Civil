@@ -32,7 +32,15 @@ public class SaisieActe {
     @Size(max = 255) private String causeDeces;
     @Size(max = 200) private String temoin1;
     @Size(max = 200) private String temoin2;
-    @Size(max = 2000) private String mentionsMarginales;
+    @Size(max = 150) private String profession;
+    @Size(max = 200) private String domicile;
+    @Size(max = 150) private String professionPere;
+    @Size(max = 200) private String domicilePere;
+    @Size(max = 150) private String professionMere;
+    @Size(max = 200) private String domicileMere;
+    @Size(max = 150) private String professionConjoint;
+    @Size(max = 200) private String domicileConjoint;
+    @Size(max = 200) private String medecin;
     @Size(max = 2000) private String observations;
     private String origine = "ORDINAIRE";
     @Size(max = 500) private String referenceOrigine;
@@ -47,7 +55,16 @@ public class SaisieActe {
         s.prenomConjoint = a.prenomConjoint(); s.dateNaissanceConjoint = a.dateNaissanceConjoint();
         s.lieuNaissanceConjoint = a.lieuNaissanceConjoint(); s.heureDeces = a.heureDeces();
         s.causeDeces = a.causeDeces(); s.temoin1 = a.temoin1(); s.temoin2 = a.temoin2();
-        s.mentionsMarginales = a.mentionsMarginales(); s.observations = a.observations();
+        s.observations = a.observations();
+        s.profession = a.profession();
+        s.domicile = a.domicile();
+        s.professionPere = a.professionPere();
+        s.domicilePere = a.domicilePere();
+        s.professionMere = a.professionMere();
+        s.domicileMere = a.domicileMere();
+        s.professionConjoint = a.professionConjoint();
+        s.domicileConjoint = a.domicileConjoint();
+        s.medecin = a.medecin();
         s.origine = a.origine() == null ? "ORDINAIRE" : a.origine(); s.referenceOrigine = a.referenceOrigine();
         return s;
     }
@@ -59,7 +76,16 @@ public class SaisieActe {
         nomMere = v(nomMere); prenomMere = v(prenomMere); nomConjoint = v(nomConjoint);
         prenomConjoint = v(prenomConjoint); lieuNaissanceConjoint = v(lieuNaissanceConjoint);
         heureDeces = v(heureDeces); causeDeces = v(causeDeces); temoin1 = v(temoin1); temoin2 = v(temoin2);
-        mentionsMarginales = v(mentionsMarginales); observations = v(observations);
+        observations = v(observations);
+        profession = v(profession);
+        domicile = v(domicile);
+        professionPere = v(professionPere);
+        domicilePere = v(domicilePere);
+        professionMere = v(professionMere);
+        domicileMere = v(domicileMere);
+        professionConjoint = v(professionConjoint);
+        domicileConjoint = v(domicileConjoint);
+        medecin = v(medecin);
         origine = v(origine) == null ? "ORDINAIRE" : origine.trim();
         referenceOrigine = "ORDINAIRE".equals(origine) ? null : v(referenceOrigine);
     }
@@ -114,8 +140,24 @@ public class SaisieActe {
     public void setTemoin1(String temoin1) { this.temoin1 = temoin1; }
     public String getTemoin2() { return temoin2; }
     public void setTemoin2(String temoin2) { this.temoin2 = temoin2; }
-    public String getMentionsMarginales() { return mentionsMarginales; }
-    public void setMentionsMarginales(String m) { this.mentionsMarginales = m; }
+    public String getProfession() { return profession; }
+    public void setProfession(String v) { profession = v; }
+    public String getDomicile() { return domicile; }
+    public void setDomicile(String v) { domicile = v; }
+    public String getProfessionPere() { return professionPere; }
+    public void setProfessionPere(String v) { professionPere = v; }
+    public String getDomicilePere() { return domicilePere; }
+    public void setDomicilePere(String v) { domicilePere = v; }
+    public String getProfessionMere() { return professionMere; }
+    public void setProfessionMere(String v) { professionMere = v; }
+    public String getDomicileMere() { return domicileMere; }
+    public void setDomicileMere(String v) { domicileMere = v; }
+    public String getProfessionConjoint() { return professionConjoint; }
+    public void setProfessionConjoint(String v) { professionConjoint = v; }
+    public String getDomicileConjoint() { return domicileConjoint; }
+    public void setDomicileConjoint(String v) { domicileConjoint = v; }
+    public String getMedecin() { return medecin; }
+    public void setMedecin(String v) { medecin = v; }
     public String getObservations() { return observations; }
     public String getOrigine() { return origine; }
     public void setOrigine(String origine) { this.origine = origine; }

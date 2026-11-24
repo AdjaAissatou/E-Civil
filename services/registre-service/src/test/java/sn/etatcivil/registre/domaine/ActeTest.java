@@ -65,15 +65,18 @@ public class ActeTest {
         a.valider(Instant.now());
         assertThatThrownBy(() -> a.valider(Instant.now())).hasMessageContaining("déjà validé");
 
-        // Un acte validé n'accepte plus que des mentions
+        // Un acte validé ne change plus : seules ses observations se complètent, il évolue par des mentions
         DonneesActe n = naissance();
         DonneesActe modif = new DonneesActe(n.typeActe(), n.centre(), n.commune(), n.volume(), n.folio(),
                 n.dateEvenement(), n.lieuEvenement(), "Ba", n.prenom(), n.sexe(), null, null, n.nomPere(),
                 n.prenomPere(), n.nomMere(), n.prenomMere(), null, null, null, null, null, null, null, null,
-                "Marié le 04/07/2015", null, null, null);
+                null, "Registre restauré en 2010", null, null);
         a.corriger(modif, Instant.now());
         assertThat(a.donnees().nom()).isEqualTo("Diallo");
-        assertThat(a.donnees().mentionsMarginales()).isEqualTo("Marié le 04/07/2015");
+        assertThat(a.donnees().observations()).isEqualTo("Registre restauré en 2010");
+        a.ajouterMention(new Mention(TypeMention.MARIAGE, LocalDate.of(2015, 7, 4), "Acte M-2015-000001", null,
+                "agent", Instant.now()), Instant.now());
+        assertThat(a.texteMentions()).isEqualTo("Mention de mariage du 04/07/2015 (Acte M-2015-000001)");
     }
 
     public static DonneesActe acte(TypeActe type, LocalDate date, String nom, String prenom, LocalDate naissance,

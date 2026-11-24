@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
-# Crée les trois comptes agents de démonstration dans Keycloak (realm ecivil) :
-#   delegue@ecivil.sn (DELEGUE), registre@ecivil.sn (AGENT_REGISTRE), officier@ecivil.sn (OFFICIER)
+# Crée les trois comptes agents de démonstration et les range dans leur profil :
+#   delegue@ecivil.sn  → profil « Délégué de commune »
+#   registre@ecivil.sn → profil « Agent du registre »
+#   officier@ecivil.sn → profil « Officier de l'état civil »
+# Les profils sont créés par le service des habilitations à son démarrage. On peut aussi créer les agents
+# depuis le portail : Administration › Utilisateurs › Nouvel agent.
 #
 # Usage (depuis la racine du projet, plateforme démarrée) :
 #   ./scripts/agents-demo.sh MotDePasseDesAgents
@@ -25,23 +29,38 @@ JETON=$(curl -s --data-urlencode "username=$KEYCLOAK_ADMIN" --data-urlencode "pa
   | sed -n 's/.*"access_token":"\([^"]*\)".*/\1/p')
 [ -n "$JETON" ] || { echo "Connexion à Keycloak impossible : la plateforme est-elle démarrée ? (docker compose ps)" >&2; exit 1; }
 A="$K/admin/realms/ecivil"
+auth=(-H "Authorization: Bearer $JETON")
 
-creer() {  # identifiant prénom rôle
-  local email="$1@ecivil.sn" prenom="$2" role="$3"
-  curl -s -o /dev/null -H "Authorization: Bearer $JETON" -H 'Content-Type: application/json' \
+# identifiant du profil (groupe Keycloak) portant exactement ce nom
+profil() {
+  curl -s -G "${auth[@]}" --data-urlencode "search=$1" --data-urlencode "exact=true" "$A/groups" \
+    | sed -n 's/^\[{"id":"\([^"]*\)".*/\1/p'
+}
+
+CITOYEN=$(profil "Citoyen")
+if [ -z "$CITOYEN" ]; then
+  echo "Les profils n'existent pas encore : attendez que le service des habilitations ait démarré" >&2
+  echo "(docker compose logs habilitation-service), puis relancez ce script." >&2
+  exit 1
+fi
+
+creer() {  # identifiant prénom profil
+  local email="$1@ecivil.sn" prenom="$2" nom_profil="$3"
+  curl -s -o /dev/null "${auth[@]}" -H 'Content-Type: application/json' \
     -d "{\"username\":\"$email\",\"email\":\"$email\",\"emailVerified\":true,\"enabled\":true,\"firstName\":\"$prenom\",\"lastName\":\"Ndiaye\",\"credentials\":[{\"type\":\"password\",\"value\":\"$MOT_DE_PASSE\",\"temporary\":false}]}" \
     "$A/users"
-  local id
-  id=$(curl -s -H "Authorization: Bearer $JETON" "$A/users?exact=true&username=$email" | sed -n 's/^\[{"id":"\([^"]*\)".*/\1/p')
-  local definition
-  definition=$(curl -s -H "Authorization: Bearer $JETON" "$A/roles/$role")
-  curl -s -o /dev/null -H "Authorization: Bearer $JETON" -H 'Content-Type: application/json' \
-    -d "[$definition]" "$A/users/$id/role-mappings/realm"
-  echo "  $email  ($role)"
+  local id groupe
+  id=$(curl -s "${auth[@]}" "$A/users?exact=true&username=$email" | sed -n 's/^\[{"id":"\([^"]*\)".*/\1/p')
+  groupe=$(profil "$nom_profil")
+  [ -n "$id" ] && [ -n "$groupe" ] || { echo "  $email : échec (profil « $nom_profil » introuvable ?)" >&2; return; }
+  curl -s -o /dev/null -X PUT "${auth[@]}" "$A/users/$id/groups/$groupe"
+  # un agent n'est pas rangé parmi les citoyens (profil attribué par défaut à toute création de compte)
+  curl -s -o /dev/null -X DELETE "${auth[@]}" "$A/users/$id/groups/$CITOYEN"
+  echo "  $email  ($nom_profil)"
 }
 
 echo "Comptes agents créés :"
-creer delegue Awa DELEGUE
-creer registre Ibrahima AGENT_REGISTRE
-creer officier Mariama OFFICIER
+creer delegue Awa "Délégué de commune"
+creer registre Ibrahima "Agent du registre"
+creer officier Mariama "Officier de l'état civil"
 echo "Connectez-vous sur http://localhost:8080 avec l'un de ces comptes et le mot de passe choisi."

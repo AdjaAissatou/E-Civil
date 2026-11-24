@@ -1,48 +1,68 @@
 <!DOCTYPE html>
-<html lang="fr" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: page('Vérifier un document', ~{::main})}">
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: page(#{accueil.verifier_un_document}, ~{::main})}">
 <body>
 <main class="container py-4" style="max-width: 820px">
-    <h1 class="h3">Vérifier l'authenticité d'un document</h1>
-    <p class="text-muted">Saisissez le code de vérification imprimé sur le document (format XXXXX-XXXXX) ou scannez son QR code.</p>
+    <h1 class="h3"><th:block th:text="#{verification.verifier_l_authenticite_d_un_document}">Vérifier l'authenticité d'un document</th:block></h1>
+    <p class="text-muted"><th:block th:text="#{verification.saisissez_le_code_de_verification_imprime}">Saisissez le code de vérification imprimé sur le document (format XXXXX-XXXXX) ou scannez son QR code.</th:block></p>
     <form class="d-flex gap-2 mb-4" th:action="@{/verification}" method="get">
         <input class="form-control" name="code" placeholder="ABCDE-12345" th:value="${code}" required maxlength="11">
-        <button class="btn btn-primary" type="submit">Vérifier</button>
+        <button class="btn btn-primary" type="submit"><th:block th:text="#{accueil.verifier}">Vérifier</th:block></button>
     </form>
 
     <div th:if="${code != null and document == null}" class="alert alert-danger">
-        <i class="bi bi-x-octagon me-2"></i>Aucun document délivré par E-Civil ne porte le code
+        <i class="bi bi-x-octagon me-2"></i><th:block th:text="#{verification.aucun_document_delivre_par_e_civil}">Aucun document délivré par E-Civil ne porte le code</th:block>
         <strong th:text="${code}"></strong>. Ce document n'est pas authentique ou le code a été mal saisi.
     </div>
 
+    <div th:if="${document != null and document.complements != null and document.complements.expire()}" class="alert alert-warning">
+        <i class="bi bi-hourglass-bottom me-2"></i><th:block th:text="#{verification.ce_document_est_authentique_mais}">Ce document est authentique mais</th:block> <strong><th:block th:text="#{verification.n_est_plus_valable}">n'est plus valable</th:block></strong> <th:block th:text="#{verification.depuis_le}">depuis le</th:block>
+        <span th:text="${#temporals.format(document.complements.valableJusquAu, 'dd/MM/yyyy')}"></span> : demandez-en un nouveau.
+    </div>
     <div th:if="${document}" class="card border-success">
-        <div class="card-header bg-success text-white"><i class="bi bi-patch-check me-2"></i>Document authentique</div>
+        <div class="card-header bg-success text-white"><i class="bi bi-patch-check me-2"></i><th:block th:text="#{accueil.document_authentique}">Document authentique</th:block></div>
         <div class="card-body">
-            <p>Ce document a été délivré par E-Civil. Comparez les informations ci-dessous avec celles du document présenté :
-               toute différence signifie qu'il a été falsifié.</p>
+            <p><th:block th:text="#{verification.ce_document_a_ete_delivre_par}">Ce document a été délivré par E-Civil. Comparez les informations ci-dessous avec celles du document présenté :
+               toute différence signifie qu'il a été falsifié.</th:block></p>
             <dl class="row fiche">
-                <dt class="col-sm-4">Document</dt><dd class="col-sm-8" th:text="${document.libelleDocument}"></dd>
-                <dt class="col-sm-4">Numéro d'acte</dt><dd class="col-sm-8" th:text="${document.acte.numeroActe}"></dd>
-                <dt class="col-sm-4">Centre d'état civil</dt><dd class="col-sm-8" th:text="${document.acte.centre}"></dd>
-                <dt class="col-sm-4" th:text="${document.acte.typeActe == 'RECONNAISSANCE'} ? 'Enfant reconnu' : 'Titulaire'">Titulaire</dt><dd class="col-sm-8" th:text="${document.acte.prenom} + ' ' + ${document.acte.nom}"></dd>
-                <dt class="col-sm-4" th:if="${document.acte.nomConjoint}">Conjoint</dt>
+                <dt class="col-sm-4"><th:block th:text="#{admin.documents.document}">Document</th:block></dt><dd class="col-sm-8" th:text="${document.libelleDocument}"></dd>
+                <th:block th:if="${document.acte == null and document.complements != null and document.complements.declaration != null}"
+                          th:with="dc=${document.complements.declaration}">
+                    <dt class="col-sm-4"><th:block th:text="#{verification.etabli}">Établi</th:block></dt><dd class="col-sm-8"><th:block th:text="#{verification.sur_comparution_devant_l_officier_sans}">sur comparution devant l'officier, sans acte du registre</th:block></dd>
+                    <dt class="col-sm-4"><th:block th:text="#{officier.accueil.personne}">Personne</th:block></dt><dd class="col-sm-8" th:text="${dc.prenom} + ' ' + ${dc.nom}"></dd>
+                    <dt class="col-sm-4" th:if="${dc.dateNaissance}"><th:block th:text="#{accueil.nee_le}">Née le</th:block></dt>
+                    <dd class="col-sm-8" th:if="${dc.dateNaissance}" th:text="${#temporals.format(dc.dateNaissance, 'dd/MM/yyyy')} + (${dc.lieuNaissance} ? #{agent.demande.a} + ${dc.lieuNaissance} : '')"></dd>
+                </th:block>
+                <th:block th:if="${document.acte}">
+                <dt class="col-sm-4"><th:block th:text="#{verification.numero_d_acte}">Numéro d'acte</th:block></dt><dd class="col-sm-8" th:text="${document.acte.numeroActe}"></dd>
+                <dt class="col-sm-4"><th:block th:text="#{registre.formulaire.centre_d_etat_civil}">Centre d'état civil</th:block></dt><dd class="col-sm-8" th:text="${document.acte.centre}"></dd>
+                <dt class="col-sm-4" th:text="${document.acte.typeActe == 'RECONNAISSANCE'} ? #{citoyen.nouvelle.enfant_reconnu} : #{agent.demande.titulaire}">Titulaire</dt><dd class="col-sm-8" th:text="${document.acte.prenom} + ' ' + ${document.acte.nom}"></dd>
+                <dt class="col-sm-4" th:if="${document.acte.nomConjoint}"><th:block th:text="#{agent.demande.conjoint}">Conjoint</th:block></dt>
                 <dd class="col-sm-8" th:if="${document.acte.nomConjoint}" th:text="${document.acte.prenomConjoint} + ' ' + ${document.acte.nomConjoint}"></dd>
-                <dt class="col-sm-4">Date de l'événement</dt>
-                <dd class="col-sm-8" th:text="${#temporals.format(document.acte.dateEvenement, 'dd/MM/yyyy')} + ' à ' + ${document.acte.lieuEvenement}"></dd>
+                <dt class="col-sm-4"><th:block th:text="#{fragments.demande.date_de_l_evenement}">Date de l'événement</th:block></dt>
+                <dd class="col-sm-8" th:text="${#temporals.format(document.acte.dateEvenement, 'dd/MM/yyyy')} + #{agent.demande.a} + ${document.acte.lieuEvenement}"></dd>
                 <th:block th:if="${document.acte.libelleOrigine}">
                     <dt class="col-sm-4" th:text="${document.acte.libelleOrigine}"></dt>
                     <dd class="col-sm-8" th:text="${document.acte.referenceOrigine}"></dd>
                 </th:block>
+                </th:block>
+                <th:block th:if="${document.complements != null and document.complements.mention != null}">
+                    <dt class="col-sm-4"><th:block th:text="#{verification.mention_reproduite}">Mention reproduite</th:block></dt><dd class="col-sm-8" th:text="${document.complements.mention}"></dd>
+                </th:block>
+                <th:block th:if="${document.complements != null and document.complements.valableJusquAu != null}">
+                    <dt class="col-sm-4"><th:block th:text="#{verification.valable_jusqu_au}">Valable jusqu'au</th:block></dt>
+                    <dd class="col-sm-8" th:text="${#temporals.format(document.complements.valableJusquAu, 'dd/MM/yyyy')}"></dd>
+                </th:block>
                 <th:block th:if="${document.complements != null and document.complements.constat != null}">
-                    <dt class="col-sm-4">Constat</dt><dd class="col-sm-8" th:text="${document.complements.constat}"></dd>
+                    <dt class="col-sm-4"><th:block th:text="#{verification.constat}">Constat</th:block></dt><dd class="col-sm-8" th:text="${document.complements.constat}"></dd>
                 </th:block>
                 <th:block th:if="${document.complements != null and !#lists.isEmpty(document.complements.enfants)}">
-                    <dt class="col-sm-4">Enfants inscrits</dt>
+                    <dt class="col-sm-4"><th:block th:text="#{verification.enfants_inscrits}">Enfants inscrits</th:block></dt>
                     <dd class="col-sm-8"><span th:each="e, i : ${document.complements.enfants}"
                         th:text="${e.prenom} + ' ' + ${e.nom} + ' (' + ${e.numeroActe} + ')' + (${i.last} ? '' : ', ')"></span></dd>
                 </th:block>
-                <dt class="col-sm-4">Signé par</dt><dd class="col-sm-8" th:text="${document.signataire}"></dd>
-                <dt class="col-sm-4">Date de délivrance</dt><dd class="col-sm-8" th:text="${@dates.heure(document.dateSignature)}"></dd>
-                <dt class="col-sm-4">Empreinte SHA-256</dt><dd class="col-sm-8 small text-break" th:text="${document.empreinte}"></dd>
+                <dt class="col-sm-4"><th:block th:text="#{citoyen.demande.signe_par}">Signé par</th:block></dt><dd class="col-sm-8" th:text="${document.signataire}"></dd>
+                <dt class="col-sm-4"><th:block th:text="#{verification.date_de_delivrance}">Date de délivrance</th:block></dt><dd class="col-sm-8" th:text="${@dates.heure(document.dateSignature)}"></dd>
+                <dt class="col-sm-4"><th:block th:text="#{verification.empreinte_sha_256}">Empreinte SHA-256</th:block></dt><dd class="col-sm-8 small text-break" th:text="${document.empreinte}"></dd>
             </dl>
         </div>
     </div>

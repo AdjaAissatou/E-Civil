@@ -1,0 +1,31 @@
+<!-- Fragments communs de l'administration -->
+<nav xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+     th:fragment="onglets(actif)" class="nav nav-pills gap-1 mb-4 flex-wrap" aria-label="Administration" th:aria-label="#{admin.onglets.administration}">
+    <a class="nav-link" th:classappend="${actif == 'accueil'} ? 'active'" th:href="@{/admin}"><i class="bi bi-speedometer2 me-1"></i><th:block th:text="#{admin.onglets.tableau_de_bord}">Tableau de bord</th:block></a>
+    <a sec:authorize="hasRole('UTILISATEURS_GERER')" class="nav-link" th:classappend="${actif == 'utilisateurs'} ? 'active'" th:href="@{/admin/utilisateurs}"><i class="bi bi-people me-1"></i><th:block th:text="#{admin.onglets.utilisateurs}">Utilisateurs</th:block></a>
+    <a sec:authorize="hasRole('HABILITATIONS_GERER')" class="nav-link" th:classappend="${actif == 'profils'} ? 'active'" th:href="@{/admin/profils}"><i class="bi bi-person-badge me-1"></i><th:block th:text="#{admin.onglets.profils}">Profils</th:block></a>
+    <a sec:authorize="hasRole('HABILITATIONS_GERER')" class="nav-link" th:classappend="${actif == 'roles'} ? 'active'" th:href="@{/admin/roles}"><i class="bi bi-diagram-3 me-1"></i><th:block th:text="#{admin.onglets.roles}">Rôles</th:block></a>
+    <a sec:authorize="hasRole('HABILITATIONS_GERER')" class="nav-link" th:classappend="${actif == 'permissions'} ? 'active'" th:href="@{/admin/permissions}"><i class="bi bi-ui-checks-grid me-1"></i><th:block th:text="#{admin.onglets.permissions}">Permissions</th:block></a>
+    <a sec:authorize="hasRole('CATALOGUE_GERER')" class="nav-link" th:classappend="${actif == 'documents'} ? 'active'" th:href="@{/admin/documents}"><i class="bi bi-tags me-1"></i><th:block th:text="#{admin.onglets.documents_et_tarifs}">Documents et tarifs</th:block></a>
+    <a sec:authorize="hasRole('CATALOGUE_GERER')" class="nav-link" th:classappend="${actif == 'natures'} ? 'active'" th:href="@{/admin/natures}"><i class="bi bi-collection me-1"></i><th:block th:text="#{admin.onglets.natures}">Natures</th:block></a>
+    <a sec:authorize="hasRole('CATALOGUE_GERER')" class="nav-link" th:classappend="${actif == 'motifs'} ? 'active'" th:href="@{/admin/motifs}"><i class="bi bi-list-check me-1"></i><th:block th:text="#{admin.onglets.motifs}">Motifs</th:block></a>
+    <a sec:authorize="hasRole('CATALOGUE_GERER')" class="nav-link" th:classappend="${actif == 'missions'} ? 'active'" th:href="@{/admin/missions}"><i class="bi bi-globe-americas me-1"></i><th:block th:text="#{admin.onglets.diaspora}">Diaspora</th:block></a>
+    <a sec:authorize="hasRole('JOURNAL_CONSULTER')" class="nav-link" th:classappend="${actif == 'journal'} ? 'active'" th:href="@{/admin/journal}"><i class="bi bi-clock-history me-1"></i><th:block th:text="#{admin.onglets.journal}">Journal</th:block></a>
+</nav>
+
+<!-- Tableau d'opérations du journal -->
+<div xmlns:th="http://www.thymeleaf.org" th:fragment="operations(liste, vide)" class="table-responsive">
+    <table class="table align-middle mb-0">
+        <thead><tr><th style="width:150px"><th:block th:text="#{admin.onglets.date}">Date</th:block></th><th><th:block th:text="#{admin.onglets.operation}">Opération</th:block></th><th><th:block th:text="#{admin.onglets.concerne}">Concerne</th:block></th><th><th:block th:text="#{admin.onglets.detail}">Détail</th:block></th><th><th:block th:text="#{admin.onglets.par}">Par</th:block></th></tr></thead>
+        <tbody>
+        <tr th:if="${liste == null or liste.isEmpty()}"><td colspan="5" class="text-center text-muted py-4" th:text="${vide}"></td></tr>
+        <tr th:each="o : ${liste}">
+            <td class="small text-nowrap" th:text="${@dates.heure(o.date)}"></td>
+            <td><span class="pastille" th:classappend="'pastille-' + ${o.teinte()}" th:text="${o.libelleType}"></span></td>
+            <td class="fw-semibold" th:text="${o.cible}"></td>
+            <td class="small text-muted" style="white-space: pre-line" th:text="${o.detail}"></td>
+            <td class="small" th:text="${o.auteur}"></td>
+        </tr>
+        </tbody>
+    </table>
+</div>

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: page(#{admin.onglets.motifs}, ~{::main})}">
+<body>
+<main class="container-fluid px-lg-5 py-4">
+    <span class="surtitre"><th:block th:text="#{admin.onglets.administration}">Administration</th:block></span>
+    <h1 class="h3"><th:block th:text="#{admin.motifs.motifs_de_demande}">Motifs de demande</th:block></h1>
+    <nav th:replace="~{admin/_onglets :: onglets('motifs')}"></nav>
+    <p class="text-muted"><th:block th:text="#{admin.motifs.un_motif_commun_est_propose_pour}">Un motif commun est proposé pour tous les documents ; un motif propre ne l'est que pour son document.
+        Les pièces à fournir s'affichent au citoyen quand il choisit le motif.</th:block></p>
+    <div class="card mb-4"><div class="table-responsive">
+        <table class="table align-middle mb-0">
+            <thead><tr><th style="width:80px"><th:block th:text="#{admin.motifs.ordre}">Ordre</th:block></th><th><th:block th:text="#{admin.document.libelle}">Libellé</th:block></th><th><th:block th:text="#{admin.document.pieces_a_fournir}">Pièces à fournir</th:block></th><th><th:block th:text="#{admin.documents.document}">Document</th:block></th><th></th></tr></thead>
+            <tbody>
+            <tr th:each="m : ${motifs}">
+                <td colspan="5">
+                    <form class="row g-2 align-items-center" method="post" th:action="@{/admin/motifs}">
+                        <input type="hidden" name="id" th:value="${m.id}">
+                        <div class="col-md-1"><input class="form-control form-control-sm" type="number" name="ordre" min="0" max="999" th:value="${m.ordre}" aria-label="Ordre" th:aria-label="#{admin.motifs.ordre}"></div>
+                        <div class="col-md-3"><input class="form-control form-control-sm" name="libelle" required maxlength="150" th:value="${m.libelle}" aria-label="Libellé" th:aria-label="#{admin.document.libelle}"></div>
+                        <div class="col-md-4"><input class="form-control form-control-sm" name="piecesRequises" maxlength="500" th:value="${m.piecesRequises}" aria-label="Pièces" th:aria-label="#{admin.motifs.pieces}"></div>
+                        <div class="col-md-3"><select class="form-select form-select-sm" name="typeDocumentId" aria-label="Document" th:aria-label="#{admin.documents.document}">
+                            <option value=""><th:block th:text="#{admin.motifs.tous_les_documents}">Tous les documents</th:block></option>
+                            <option th:each="d : ${documents}" th:value="${d.key}" th:text="${d.value}" th:selected="${m.typeDocumentId == d.key}"></option>
+                        </select></div>
+                        <div class="col-md-1"><button class="btn btn-outline-primary btn-sm" type="submit">OK</button></div>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div></div>
+    <div class="card"><div class="card-body">
+        <h2 class="h6 text-brun"><th:block th:text="#{admin.motifs.nouveau_motif}">Nouveau motif</th:block></h2>
+        <form class="row g-2" method="post" th:action="@{/admin/motifs}">
+            <div class="col-md-3"><input class="form-control" name="libelle" required maxlength="150" placeholder="Libellé" th:placeholder="#{admin.document.libelle}"></div>
+            <div class="col-md-4"><input class="form-control" name="piecesRequises" maxlength="500" placeholder="Pièces à fournir" th:placeholder="#{admin.document.pieces_a_fournir}"></div>
+            <div class="col-md-3"><select class="form-select" name="typeDocumentId" aria-label="Document" th:aria-label="#{admin.documents.document}">
+                <option value=""><th:block th:text="#{admin.motifs.tous_les_documents}">Tous les documents</th:block></option>
+                <option th:each="d : ${documents}" th:value="${d.key}" th:text="${d.value}"></option>
+            </select></div>
+            <div class="col-md-2"><button class="btn btn-primary w-100" type="submit"><th:block th:text="#{admin.missions.ajouter}">Ajouter</th:block></button></div>
+        </form>
+    </div></div>
+</main>
+</body>
+</html>

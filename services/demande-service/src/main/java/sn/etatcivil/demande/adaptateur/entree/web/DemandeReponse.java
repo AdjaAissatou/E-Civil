@@ -18,7 +18,8 @@ public record DemandeReponse(
         String nomConjoint, String prenomConjoint, LocalDate dateEvenement,
         UUID acteId, String numeroActe, String noteRecherche, String signataire, Instant dateSignature,
         String codeVerification, String motifRejet, Instant dateCreation, Instant dateModification,
-        List<Historique> historique) {
+        List<Historique> historique, ComplementsDemande complements, Integer dureeValiditeJours, boolean exigeActe,
+        boolean verificationIdentite) {
 
     public record Historique(String nouveauStatut, String libelle, String auteur, String commentaire, Instant date) {}
 
@@ -35,6 +36,7 @@ public record DemandeReponse(
                 p.nom(), p.prenom(), p.sexe(), p.dateNaissance(), p.lieuNaissance(), p.nomPere(), p.prenomPere(),
                 p.nomMere(), p.prenomMere(), p.nomConjoint(), p.prenomConjoint(), p.dateEvenement(),
                 d.acteId(), d.numeroActe(), d.noteRecherche(), d.signataire(), d.dateSignature(), d.codeVerification(),
-                d.motifRejet(), d.dateCreation(), d.dateModification(), h);
+                d.motifRejet(), d.dateCreation(), d.dateModification(), h, d.complements(), d.dureeValiditeJours(),
+                d.modele().exigeActe(), d.verificationIdentite());
     }
 }

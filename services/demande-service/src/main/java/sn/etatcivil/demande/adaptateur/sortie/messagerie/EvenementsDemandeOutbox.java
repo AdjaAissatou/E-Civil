@@ -12,9 +12,11 @@ import sn.etatcivil.socle.messagerie.PublicateurOutbox;
 class EvenementsDemandeOutbox implements EvenementsDemande {
 
     private final PublicateurOutbox outbox;
+    private final sn.etatcivil.demande.application.port.sortie.PreferencesDemandeurs preferences;
 
-    EvenementsDemandeOutbox(PublicateurOutbox outbox) {
+    EvenementsDemandeOutbox(PublicateurOutbox outbox, sn.etatcivil.demande.application.port.sortie.PreferencesDemandeurs preferences) {
         this.outbox = outbox;
+        this.preferences = preferences;
     }
 
     @Override
@@ -22,6 +24,7 @@ class EvenementsDemandeOutbox implements EvenementsDemande {
         outbox.publier(Routages.DEMANDE_STATUT, new DemandeStatutChange(
                 d.id().toString(), d.reference(), c.ancien() == null ? null : c.ancien().name(), c.nouveau().name(),
                 d.demandeur().id(), d.demandeur().email(), d.demandeur().prenom(), d.libelleDocument(),
-                d.personne().nomComplet(), d.montant(), d.format().name(), d.motifRejet(), c.date()));
+                d.personne().nomComplet(), d.montant(), d.format().name(), d.motifRejet(), c.date(),
+                preferences.notifications(d.demandeur().id())));
     }
 }

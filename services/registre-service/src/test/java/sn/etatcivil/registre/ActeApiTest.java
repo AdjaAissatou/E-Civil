@@ -32,8 +32,8 @@ class ActeApiTest {
     static RequestPostProcessor role(String role) {
         return jwt().jwt(j -> j.subject("u-" + role).claim("email", role.toLowerCase() + "@ecivil.sn")
                         .claim("given_name", "Awa").claim("family_name", "Ndiaye")
-                        .claim("realm_access", Map.of("roles", List.of(role))))
-                .authorities(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_" + role));
+                        .claim("realm_access", Map.of("roles", sn.etatcivil.socle.tests.JetonsDeTest.roles(role))))
+                .authorities(sn.etatcivil.socle.tests.JetonsDeTest.roles(role).stream().<org.springframework.security.core.GrantedAuthority>map(r -> new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_" + r)).toList());
     }
 
     static final String NAISSANCE = """
@@ -96,5 +96,60 @@ class ActeApiTest {
                 .andExpect(jsonPath("$.contenu.length()").value(1)).andExpect(jsonPath("$.total").value(1));
         mvc.perform(get("/api/registre/actes/statistiques").with(role("OFFICIER")))
                 .andExpect(jsonPath("$.total").value(1)).andExpect(jsonPath("$.parType.NAISSANCE").value(1));
+    }
+
+    @Test
+    void mentionsJournalEtCommunes() throws Exception {
+        String id = transcrire();
+        mvc.perform(post("/api/registre/actes/" + id + "/validation").with(role("OFFICIER"))).andExpect(status().isOk());
+        mvc.perform(json(post("/api/registre/actes/" + id + "/mentions"))
+                        .content("{\"type\":\"MARIAGE\",\"date\":\"2020-06-06\",\"reference\":\"Acte M-2020-000004\"}")
+                        .with(role("CITOYEN"))).andExpect(status().isForbidden());
+        mvc.perform(json(post("/api/registre/actes/" + id + "/mentions"))
+                        .content("{\"type\":\"MARIAGE\",\"date\":\"2020-06-06\",\"reference\":\"Acte M-2020-000004\"}")
+                        .with(role("AGENT_REGISTRE")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.mentions[0].libelleType").value("Mention de mariage"))
+                .andExpect(jsonPath("$.mentionsMarginales").value("Mention de mariage du 06/06/2020 (Acte M-2020-000004)"));
+        mvc.perform(get("/api/registre/actes/" + id + "/journal").with(role("OFFICIER")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].action").value("MENTION"))
+                .andExpect(jsonPath("$[1].action").value("VALIDATION"))
+                .andExpect(jsonPath("$[1].auteur").value("Awa Ndiaye <officier@ecivil.sn>"))
+                .andExpect(jsonPath("$[2].action").value("TRANSCRIPTION"));
+        mvc.perform(get("/api/registre/communes")).andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(66))
+                .andExpect(jsonPath("$[?(@.nom == 'Touba-Mosquée')].region").value("Diourbel"));
+        mvc.perform(get("/api/registre/types-mentions")).andExpect(status().isOk());
+    }
+
+    @Test
+    void centresEtRegistresPapier() throws Exception {
+        mvc.perform(get("/api/registre/centres").param("recherche", "kaolack").with(role("CITOYEN"))).andExpect(status().isForbidden());
+        String centres = mvc.perform(get("/api/registre/centres").param("recherche", "kaolack").with(role("AGENT_REGISTRE")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].nom").value("Centre principal de Kaolack"))
+                .andReturn().getResponse().getContentAsString();
+        Integer kaolack = JsonPath.read(centres, "$[0].id");
+        mvc.perform(json(post("/api/registre/centres")).content("{\"nom\":\"Centre de Médina Baye\",\"type\":\"SECONDAIRE\","
+                        + "\"commune\":\"Kaolack\",\"rattachementId\":" + kaolack + "}").with(role("AGENT_REGISTRE")))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.nomRattachement").value("Centre principal de Kaolack"));
+        String registre = "{\"centreId\":" + kaolack + ",\"typeActe\":\"NAISSANCE\",\"annee\":1987,\"exemplaire\":\"CENTRE\","
+                + "\"etat\":\"MANQUANT\",\"observations\":\"Inondation\"}";
+        String cree = mvc.perform(json(post("/api/registre/registres-papier")).content(registre).with(role("AGENT_REGISTRE")))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.consultable").value(false))
+                .andExpect(jsonPath("$.libelle").value("Naissances 1987, Centre principal de Kaolack, exemplaire du centre"))
+                .andReturn().getResponse().getContentAsString();
+        mvc.perform(json(post("/api/registre/registres-papier")).content(registre).with(role("AGENT_REGISTRE")))
+                .andExpect(status().isUnprocessableEntity());
+        Integer id = JsonPath.read(cree, "$.id");
+        mvc.perform(json(put("/api/registre/registres-papier/" + id)).content(registre.replace("MANQUANT", "ABIME"))
+                        .with(role("AGENT_REGISTRE")))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.libelleEtat").value("Abîmé"));
+        mvc.perform(get("/api/registre/registres-papier").param("typeActe", "NAISSANCE").param("annee", "1987")
+                        .with(role("AGENT_REGISTRE")))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(1));
     }
 }

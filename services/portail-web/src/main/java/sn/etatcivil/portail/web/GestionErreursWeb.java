@@ -1,5 +1,7 @@
 package sn.etatcivil.portail.web;
 
+import sn.etatcivil.portail.i18n.Textes;
+
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
@@ -34,7 +36,7 @@ class GestionErreursWeb {
             model.addAttribute("message", e.getMessage());
             return "error";
         }
-        flash.addFlashAttribute("erreur", e.getMessage());
+        flash.addFlashAttribute("erreur", Textes.t("message.texte_6", e.getMessage()));
         return "redirect:" + retour;
     }
 
@@ -55,12 +57,6 @@ class GestionErreursWeb {
     }
 
     static String accueil(Utilisateur u) {
-        return switch (u.role()) {
-            case "ADMIN" -> "/admin";
-            case "OFFICIER" -> "/officier";
-            case "AGENT_REGISTRE" -> "/registre";
-            case "DELEGUE" -> "/delegue";
-            default -> "/demandes";
-        };
+        return u.accueil();
     }
 }

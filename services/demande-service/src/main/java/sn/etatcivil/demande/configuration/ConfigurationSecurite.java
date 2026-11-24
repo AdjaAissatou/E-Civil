@@ -22,7 +22,8 @@ class ConfigurationSecurite {
                 .authorizeHttpRequests(a -> a
                         .requestMatchers("/actuator/health/**", "/error").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/catalogue/documents", "/api/catalogue/documents/{id}",
-                                "/api/catalogue/motifs").permitAll()
+                                "/api/catalogue/motifs", "/api/catalogue/natures", "/api/catalogue/referentiels",
+                                "/api/catalogue/diaspora", "/api/catalogue/diaspora/missions").permitAll()
                         .requestMatchers("/api/**").authenticated()
                         .anyRequest().denyAll())
                 .oauth2ResourceServer(o -> o.jwt(j -> j.jwtAuthenticationConverter(roles)))

@@ -19,6 +19,8 @@ flowchart LR
     G --> PA[paiement-service]
     G --> R[registre-service]
     G --> DOC[document-service]
+    G --> H[habilitation-service]
+    H -->|API d'administration| KC[(Keycloak)]
     P -->|API + jeton utilisateur| G
     D -->|jeton de service| R
     D -->|jeton de service| DOC
@@ -37,6 +39,7 @@ flowchart LR
 | `registre-service` | Registre national des actes : transcription, validation, recherche | `registre` | 8083 |
 | `document-service` | Signature, PDF, vérification publique d'authenticité | `document` | 8084 |
 | `notification-service` | Emails aux citoyens à chaque étape | `notification` | 8085 |
+| `habilitation-service` | Utilisateurs, profils, rôles, permissions et journal (administre Keycloak) | `habilitation` | 8086 |
 
 Chaque service possède **sa propre base** : aucun ne lit les données d'un autre, ils communiquent
 uniquement par API et par événements.
@@ -94,7 +97,7 @@ stateDiagram-v2
     PAYEE --> ACTE_TROUVE : recherche dans le registre
     PAYEE --> ACTE_INTROUVABLE
     ACTE_INTROUVABLE --> ACTE_TROUVE : l'acte est transcrit et validé<br/>(relance automatique) ou rattaché
-    ACTE_INTROUVABLE --> REJETEE
+    ACTE_INTROUVABLE --> REJETEE : le chargé de renseignement conclut<br/>que l'acte n'existe pas
     ACTE_TROUVE --> SIGNEE : l'officier signe
     ACTE_TROUVE --> ACTE_INTROUVABLE : l'officier conteste l'acte
     SIGNEE --> LIVREE : format papier expédié
@@ -102,32 +105,95 @@ stateDiagram-v2
     A_PAYER --> ANNULEE
 ```
 
-| Rôle (Keycloak) | Ce qu'il fait |
-|---|---|
-| `CITOYEN` | Attribué automatiquement à l'inscription : dépose, paie, suit, télécharge |
-| `DELEGUE` | Examine les demandes, expédie les documents papier |
-| `AGENT_REGISTRE` | Transcrit les actes des registres papier, traite les actes non retrouvés |
-| `OFFICIER` | Valide les transcriptions, contrôle et signe les documents |
-| `ADMIN` | Tarifs et catalogue ; les comptes et les rôles se gèrent dans la console Keycloak |
-| `SERVICE` | Comptes techniques des services qui en appellent d'autres |
+### Renseignement : quand l'acte manque au registre national
+
+Une grande partie des actes n'existe encore que sur papier. Quand la recherche automatique échoue, la demande
+passe « Acte non retrouvé » et le **chargé de renseignement** ouvre son dossier depuis la fiche de la demande :
+
+- les **registres papier** à consulter lui sont proposés : ceux du type d'acte, pour l'année de l'événement et
+  les deux années voisines, dans tous les centres, avec leur exemplaire (centre ou greffe), leur état et s'ils
+  sont numérisés ;
+- il **consigne** chaque registre consulté et ce qu'il y a constaté (aucun acte, acte présent, page illisible,
+  registre manquant), avec le folio et une note ; il peut marquer le dossier **urgent** ;
+- s'il trouve l'acte, il le transcrit puis le rattache : le dossier est clos « acte retrouvé » ;
+- sinon il **conclut** : la demande est rejetée avec son explication (registres consultés, jugement
+  d'autorisation d'inscription à demander au tribunal) et le citoyen est prévenu.
+
+Les **centres d'état civil** (principal par commune, secondaires rattachés, consulaires) et leurs **registres
+papier** (un par type d'acte et par année, en deux exemplaires) se gèrent dans *Espace agent › Centres et
+registres papier*. La file des actes non retrouvés affiche les recherches en cours, urgentes, abouties et
+infructueuses.
+
+### Habilitations : utilisateurs, profils, rôles, permissions
+
+Chaque service vérifie une **permission** sur chaque action (15 permissions : `DEMANDES_VALIDER`,
+`DOCUMENTS_SIGNER`, `REGISTRE_VALIDER`…). Les permissions sont regroupées en **rôles**, les rôles en
+**profils**, et chaque utilisateur reçoit un ou plusieurs profils. Tout se gère dans le portail,
+*Administration* : comptes des agents, profils, rôles, matrice rôles × permissions, journal des opérations.
+
+| Profil de départ | Rôles | Ce qu'il permet |
+|---|---|---|
+| Citoyen (donné à chaque inscription) | Citoyen | déposer, payer, suivre, télécharger ses demandes |
+| Délégué de commune | Délégué | examiner les demandes, expédier les documents papier |
+| Agent du registre | Agent du registre | transcrire les actes, traiter les actes non retrouvés |
+| Chargé de renseignement | Agent du registre | chercher dans les registres papier les actes non retrouvés |
+| Officier de l'état civil | Officier | valider les transcriptions, contrôler et signer les documents |
+| Chef de centre | Officier + Délégué | les deux |
+| Administrateur | Administrateur | tout, sauf déposer des demandes |
+
+La plateforme refuse toute modification qui la laisserait sans administrateur. Détails, règles et
+correspondance avec Keycloak : [`docs/memoire/roles-permissions.md`](docs/memoire/roles-permissions.md).
+Les comptes techniques des services portent le rôle `SERVICE`.
 
 ## Catalogue des documents
 
-19 documents, repris du catalogue de la version d'origine et limités à ce que délivre l'état civil. Chacun a
-un **modèle** (ce qu'il contient) et, pour certains, une **origine exigée** de l'acte :
+Le catalogue suit le modèle **Nature / Variété** de la version d'origine : **15 natures** (familles) regroupent
+**46 variétés** (documents délivrables). Chaque variété a un **modèle** (ce que contient le document), l'acte
+sur lequel elle s'appuie, les rubriques du formulaire de demande, un tarif, un délai, une **durée de validité**,
+des mots-clés, les **pièces à fournir**, et, pour une copie, le document **original** qu'elle reproduit.
 
-| Famille | Documents | Comment ils sont établis |
-|---|---|---|
-| Naissance | Extrait (avec ou sans filiation), copie littérale, jugement supplétif, transcription d'acte étranger | à partir de l'acte de naissance |
-| Reconnaissance | Copie d'acte de reconnaissance (paternelle, maternelle, anticipée) | à partir de l'acte de reconnaissance |
-| Mariage | Extrait, copie littérale, jugement supplétif, transcription, duplicata de livret de famille | le livret reprend l'acte de mariage et les naissances des enfants du couple |
-| Divorce | Extrait d'acte de divorce | à partir de l'acte de divorce |
-| Décès | Extrait, copie littérale, jugement supplétif, transcription | à partir de l'acte de décès |
-| Certificats | Célibat, capacité matrimoniale, vie | à partir de l'acte de naissance **et** de la situation de la personne dans le registre |
+| Nature | Documents |
+|---|---|
+| Naissance | Acte original, extrait (avec ou sans filiation), certificat de naissance |
+| Reconnaissance | Copie d'acte, enfant naturel, anticipée, paternelle, maternelle, certificat de reconnaissance |
+| Mariage | Acte original, extrait, certificat de mariage |
+| Divorce | Extrait d'acte de divorce |
+| Décès | Acte original, extrait, certificat de décès |
+| Copie | Copies littérales de naissance, de mariage et de décès (copies de l'original) |
+| Jugement supplétif, Transcription | Naissance, mariage, décès |
+| Mention marginale | Extraits de mention de divorce et de légitimation |
+| Livret de famille | Livret, duplicata |
+| Célibat, Vie individuelle | Célibat (mariage civil, religieux, adoption) ; vie (retraite, pension, succession, vie individuelle) |
+| Nationalité, Domicile, Coutume | Nationalité (3), non-appartenance, domicile (3), coutume, capacité matrimoniale |
+
+**Validité.** Un document administratif est valable **3 mois** (90 jours) à compter de sa signature : la date
+limite est imprimée sur le document et contrôlée par la page de vérification. Le livret de famille et son
+duplicata restent sans limite. L'administrateur peut changer la durée de chaque variété.
+
+**Vérification d'identité.** Pour les documents sensibles (actes originaux, copies intégrales, livret de famille,
+extraits de mention, certificats de situation, de nationalité, de domicile et sur comparution), le demandeur joint
+la photo de sa pièce d'identité (recto et verso de la carte, ou page du passeport) et un selfie, pris avec la
+caméra ou importé. Les images sont réencodées (métadonnées retirées), visibles seulement des agents qui valident,
+signent ou supervisent, et effacées 30 jours après la clôture de la demande. Le délégué atteste avoir comparé
+les photos avant de valider. Les extraits et les certificats d'événement ne demandent rien de plus.
+
+**Langues.** Tout le portail est traduit en français, wolof et anglais (choix dans *Mon compte* ou en pied de
+page, paramètre `?lang=`). Les noms des documents, les libellés modifiables par l'administrateur et les messages
+d'erreur des services restent en français. La traduction wolof est à faire relire par un locuteur natif.
+
+L'administration gère natures, documents, motifs (communs ou propres à un document, avec leurs pièces) et le
+référentiel de la diaspora (pays, missions diplomatiques). Les certificats de non-appartenance et de coutume
+sont établis **sur comparution** devant l'officier, sans acte du registre. Un Sénégalais de l'étranger peut
+retirer un document papier à la **mission diplomatique** qui couvre son pays de résidence.
+
+Ce que la version d'origine faisait et comment chaque élément a été rétabli : [`docs/comparaison-v1.md`](docs/comparaison-v1.md).
 
 - **Origine de l'acte.** Un acte est dressé sur déclaration ordinaire, en exécution d'un **jugement supplétif**
   ou par **transcription** d'un acte étranger ; l'agent en saisit les références. Les documents « jugement
   supplétif » et « transcription » ne retrouvent que les actes de cette origine.
+- **Registre.** Les mentions marginales (mariage, divorce, légitimation…) sont rattachées à l'acte qu'elles
+  modifient ; chaque acte a son journal (saisie, corrections champ par champ, validation, mentions, avec
+  l'agent) ; la commune se choisit dans le référentiel (66 communes, 14 régions).
 - **Certificats.** registre-service établit la situation civile d'une personne : ses mariages (dissous ou non
   par un divorce ou le décès du conjoint) et son décès. Le certificat de célibat exige qu'aucun mariage ne
   soit inscrit, la capacité matrimoniale qu'aucun mariage ne soit en cours, le certificat de vie qu'aucun décès
@@ -164,9 +230,8 @@ enregistré est détectée. Il s'agit d'une signature applicative, pas d'une sig
    ```
 
 4. Ouvrir <http://localhost:8080>. Le compte administrateur (`ECIVIL_ADMIN_EMAIL`) doit changer son mot de
-   passe à la première connexion. Les comptes agents se créent dans la console Keycloak
-   (<http://localhost:8180>, realm `ecivil`), avec le rôle voulu, ou d'un coup pour la démonstration :
-   `./scripts/agents-demo.sh <mot de passe>`.
+   passe à la première connexion. Les comptes agents se créent dans *Administration › Utilisateurs ›
+   Nouvel agent*, ou d'un coup pour la démonstration : `./scripts/agents-demo.sh <mot de passe>`.
 
 | Adresse | Contenu |
 |---|---|

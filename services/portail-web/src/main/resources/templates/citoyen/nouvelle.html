@@ -1,126 +1,260 @@
 <!DOCTYPE html>
-<html lang="fr" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: page('Nouvelle demande', ~{::main})}">
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: page(#{citoyen.demandes.nouvelle_demande}, ~{::main})}">
 <body>
 <main class="container py-4" style="max-width: 900px">
     <h1 class="h3 mb-1" th:text="${type.libelle}">Document</h1>
     <p class="text-muted" th:text="${type.description}"></p>
     <p><span class="badge text-bg-light fs-6" th:text="${#numbers.formatInteger(type.tarif, 1, 'WHITESPACE')} + ' FCFA'"></span>
-       <span class="text-muted small ms-2">payable en ligne après validation de la demande</span></p>
+       <span class="text-muted small ms-2"><th:block th:text="#{citoyen.nouvelle.payable_en_ligne_apres_validation_de}">payable en ligne après validation de la demande</th:block></span>
+       <span class="etiquette ms-2" th:text="#{citoyen.nouvelle.delai} + ${type.delaiJours} + (${type.delaiJours > 1} ? #{citoyen.nouvelle.jours} : #{citoyen.nouvelle.jour})"></span>
+       <span class="etiquette ms-1" th:text="#{citoyen.nouvelle.validite} + ${type.libelleValidite()}"></span></p>
+    <div class="card mb-3" th:if="${type.piecesAFournir}"><div class="card-body py-2">
+        <span class="fw-semibold small"><i class="bi bi-paperclip me-1"></i><th:block th:text="#{admin.document.pieces_a_fournir}">Pièces à fournir</th:block></span>
+        <p class="small mb-0" th:text="${type.piecesAFournir}"></p>
+    </div></div>
 
-    <div class="alert alert-info" th:if="${type.estCertificat or type.estLivret or type.origine != null}" th:switch="${type.modele}">
+    <div class="alert alert-info" th:if="${type.estCertificat or type.estLivret or type.origine != null
+            or type.modele == 'EXTRAIT_MENTION' or type.modele == 'ACTE_ORIGINAL'}" th:switch="${type.modele}">
         <i class="bi bi-info-circle-fill me-2"></i>
-        <span th:case="'CERTIFICAT_CELIBAT'">Le certificat est établi d'après votre acte de naissance : l'état civil vérifie
-            qu'aucun mariage n'est inscrit à votre nom dans le registre national.</span>
-        <span th:case="'CERTIFICAT_CAPACITE_MATRIMONIALE'">Le certificat est établi d'après votre acte de naissance : l'état civil
-            vérifie qu'aucun mariage en cours n'est inscrit à votre nom dans le registre national.</span>
-        <span th:case="'CERTIFICAT_VIE'">Présentez-vous au centre d'état civil avec votre pièce d'identité : le délégué valide
-            la demande après vous avoir vu. L'état civil vérifie aussi qu'aucun décès n'est inscrit à votre nom.</span>
-        <span th:case="'LIVRET_FAMILLE'">Indiquez les époux tels qu'ils figurent sur l'acte de mariage : les enfants du couple
-            inscrits au registre national sont repris automatiquement dans le livret.</span>
+        <span th:case="'CERTIFICAT_CELIBAT'"><th:block th:text="#{citoyen.nouvelle.le_certificat_est_etabli_d_apres}">Le certificat est établi d'après votre acte de naissance : l'état civil vérifie
+            qu'aucun mariage n'est inscrit à votre nom dans le registre national.</th:block></span>
+        <span th:case="'CERTIFICAT_CAPACITE_MATRIMONIALE'"><th:block th:text="#{citoyen.nouvelle.le_certificat_est_etabli_d_apres_2}">Le certificat est établi d'après votre acte de naissance : l'état civil
+            vérifie qu'aucun mariage en cours n'est inscrit à votre nom dans le registre national.</th:block></span>
+        <span th:case="'CERTIFICAT_VIE'"><th:block th:text="#{citoyen.nouvelle.presentez_vous_au_centre_d_etat}">Présentez-vous au centre d'état civil avec votre pièce d'identité : le délégué valide
+            la demande après vous avoir vu. L'état civil vérifie aussi qu'aucun décès n'est inscrit à votre nom.</th:block></span>
+        <span th:case="'CERTIFICAT_NATIONALITE'"><th:block th:text="#{citoyen.nouvelle.le_certificat_est_etabli_d_apres_3}">Le certificat est établi d'après votre acte de naissance et votre filiation :
+            indiquez vos parents tels qu'ils figurent sur l'acte. L'officier vérifie le dossier avant de le signer.</th:block></span>
+        <span th:case="'CERTIFICAT_DOMICILE'"><th:block th:text="#{citoyen.nouvelle.indiquez_l_adresse_a_attester_et}">Indiquez l'adresse à attester et au moins un témoin domicilié dans la commune.
+            Le délégué valide la demande après avoir vérifié vos justificatifs.</th:block></span>
+        <span th:case="'CERTIFICAT_NON_APPARTENANCE'"><th:block th:text="#{citoyen.nouvelle.ce_certificat_est_etabli_par_l}">Ce certificat est établi par l'officier sur votre comparution, sans acte
+            du registre sénégalais : présentez-vous au centre avec votre passeport et vos témoins.</th:block></span>
+        <span th:case="'CERTIFICAT_COUTUME'"><th:block th:text="#{citoyen.nouvelle.ce_certificat_est_etabli_par_l_2}">Ce certificat est établi par l'officier sur votre déclaration : précisez la coutume
+            applicable et la nationalité de votre futur(e) conjoint(e).</th:block></span>
+        <span th:case="'CERTIFICAT_ACTE'"><th:block th:text="#{citoyen.nouvelle.le_certificat_atteste_l_evenement_d}">Le certificat atteste l'événement d'après l'acte inscrit au registre national.</th:block></span>
+        <span th:case="'EXTRAIT_MENTION'"><th:block th:text="#{citoyen.nouvelle.le_document_reproduit_la_mention_portee}">Le document reproduit la mention portée en marge de l'acte : il n'est délivré que si
+            la mention figure au registre national.</th:block></span>
+        <span th:case="'ACTE_ORIGINAL'"><th:block th:text="#{citoyen.nouvelle.l_acte_original_reproduit_l_acte}">L'acte original reproduit l'acte tel qu'il figure au registre, avec ses mentions marginales.</th:block></span>
+        <span th:case="'LIVRET_FAMILLE'"><th:block th:text="#{citoyen.nouvelle.indiquez_les_epoux_tels_qu_ils}">Indiquez les époux tels qu'ils figurent sur l'acte de mariage : les enfants du couple
+            inscrits au registre national sont repris automatiquement dans le livret.</th:block></span>
         <span th:case="*" th:text="${type.origine == 'JUGEMENT_SUPPLETIF'}
-            ? 'Ce document concerne un acte dressé en exécution d\'un jugement supplétif : seul un acte de cette origine sera recherché.'
-            : 'Ce document concerne un acte dressé à l\'étranger et transcrit sur les registres sénégalais.'"></span>
+            ? #{citoyen.nouvelle.ce_document_concerne_un_acte_dresse}
+            : #{citoyen.nouvelle.ce_document_concerne_un_acte_dresse_2}"></span>
     </div>
 
-    <form th:action="@{/demandes}" th:object="${demande}" method="post" novalidate>
+    <form th:action="@{/demandes}" th:object="${demande}" method="post" novalidate enctype="multipart/form-data">
         <input type="hidden" th:field="*{typeDocumentId}">
 
         <div class="card mb-3"><div class="card-body">
-            <h2 class="h6 text-brun">Votre demande</h2>
+            <h2 class="h6 text-brun"><th:block th:text="#{citoyen.nouvelle.votre_demande}">Votre demande</th:block></h2>
             <div class="row">
                 <div class="col-md-6 mb-3">
-                    <label class="form-label" for="motifId">Motif<span class="text-danger"> *</span></label>
+                    <label class="form-label" for="motifId"><th:block th:text="#{citoyen.nouvelle.motif}">Motif</th:block><span class="text-danger"> *</span></label>
                     <select class="form-select" th:field="*{motifId}" required th:classappend="${#fields.hasErrors('motifId')} ? 'is-invalid'">
-                        <option value="">Choisissez…</option>
-                        <option th:each="m : ${motifs}" th:value="${m.id}" th:text="${m.libelle}"></option>
+                        <option value=""><th:block th:text="#{citoyen.nouvelle.choisissez}">Choisissez…</th:block></option>
+                        <option th:each="m : ${motifs}" th:value="${m.id}" th:text="${m.libelle}"
+                                th:attr="data-pieces=${m.piecesRequises}"></option>
                     </select>
                     <div class="invalid-feedback" th:errors="*{motifId}"></div>
+                    <div class="form-text" id="pieces-motif" aria-live="polite"></div>
                 </div>
-                <div class="col-md-6" th:insert="~{fragments/champs :: texte('precisionMotif', 'Précision (obligatoire si « Autre »)', 'text', false)}"></div>
+                <div class="col-md-6" th:insert="~{fragments/champs :: texte('precisionMotif', #{citoyen.nouvelle.precision_obligatoire_si_autre}, 'text', false)}"></div>
                 <div class="col-md-6 mb-3">
-                    <label class="form-label" for="lien">L'acte concerne<span class="text-danger"> *</span></label>
+                    <label class="form-label" for="lien"><th:block th:text="#{citoyen.nouvelle.l_acte_concerne}">L'acte concerne</th:block><span class="text-danger"> *</span></label>
                     <select class="form-select" th:field="*{lien}">
-                        <option value="MOI_MEME">Moi-même</option>
-                        <option value="ENFANT">Mon enfant</option>
-                        <option value="PARENT">Mon père ou ma mère</option>
-                        <option value="CONJOINT">Mon conjoint</option>
-                        <option value="AUTRE">Autre (mandataire)</option>
+                        <option value="MOI_MEME"><th:block th:text="#{citoyen.nouvelle.moi_meme}">Moi-même</th:block></option>
+                        <option value="ENFANT"><th:block th:text="#{citoyen.nouvelle.mon_enfant}">Mon enfant</th:block></option>
+                        <option value="PARENT"><th:block th:text="#{citoyen.nouvelle.mon_pere_ou_ma_mere}">Mon père ou ma mère</th:block></option>
+                        <option value="CONJOINT"><th:block th:text="#{citoyen.nouvelle.mon_conjoint}">Mon conjoint</th:block></option>
+                        <option value="AUTRE"><th:block th:text="#{citoyen.nouvelle.autre_mandataire}">Autre (mandataire)</th:block></option>
                     </select>
                 </div>
                 <div class="col-md-6 mb-3">
-                    <label class="form-label">Format<span class="text-danger"> *</span></label>
+                    <label class="form-label"><th:block th:text="#{agent.demandes.format}">Format</th:block><span class="text-danger"> *</span></label>
                     <div class="form-check">
                         <input class="form-check-input" type="radio" th:field="*{format}" value="NUMERIQUE">
-                        <label class="form-check-label" th:for="${#ids.prev('format')}">Numérique (PDF téléchargeable)</label>
+                        <label class="form-check-label" th:for="${#ids.prev('format')}"><th:block th:text="#{citoyen.nouvelle.numerique_pdf_telechargeable}">Numérique (PDF téléchargeable)</th:block></label>
                     </div>
                     <div class="form-check">
                         <input class="form-check-input" type="radio" th:field="*{format}" value="PHYSIQUE">
-                        <label class="form-check-label" th:for="${#ids.prev('format')}">Papier (livraison ou retrait)</label>
+                        <label class="form-check-label" th:for="${#ids.prev('format')}"><th:block th:text="#{citoyen.nouvelle.papier_livraison_ou_retrait}">Papier (livraison ou retrait)</th:block></label>
                     </div>
                 </div>
                 <!-- Visible seulement pour un document papier (masqué par app.js dès qu'on choisit « Numérique ») -->
                 <div class="col-12" id="bloc-livraison" th:classappend="*{format != 'PHYSIQUE'} ? 'd-none'">
-                    <div class="row">
-                        <div class="col-md-8" th:insert="~{fragments/champs :: texte('adresseLivraison', 'Adresse de livraison', 'text', true)}"></div>
-                        <div class="col-md-4" th:insert="~{fragments/champs :: texte('villeLivraison', 'Ville', 'text', true)}"></div>
+                    <div class="mb-3" th:if="${!missions.isEmpty()}">
+                        <label class="form-label" for="missionRetraitId"><th:block th:text="#{citoyen.nouvelle.remise_du_document}">Remise du document</th:block></label>
+                        <select class="form-select" th:field="*{missionRetraitId}">
+                            <option value=""><th:block th:text="#{citoyen.nouvelle.livraison_a_l_adresse_ci_dessous}">Livraison à l'adresse ci-dessous</th:block></option>
+                            <option th:each="m : ${missions}" th:value="${m.id}"
+                                    th:text="#{citoyen.nouvelle.retrait} + ${m.nom} + ' (' + ${m.ville} + ', ' + ${m.pays} + ')'"></option>
+                        </select>
+                        <div class="form-text" th:if="${diaspora}"><th:block th:text="#{citoyen.nouvelle.vous_residez_a_l_etranger}">Vous résidez à l'étranger</th:block><span th:if="${paysResidence}" th:text="' (' + ${paysResidence} + ')'"></span> :
+                            vous pouvez retirer le document à la mission diplomatique qui vous couvre.</div>
+                    </div>
+                    <div class="row" id="bloc-adresse">
+                        <div class="col-md-8" th:insert="~{fragments/champs :: texte('adresseLivraison', #{citoyen.nouvelle.adresse_de_livraison}, 'text', true)}"></div>
+                        <div class="col-md-4" th:insert="~{fragments/champs :: texte('villeLivraison', #{admin.missions.ville}, 'text', true)}"></div>
                     </div>
                 </div>
             </div>
         </div></div>
 
         <div class="card mb-3"><div class="card-body">
-            <h2 class="h6 text-brun" th:text="${type.concerneUnCouple} ? 'Premier conjoint'
-                : (${type.typeActe == 'RECONNAISSANCE'} ? 'Enfant reconnu'
-                : (${type.estCertificat} ? 'Personne concernée par le certificat' : 'Personne concernée par l\'acte'))"></h2>
-            <p class="small text-muted">Recopiez les informations exactement comme elles figurent sur l'acte : elles servent à le retrouver dans le registre national.</p>
+            <h2 class="h6 text-brun" th:text="${type.concerneUnCouple} ? #{citoyen.nouvelle.premier_conjoint}
+                : (${type.typeActe == 'RECONNAISSANCE'} ? #{citoyen.nouvelle.enfant_reconnu}
+                : (${type.estCertificat} ? #{citoyen.nouvelle.personne_concernee_par_le_certificat} : #{citoyen.nouvelle.personne_concernee_par_l_acte}))"></h2>
+            <p class="small text-muted"><th:block th:text="#{citoyen.nouvelle.recopiez_les_informations_exactement_comme_elles}">Recopiez les informations exactement comme elles figurent sur l'acte : elles servent à le retrouver dans le registre national.</th:block></p>
             <div class="row">
-                <div class="col-md-6" th:insert="~{fragments/champs :: texte('prenom', 'Prénom(s)', 'text', true)}"></div>
-                <div class="col-md-6" th:insert="~{fragments/champs :: texte('nom', 'Nom', 'text', true)}"></div>
+                <div class="col-md-6" th:insert="~{fragments/champs :: texte('prenom', #{citoyen.nouvelle.prenom_s}, 'text', true)}"></div>
+                <div class="col-md-6" th:insert="~{fragments/champs :: texte('nom', #{accueil.nom}, 'text', true)}"></div>
                 <div class="col-md-4 mb-3">
-                    <label class="form-label" for="sexe">Sexe</label>
+                    <label class="form-label" for="sexe"><th:block th:text="#{citoyen.nouvelle.sexe}">Sexe</th:block></label>
                     <select class="form-select" th:field="*{sexe}">
-                        <option value="">—</option><option value="F">Féminin</option><option value="M">Masculin</option>
+                        <option value="">—</option><option value="F"><th:block th:text="#{citoyen.nouvelle.feminin}">Féminin</th:block></option><option value="M"><th:block th:text="#{citoyen.nouvelle.masculin}">Masculin</th:block></option>
                     </select>
                 </div>
-                <div class="col-md-4" th:insert="~{fragments/champs :: texte('dateNaissance', 'Date de naissance', 'date', ${type.typeActe == 'NAISSANCE'})}"></div>
-                <div class="col-md-4" th:insert="~{fragments/champs :: texte('lieuNaissance', 'Lieu de naissance', 'text', ${type.typeActe == 'NAISSANCE'})}"></div>
+                <div class="col-md-4" th:insert="~{fragments/champs :: texte('dateNaissance', #{citoyen.nouvelle.date_de_naissance}, 'date', ${type.typeActe == 'NAISSANCE'})}"></div>
+                <div class="col-md-4" th:insert="~{fragments/champs :: texte('lieuNaissance', #{citoyen.nouvelle.lieu_de_naissance}, 'text', ${type.typeActe == 'NAISSANCE'})}"></div>
+                <th:block th:if="${type.demande('PROFESSIONS') or type.demande('DOMICILE')}"><div class="col-md-6" th:insert="~{fragments/champs :: texte('profession', #{citoyen.nouvelle.profession}, 'text', false)}"></div></th:block>
+                <th:block th:if="${type.demande('PROFESSIONS') or type.demande('DOMICILE')}"><div class="col-md-6" th:insert="~{fragments/champs :: texte('residence', ${type.demande('DOMICILE')} ? #{citoyen.nouvelle.domicile_a_attester_adresse_complete} : #{citoyen.nouvelle.domicile}, 'text', ${type.demande('DOMICILE')})}"></div></th:block>
             </div>
-            <h3 class="h6 mt-2" th:if="${type.typeActe == 'RECONNAISSANCE'}">Parent ayant reconnu l'enfant
-                <span class="text-muted small fw-normal">(au moins un des deux)</span></h3>
-            <h3 class="h6 mt-2" th:unless="${type.typeActe == 'RECONNAISSANCE'}">Filiation <span class="text-muted small fw-normal">(fortement recommandée pour éviter les homonymes)</span></h3>
+            <h3 class="h6 mt-2" th:if="${type.typeActe == 'RECONNAISSANCE'}"><th:block th:text="#{citoyen.nouvelle.parent_ayant_reconnu_l_enfant}">Parent ayant reconnu l'enfant</th:block>
+                <span class="text-muted small fw-normal"><th:block th:text="#{citoyen.nouvelle.au_moins_un_des_deux}">(au moins un des deux)</th:block></span></h3>
+            <h3 class="h6 mt-2" th:unless="${type.typeActe == 'RECONNAISSANCE'}"><th:block th:text="#{citoyen.nouvelle.filiation}">Filiation</th:block> <span class="text-muted small fw-normal"><th:block th:text="#{citoyen.nouvelle.fortement_recommandee_pour_eviter_les_homonymes}">(fortement recommandée pour éviter les homonymes)</th:block></span></h3>
             <div class="row">
-                <div class="col-md-3" th:insert="~{fragments/champs :: texte('prenomPere', 'Prénom du père', 'text', false)}"></div>
-                <div class="col-md-3" th:insert="~{fragments/champs :: texte('nomPere', 'Nom du père', 'text', false)}"></div>
-                <div class="col-md-3" th:insert="~{fragments/champs :: texte('prenomMere', 'Prénom de la mère', 'text', false)}"></div>
-                <div class="col-md-3" th:insert="~{fragments/champs :: texte('nomMere', 'Nom de la mère', 'text', false)}"></div>
+                <div class="col-md-3" th:insert="~{fragments/champs :: texte('prenomPere', #{citoyen.nouvelle.prenom_du_pere}, 'text', false)}"></div>
+                <div class="col-md-3" th:insert="~{fragments/champs :: texte('nomPere', #{citoyen.nouvelle.nom_du_pere}, 'text', false)}"></div>
+                <div class="col-md-3" th:insert="~{fragments/champs :: texte('prenomMere', #{citoyen.nouvelle.prenom_de_la_mere}, 'text', false)}"></div>
+                <div class="col-md-3" th:insert="~{fragments/champs :: texte('nomMere', #{citoyen.nouvelle.nom_de_la_mere}, 'text', false)}"></div>
+                <th:block th:if="${type.demande('PROFESSIONS')}">
+                    <div class="col-md-3" th:insert="~{fragments/champs :: texte('professionPere', #{citoyen.nouvelle.profession_du_pere}, 'text', false)}"></div>
+                    <div class="col-md-3" th:insert="~{fragments/champs :: texte('residencePere', #{citoyen.nouvelle.domicile_du_pere}, 'text', false)}"></div>
+                    <div class="col-md-3" th:insert="~{fragments/champs :: texte('professionMere', #{citoyen.nouvelle.profession_de_la_mere}, 'text', false)}"></div>
+                    <div class="col-md-3" th:insert="~{fragments/champs :: texte('residenceMere', #{citoyen.nouvelle.domicile_de_la_mere}, 'text', false)}"></div>
+                </th:block>
             </div>
         </div></div>
 
         <div class="card mb-3" th:if="${type.concerneUnCouple}"><div class="card-body">
-            <h2 class="h6 text-brun">Second conjoint</h2>
+            <h2 class="h6 text-brun"><th:block th:text="#{citoyen.nouvelle.second_conjoint}">Second conjoint</th:block></h2>
             <div class="row">
-                <div class="col-md-6" th:insert="~{fragments/champs :: texte('prenomConjoint', 'Prénom(s)', 'text', true)}"></div>
-                <div class="col-md-6" th:insert="~{fragments/champs :: texte('nomConjoint', 'Nom', 'text', true)}"></div>
-                <div class="col-md-6" th:insert="~{fragments/champs :: texte('dateEvenement', 'Date du ' + ${type.libelleActe} + ' (si connue)', 'date', false)}"></div>
+                <div class="col-md-6" th:insert="~{fragments/champs :: texte('prenomConjoint', #{citoyen.nouvelle.prenom_s}, 'text', true)}"></div>
+                <div class="col-md-6" th:insert="~{fragments/champs :: texte('nomConjoint', #{accueil.nom}, 'text', true)}"></div>
+                <div class="col-md-6" th:insert="~{fragments/champs :: texte('dateEvenement', #{citoyen.nouvelle.date_du} + ${type.libelleActe} + #{citoyen.nouvelle.si_connue}, 'date', false)}"></div>
+                <th:block th:if="${type.demande('CONJOINT')}">
+                    <div class="col-md-6" th:insert="~{fragments/champs :: texte('dateNaissanceConjoint', #{citoyen.nouvelle.date_de_naissance}, 'date', false)}"></div>
+                    <div class="col-md-6" th:insert="~{fragments/champs :: texte('lieuNaissanceConjoint', #{citoyen.nouvelle.lieu_de_naissance}, 'text', false)}"></div>
+                </th:block>
+                <th:block th:if="${type.demande('CONJOINT') and type.demande('PROFESSIONS')}">
+                    <div class="col-md-6" th:insert="~{fragments/champs :: texte('professionConjoint', #{citoyen.nouvelle.profession}, 'text', false)}"></div>
+                    <div class="col-md-6" th:insert="~{fragments/champs :: texte('residenceConjoint', #{citoyen.nouvelle.domicile}, 'text', false)}"></div>
+                </th:block>
             </div>
         </div></div>
 
         <div class="card mb-3" th:if="${type.typeActe == 'RECONNAISSANCE'}"><div class="card-body">
-            <h2 class="h6 text-brun">Reconnaissance</h2>
+            <h2 class="h6 text-brun"><th:block th:text="#{citoyen.nouvelle.reconnaissance}">Reconnaissance</th:block></h2>
             <div class="row">
-                <div class="col-md-6" th:insert="~{fragments/champs :: texte('dateEvenement', 'Date de la reconnaissance (si connue)', 'date', false)}"></div>
+                <div class="col-md-6" th:insert="~{fragments/champs :: texte('dateEvenement', #{citoyen.nouvelle.date_de_la_reconnaissance_si_connue}, 'date', false)}"></div>
             </div>
         </div></div>
 
         <div class="card mb-3" th:if="${type.typeActe == 'DECES'}"><div class="card-body">
-            <h2 class="h6 text-brun">Décès</h2>
+            <h2 class="h6 text-brun"><th:block th:text="#{accueil.deces}">Décès</th:block></h2>
             <div class="row">
-                <div class="col-md-6" th:insert="~{fragments/champs :: texte('dateEvenement', 'Date du décès', 'date', true)}"></div>
+                <div class="col-md-6" th:insert="~{fragments/champs :: texte('dateEvenement', #{citoyen.nouvelle.date_du_deces}, 'date', true)}"></div>
+                <th:block th:if="${type.demande('DECES')}">
+                    <div class="col-md-6" th:insert="~{fragments/champs :: texte('lieuDeces', #{citoyen.nouvelle.lieu_du_deces}, 'text', true)}"></div>
+                    <div class="col-12" th:insert="~{fragments/champs :: texte('causeDeces', #{citoyen.nouvelle.cause_principale_du_deces_si_connue}, 'text', false)}"></div>
+                </th:block>
+                <th:block th:if="${type.demande('MEDECIN')}">
+                    <div class="col-md-6" th:insert="~{fragments/champs :: texte('medecin', #{citoyen.nouvelle.medecin_ayant_constate_le_deces_prenom}, 'text', true)}"></div>
+                    <div class="col-md-6" th:insert="~{fragments/champs :: texte('adresseMedecin', #{citoyen.nouvelle.adresse_du_cabinet}, 'text', false)}"></div>
+                </th:block>
             </div>
         </div></div>
 
-        <button class="btn btn-primary btn-lg" type="submit">Envoyer la demande</button>
-        <a class="btn btn-link" th:href="@{/documents}">Annuler</a>
+        <div class="card mb-3" th:if="${type.demande('TEMOINS')}"><div class="card-body">
+            <h2 class="h6 text-brun"><th:block th:text="#{citoyen.nouvelle.temoins}">Témoins</th:block></h2>
+            <p class="small text-muted"><th:block th:text="#{citoyen.nouvelle.personnes_majeures_qui_confirmeront_votre_declaration}">Personnes majeures qui confirmeront votre déclaration (prénom, nom, et domicile).</th:block></p>
+            <div class="row">
+                <div class="col-md-6" th:insert="~{fragments/champs :: texte('temoin1', #{citoyen.nouvelle.premier_temoin}, 'text', true)}"></div>
+                <div class="col-md-6" th:insert="~{fragments/champs :: texte('temoin2', #{citoyen.nouvelle.second_temoin}, 'text', false)}"></div>
+            </div>
+        </div></div>
+
+        <div class="card mb-3" th:if="${type.demande('MENTION')}"><div class="card-body">
+            <h2 class="h6 text-brun"><th:block th:text="#{citoyen.nouvelle.mention_marginale_connue}">Mention marginale connue</th:block> <span class="text-muted small fw-normal"><th:block th:text="#{citoyen.nouvelle.facultatif}">(facultatif)</th:block></span></h2>
+            <p class="small text-muted"><th:block th:text="#{citoyen.nouvelle.si_vous_savez_qu_une_mention}">Si vous savez qu'une mention figure en marge de l'acte (mariage, divorce…), indiquez-la :
+                elle aide l'agent à vérifier l'acte.</th:block></p>
+            <div class="row">
+                <div class="col-md-5 mb-3">
+                    <label class="form-label" for="typeMention"><th:block th:text="#{citoyen.nouvelle.type_de_mention}">Type de mention</th:block></label>
+                    <select class="form-select" th:field="*{typeMention}">
+                        <option value="">—</option>
+                        <option th:each="t : ${typesMentions}" th:value="${t.code}" th:text="${t.libelle}"></option>
+                    </select>
+                </div>
+                <div class="col-md-7" th:insert="~{fragments/champs :: texte('detailsMention', #{citoyen.nouvelle.details_de_la_mention_date_decision}, 'text', false)}"></div>
+            </div>
+        </div></div>
+
+        <div class="card mb-3" th:if="${type.demande('PRECISIONS')}"><div class="card-body">
+            <h2 class="h6 text-brun" th:text="${type.modele == 'CERTIFICAT_COUTUME'} ? #{citoyen.nouvelle.coutume_applicable}
+                : (${type.modele == 'CERTIFICAT_NON_APPARTENANCE'} ? #{citoyen.nouvelle.votre_nationalite} : #{citoyen.nouvelle.precisions})"></h2>
+            <label class="form-label" for="precisions" th:text="${type.modele == 'CERTIFICAT_COUTUME'}
+                ? #{citoyen.nouvelle.coutume_option_matrimoniale_et_nationalite_du} : (${type.modele == 'CERTIFICAT_NON_APPARTENANCE'}
+                ? #{citoyen.nouvelle.nationalite_et_document_qui_l_atteste} : #{citoyen.nouvelle.precisions_utiles_a_l_officier})"></label>
+            <span class="text-danger"> *</span>
+            <textarea class="form-control" rows="3" th:field="*{precisions}" maxlength="1000"
+                      th:classappend="${#fields.hasErrors('precisions')} ? 'is-invalid'"></textarea>
+        </div></div>
+
+        <div class="card mb-3 border-warning-subtle" th:if="${type.verificationIdentite}"><div class="card-body">
+            <h2 class="h6 text-brun"><i class="bi bi-shield-check me-1"></i><th:block th:text="#{citoyen.nouvelle.verification_de_votre_identite}">Vérification de votre identité</th:block></h2>
+            <p class="small text-muted"><th:block th:text="#{citoyen.nouvelle.ce_document_est_sensible_joignez_la}">Ce document est sensible : joignez la photo de votre pièce d'identité et prenez un selfie.
+                Le délégué compare les deux avant de valider la demande. Seuls les agents chargés de cette vérification voient
+                ces photos ; elles sont effacées 30 jours après la clôture de la demande.</th:block></p>
+            <div class="mb-3">
+                <span class="form-label d-block"><th:block th:text="#{citoyen.nouvelle.piece_presentee}">Pièce présentée</th:block><span class="text-danger"> *</span></span>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" th:field="*{typePiece}" value="CNI" id="piece-cni">
+                    <label class="form-check-label" for="piece-cni"><th:block th:text="#{citoyen.nouvelle.carte_nationale_d_identite}">Carte nationale d'identité</th:block></label></div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" th:field="*{typePiece}" value="PASSEPORT" id="piece-passeport">
+                    <label class="form-check-label" for="piece-passeport"><th:block th:text="#{citoyen.nouvelle.passeport}">Passeport</th:block></label></div>
+            </div>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label" for="recto"><span id="libelle-recto"><th:block th:text="#{citoyen.nouvelle.carte_d_identite_recto}">Carte d'identité : recto</th:block></span><span class="text-danger"> *</span></label>
+                    <input class="form-control" type="file" id="recto" name="recto" accept="image/jpeg,image/png" capture="environment" required>
+                    <img class="photo-apercu d-none mt-2" alt="Aperçu" th:alt="#{citoyen.nouvelle.apercu}" data-apercu="recto">
+                </div>
+                <div class="col-md-6" id="bloc-verso">
+                    <label class="form-label" for="verso"><th:block th:text="#{citoyen.nouvelle.carte_d_identite_verso}">Carte d'identité : verso</th:block><span class="text-danger"> *</span></label>
+                    <input class="form-control" type="file" id="verso" name="verso" accept="image/jpeg,image/png" capture="environment">
+                    <img class="photo-apercu d-none mt-2" alt="Aperçu" th:alt="#{citoyen.nouvelle.apercu}" data-apercu="verso">
+                </div>
+                <div class="col-12">
+                    <label class="form-label" for="selfie"><th:block th:text="#{citoyen.nouvelle.selfie}">Selfie</th:block><span class="text-danger"> *</span></label>
+                    <p class="small text-muted mb-2"><th:block th:text="#{citoyen.nouvelle.visage_de_face_bien_eclaire_sans}">Visage de face, bien éclairé, sans lunettes de soleil ni couvre-chef qui masque le visage.</th:block></p>
+                    <div class="selfie-zone">
+                        <video id="camera" class="d-none" playsinline muted aria-label="Caméra" th:aria-label="#{citoyen.nouvelle.camera}"></video>
+                        <img id="apercu-selfie" class="photo-apercu d-none" alt="Votre selfie" th:alt="#{citoyen.nouvelle.votre_selfie}" data-apercu="selfie">
+                        <div class="d-flex flex-wrap gap-2 mt-2">
+                            <button type="button" class="btn btn-outline-primary btn-sm d-none" id="ouvrir-camera">
+                                <i class="bi bi-camera me-1"></i><th:block th:text="#{citoyen.nouvelle.prendre_le_selfie_avec_la_camera}">Prendre le selfie avec la caméra</th:block></button>
+                            <button type="button" class="btn btn-primary btn-sm d-none" id="capturer"><i class="bi bi-record-circle me-1"></i><th:block th:text="#{citoyen.nouvelle.prendre_la_photo}">Prendre la photo</th:block></button>
+                        </div>
+                        <input class="form-control mt-2" type="file" id="selfie" name="selfie" accept="image/jpeg,image/png" capture="user" required>
+                    </div>
+                </div>
+            </div>
+            <p class="small text-muted mt-2 mb-0"><th:block th:text="#{citoyen.nouvelle.formats_jpeg_ou_png_5_mo}">Formats JPEG ou PNG, 5 Mo au plus par photo. Les informations doivent être lisibles.</th:block></p>
+        </div></div>
+
+        <button class="btn btn-primary btn-lg" type="submit"><th:block th:text="#{citoyen.nouvelle.envoyer_la_demande}">Envoyer la demande</th:block></button>
+        <a class="btn btn-link" th:href="@{/documents}"><th:block th:text="#{admin.missions.annuler}">Annuler</th:block></a>
     </form>
 </main>
 </body>

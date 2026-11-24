@@ -6,90 +6,117 @@
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
         <div>
             <h1 class="h3 mb-0" th:text="${d.reference} + ' — ' + ${d.libelleDocument}"></h1>
-            <span class="text-muted" th:text="'Déposée le ' + ${@dates.heure(d.dateCreation)}
-                + ' par ' + ${d.demandeurNom} + ' (' + ${d.demandeurEmail} + ')'"></span>
+            <span class="text-muted" th:text="#{agent.demande.deposee_le} + ${@dates.heure(d.dateCreation)}
+                + #{agent.demande.par} + ${d.demandeurNom} + ' (' + ${d.demandeurEmail} + ')'"></span>
         </div>
         <span class="fs-5" th:insert="~{fragments/statut :: badge(${d.statut}, ${d.libelleStatut})}"></span>
     </div>
     <div class="alert alert-warning" th:if="${d.noteRecherche}" th:text="${d.noteRecherche}"></div>
-    <div class="alert alert-danger" th:if="${d.motifRejet}" th:text="'Motif du rejet : ' + ${d.motifRejet}"></div>
+    <div class="alert alert-danger" th:if="${d.motifRejet}" th:text="#{agent.demande.motif_du_rejet} + ${d.motifRejet}"></div>
 
     <div class="row g-3">
         <div class="col-lg-7">
             <div th:replace="~{fragments/demande :: resume(${d})}"></div>
 
+            <th:block th:if="${renseignement != null or ((s == 'PAYEE' or s == 'ACTE_INTROUVABLE')
+                    and #authorization.expression('hasRole(''DEMANDES_RECHERCHER'')'))}">
+                <div th:replace="~{fragments/renseignement :: dossier(${d}, ${renseignement})}"></div>
+            </th:block>
+
             <!-- Acte rattaché, relu dans le registre pour comparaison avant signature -->
             <div class="card mb-3 border-info" th:if="${acte}"><div class="card-body">
-                <h2 class="h6 text-brun">Acte <span th:text="${acte.numeroActe}"></span> dans le registre national</h2>
+                <h2 class="h6 text-brun"><th:block th:text="#{agent.demande.acte}">Acte</th:block> <span th:text="${acte.numeroActe}"></span> dans le registre national</h2>
                 <dl class="row fiche mb-0 small">
-                    <dt class="col-sm-4">Titulaire</dt><dd class="col-sm-8" th:text="${acte.prenom} + ' ' + ${acte.nom}"></dd>
-                    <dt class="col-sm-4">Événement</dt><dd class="col-sm-8" th:text="${#temporals.format(acte.dateEvenement, 'dd/MM/yyyy')} + ' à ' + ${acte.lieuEvenement}"></dd>
-                    <dt class="col-sm-4" th:if="${acte.nomPere}">Père</dt><dd class="col-sm-8" th:if="${acte.nomPere}" th:text="${acte.prenomPere} + ' ' + ${acte.nomPere}"></dd>
-                    <dt class="col-sm-4" th:if="${acte.nomMere}">Mère</dt><dd class="col-sm-8" th:if="${acte.nomMere}" th:text="${acte.prenomMere} + ' ' + ${acte.nomMere}"></dd>
-                    <dt class="col-sm-4" th:if="${acte.nomConjoint}">Conjoint</dt><dd class="col-sm-8" th:if="${acte.nomConjoint}" th:text="${acte.prenomConjoint} + ' ' + ${acte.nomConjoint}"></dd>
-                    <dt class="col-sm-4">Centre</dt><dd class="col-sm-8" th:text="${acte.centre}"></dd>
-                    <dt class="col-sm-4">Statut</dt><dd class="col-sm-8" th:text="${acte.statut == 'VALIDE'} ? 'Validé par l\'officier' : 'Saisi, en attente de validation'"></dd>
+                    <dt class="col-sm-4"><th:block th:text="#{agent.demande.titulaire}">Titulaire</th:block></dt><dd class="col-sm-8" th:text="${acte.prenom} + ' ' + ${acte.nom}"></dd>
+                    <dt class="col-sm-4"><th:block th:text="#{agent.demande.evenement}">Événement</th:block></dt><dd class="col-sm-8" th:text="${#temporals.format(acte.dateEvenement, 'dd/MM/yyyy')} + #{agent.demande.a} + ${acte.lieuEvenement}"></dd>
+                    <dt class="col-sm-4" th:if="${acte.nomPere}"><th:block th:text="#{agent.demande.pere}">Père</th:block></dt><dd class="col-sm-8" th:if="${acte.nomPere}" th:text="${acte.prenomPere} + ' ' + ${acte.nomPere}"></dd>
+                    <dt class="col-sm-4" th:if="${acte.nomMere}"><th:block th:text="#{agent.demande.mere}">Mère</th:block></dt><dd class="col-sm-8" th:if="${acte.nomMere}" th:text="${acte.prenomMere} + ' ' + ${acte.nomMere}"></dd>
+                    <dt class="col-sm-4" th:if="${acte.nomConjoint}"><th:block th:text="#{agent.demande.conjoint}">Conjoint</th:block></dt><dd class="col-sm-8" th:if="${acte.nomConjoint}" th:text="${acte.prenomConjoint} + ' ' + ${acte.nomConjoint}"></dd>
+                    <dt class="col-sm-4"><th:block th:text="#{agent.demande.centre}">Centre</th:block></dt><dd class="col-sm-8" th:text="${acte.centre}"></dd>
+                    <dt class="col-sm-4"><th:block th:text="#{agent.demande.statut}">Statut</th:block></dt><dd class="col-sm-8" th:text="${acte.statut == 'VALIDE'} ? #{agent.demande.valide_par_l_officier} : #{agent.demande.saisi_en_attente_de_validation}"></dd>
                 </dl>
             </div></div>
-            <div class="alert alert-secondary" th:if="${registreIndisponible}">Le registre national ne répond pas : l'acte ne peut pas être affiché.</div>
+            <div class="alert alert-secondary" th:if="${registreIndisponible}"><th:block th:text="#{agent.demande.le_registre_national_ne_repond_pas}">Le registre national ne répond pas : l'acte ne peut pas être affiché.</th:block></div>
         </div>
 
         <div class="col-lg-5">
+            <div class="card mb-3 border-warning-subtle" th:if="${d.verificationIdentite}"><div class="card-body">
+                <h2 class="h6 text-brun"><i class="bi bi-shield-check me-1"></i><th:block th:text="#{agent.demande.verification_d_identite}">Vérification d'identité</th:block></h2>
+                <p th:if="${pieces.isEmpty()}" class="small text-muted mb-0"><th:block th:text="#{agent.demande.aucune_photo_n_est_jointe_a}">Aucune photo n'est jointe à cette demande.</th:block></p>
+                <th:block th:unless="${pieces.isEmpty()}">
+                    <p class="small text-muted" th:text="${pieces[0].libelleTypePiece} + #{agent.demande.et_selfie_deposes_le} + ${@dates.heure(pieces[0].dateDepot)}"></p>
+                    <div class="row g-2 photos-identite" sec:authorize="hasAnyRole('DEMANDES_VALIDER','DOCUMENTS_SIGNER','DEMANDES_SUPERVISER')">
+                        <div class="col-6" th:each="p : ${pieces}">
+                            <div class="small fw-semibold mb-1" th:text="${p.libelle}"></div>
+                            <img th:unless="${p.purgee()}" th:src="@{/back-office/demandes/{id}/pieces/{p}(id=${d.id},p=${p.id})}" th:alt="${p.libelle}" loading="lazy">
+                            <div th:if="${p.purgee()}" class="small text-muted"><th:block th:text="#{agent.demande.effacee_le}">effacée le</th:block> <span th:text="${@dates.jour(p.datePurge)}"></span></div>
+                        </div>
+                    </div>
+                </th:block>
+            </div></div>
             <div class="card mb-3"><div class="card-body">
-                <h2 class="h6 text-brun">Actions</h2>
+                <h2 class="h6 text-brun"><th:block th:text="#{agent.demande.actions}">Actions</th:block></h2>
 
-                <div sec:authorize="hasAnyRole('DELEGUE','ADMIN')" th:if="${s == 'SOUMISE'}" class="mb-3">
+                <div sec:authorize="hasRole('DEMANDES_VALIDER')" th:if="${s == 'SOUMISE'}" class="mb-3">
                     <form th:action="@{/delegue/demandes/{id}/validation(id=${d.id})}" method="post">
-                        <button class="btn btn-success w-100" type="submit"><i class="bi bi-check2 me-1"></i>Valider et ouvrir au paiement</button>
+                        <div class="form-check mb-2" th:if="${d.verificationIdentite}">
+                            <input class="form-check-input" type="checkbox" id="identiteVerifiee" name="identiteVerifiee" value="true" required>
+                            <label class="form-check-label small" for="identiteVerifiee"><th:block th:text="#{agent.demande.j_ai_compare_le_selfie_a}">J'ai comparé le selfie à la pièce d'identité :
+                                il s'agit de la même personne et la pièce est lisible et valide.</th:block></label>
+                        </div>
+                        <button class="btn btn-success w-100" type="submit"><i class="bi bi-check2 me-1"></i><th:block th:text="#{agent.demande.valider_et_ouvrir_au_paiement}">Valider et ouvrir au paiement</th:block></button>
                     </form>
                 </div>
 
-                <div sec:authorize="hasAnyRole('DELEGUE','ADMIN')" th:if="${s == 'SIGNEE' and !d.numerique}" class="mb-3">
-                    <a class="btn btn-outline-primary w-100 mb-2" th:href="@{/demandes/{id}/document.pdf(id=${d.id})}" target="_blank">Imprimer le document</a>
+                <div sec:authorize="hasRole('DOCUMENTS_LIVRER')" th:if="${s == 'SIGNEE' and !d.numerique}" class="mb-3">
+                    <a class="btn btn-outline-primary w-100 mb-2" th:href="@{/demandes/{id}/document.pdf(id=${d.id})}" target="_blank"><th:block th:text="#{agent.demande.imprimer_le_document}">Imprimer le document</th:block></a>
                     <form th:action="@{/delegue/demandes/{id}/livraison(id=${d.id})}" method="post">
-                        <button class="btn btn-success w-100" type="submit">Marquer comme expédié</button>
+                        <button class="btn btn-success w-100" type="submit"><th:block th:text="#{agent.demande.marquer_comme_expedie}">Marquer comme expédié</th:block></button>
                     </form>
                 </div>
 
-                <div sec:authorize="hasAnyRole('AGENT_REGISTRE','OFFICIER','ADMIN')" th:if="${s == 'ACTE_INTROUVABLE' or s == 'PAYEE'}" class="mb-3">
-                    <a class="btn btn-outline-primary w-100 mb-2" th:href="@{/registre/actes/nouveau(type=${d.typeActe})}">
-                        <i class="bi bi-journal-plus me-1"></i>Transcrire l'acte depuis le registre papier</a>
+                <div sec:authorize="hasRole('DEMANDES_RECHERCHER')" th:if="${s == 'ACTE_INTROUVABLE' or s == 'PAYEE'}" class="mb-3">
+                    <a sec:authorize="hasRole('REGISTRE_SAISIR')" class="btn btn-outline-primary w-100 mb-2" th:href="@{/registre/actes/nouveau(type=${d.typeActe})}">
+                        <i class="bi bi-journal-plus me-1"></i><th:block th:text="#{agent.demande.transcrire_l_acte_depuis_le_registre}">Transcrire l'acte depuis le registre papier</th:block></a>
                     <form class="mb-2" th:action="@{/registre/demandes/{id}/recherche(id=${d.id})}" method="post">
-                        <button class="btn btn-primary w-100" type="submit"><i class="bi bi-search me-1"></i>Relancer la recherche</button>
+                        <button class="btn btn-primary w-100" type="submit"><i class="bi bi-search me-1"></i><th:block th:text="#{agent.demande.relancer_la_recherche}">Relancer la recherche</th:block></button>
                     </form>
                     <form th:if="${s == 'ACTE_INTROUVABLE'}" class="input-group" th:action="@{/registre/demandes/{id}/rattachement(id=${d.id})}" method="post">
-                        <input class="form-control" name="numeroActe" placeholder="N° d'acte (ex. N-1998-000042)" required>
-                        <button class="btn btn-outline-primary" type="submit">Rattacher</button>
+                        <input class="form-control" name="numeroActe" placeholder="N° d'acte (ex. N-1998-000042)" th:placeholder="#{agent.demande.n_d_acte_ex_n_1998}" required>
+                        <button class="btn btn-outline-primary" type="submit"><th:block th:text="#{agent.demande.rattacher}">Rattacher</th:block></button>
                     </form>
                 </div>
 
-                <div sec:authorize="hasAnyRole('OFFICIER','ADMIN')" th:if="${s == 'ACTE_TROUVE'}" class="mb-3">
-                    <p class="small">Vérifiez que l'acte du registre correspond bien à la demande, puis signez.</p>
+                <div sec:authorize="hasRole('DOCUMENTS_SIGNER')" th:if="${s == 'ACTE_TROUVE'}" class="mb-3">
+                    <p class="small" th:unless="${d.surComparution()}"><th:block th:text="#{agent.demande.verifiez_que_l_acte_du_registre}">Vérifiez que l'acte du registre correspond bien à la demande, puis signez.</th:block></p>
+                    <p class="small" th:if="${d.surComparution()}"><th:block th:text="#{agent.demande.document_etabli_sur_comparution_verifiez_l}">Document établi sur comparution : vérifiez l'identité de la
+                        personne, ses témoins et sa déclaration, puis signez.</th:block></p>
                     <form class="mb-2" th:action="@{/officier/demandes/{id}/signature(id=${d.id})}" method="post">
-                        <button class="btn btn-success w-100" type="submit"><i class="bi bi-pen me-1"></i>Signer et délivrer</button>
+                        <button class="btn btn-success w-100" type="submit"><i class="bi bi-pen me-1"></i><th:block th:text="#{agent.demande.signer_et_delivrer}">Signer et délivrer</th:block></button>
                     </form>
-                    <form th:action="@{/officier/demandes/{id}/contestation(id=${d.id})}" method="post">
-                        <textarea class="form-control mb-2" name="raison" rows="2" required placeholder="Pourquoi cet acte ne correspond-il pas ?"></textarea>
-                        <button class="btn btn-outline-danger w-100" type="submit">Ce n'est pas le bon acte</button>
+                    <form th:unless="${d.surComparution()}" th:action="@{/officier/demandes/{id}/contestation(id=${d.id})}" method="post">
+                        <textarea class="form-control mb-2" name="raison" rows="2" required placeholder="Pourquoi cet acte ne correspond-il pas ?" th:placeholder="#{agent.demande.pourquoi_cet_acte_ne_correspond_il}"></textarea>
+                        <button class="btn btn-outline-danger w-100" type="submit"><th:block th:text="#{agent.demande.ce_n_est_pas_le_bon}">Ce n'est pas le bon acte</th:block></button>
                     </form>
                 </div>
 
-                <div th:if="${s == 'SOUMISE' or s == 'A_PAYER' or s == 'ACTE_INTROUVABLE'}"
-                     sec:authorize="hasAnyRole('DELEGUE','AGENT_REGISTRE','OFFICIER','ADMIN')">
+                <!-- Rejet : avant paiement (validation), acte introuvable (registre) ou à toute étape (supervision) -->
+                <div th:if="${(#authorization.expression('hasRole(''DEMANDES_SUPERVISER'')') and !d.terminee)
+                        or (#authorization.expression('hasRole(''DEMANDES_VALIDER'')') and (s == 'SOUMISE' or s == 'A_PAYER'))}">
                     <hr>
                     <form th:action="@{/back-office/demandes/{id}/rejet(id=${d.id})}" method="post">
-                        <label class="form-label small" for="motif">Rejeter la demande</label>
+                        <label class="form-label small" for="motif"><th:block th:text="#{agent.demande.rejeter_la_demande}">Rejeter la demande</th:block></label>
                         <textarea class="form-control mb-2" id="motif" name="motif" rows="2" required maxlength="500"
-                                  placeholder="Motif communiqué au demandeur"></textarea>
-                        <button class="btn btn-outline-danger w-100" type="submit">Rejeter</button>
+                                  placeholder="Motif communiqué au demandeur" th:placeholder="#{agent.demande.motif_communique_au_demandeur}"></textarea>
+                        <button class="btn btn-outline-danger w-100" type="submit"><th:block th:text="#{agent.demande.rejeter}">Rejeter</th:block></button>
                     </form>
-                    <p class="small text-muted mt-2 mb-0" th:if="${s == 'ACTE_INTROUVABLE'}">
-                        La demande a été payée : le remboursement est à traiter depuis le tableau de bord PayDunya.</p>
+                    <p class="small text-muted mt-2 mb-0" th:if="${s != 'SOUMISE' and s != 'A_PAYER'}">
+                        <th:block th:text="#{agent.demande.la_demande_a_ete_payee_le}">La demande a été payée : le remboursement est à traiter depuis le tableau de bord PayDunya.</th:block></p>
                 </div>
 
                 <a th:if="${s == 'SIGNEE' or s == 'LIVREE'}" class="btn btn-outline-success w-100"
-                   th:href="@{/demandes/{id}/document.pdf(id=${d.id})}" target="_blank">Voir le document signé</a>
-                <p th:if="${d.terminee and s != 'LIVREE'}" class="text-muted small mb-0">Aucune action possible.</p>
+                   th:href="@{/demandes/{id}/document.pdf(id=${d.id})}" target="_blank"><th:block th:text="#{agent.demande.voir_le_document_signe}">Voir le document signé</th:block></a>
+                <p th:if="${d.terminee and s != 'LIVREE'}" class="text-muted small mb-0"><th:block th:text="#{agent.demande.aucune_action_possible}">Aucune action possible.</th:block></p>
             </div></div>
             <div th:replace="~{fragments/demande :: historique(${d.historique}, ${paiements})}"></div>
         </div>

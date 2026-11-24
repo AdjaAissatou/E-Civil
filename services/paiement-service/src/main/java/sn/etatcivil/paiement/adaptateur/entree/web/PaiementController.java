@@ -47,7 +47,7 @@ class PaiementController {
     }
 
     @PostMapping("/demandes/{demandeId}")
-    @PreAuthorize("hasRole('CITOYEN')")
+    @PreAuthorize("hasRole('DEMANDES_DEPOSER')")
     Redirection initier(@PathVariable UUID demandeId, @AuthenticationPrincipal Jwt jwt) {
         return new Redirection(paiements.initier(demandeId, jwt.getSubject()));
     }

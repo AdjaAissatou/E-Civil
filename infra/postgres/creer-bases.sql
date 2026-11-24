@@ -5,4 +5,5 @@ CREATE DATABASE paiement;
 CREATE DATABASE registre;
 CREATE DATABASE document;
 CREATE DATABASE notification;
+CREATE DATABASE habilitation;
 CREATE DATABASE keycloak;

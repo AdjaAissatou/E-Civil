@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: page(#{admin.onglets.utilisateurs}, ~{::main})}">
+<body>
+<main class="container py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-3">
+        <div>
+            <span class="surtitre"><th:block th:text="#{admin.onglets.administration}">Administration</th:block></span>
+            <h1 class="h3 mb-0"><th:block th:text="#{admin.onglets.utilisateurs}">Utilisateurs</th:block></h1>
+        </div>
+        <a class="btn btn-primary btn-sm" th:href="@{/admin/utilisateurs/nouveau}"><i class="bi bi-person-plus me-1"></i><th:block th:text="#{admin.accueil.nouvel_agent}">Nouvel agent</th:block></a>
+    </div>
+    <nav th:replace="~{admin/_onglets :: onglets('utilisateurs')}"></nav>
+
+    <p class="text-muted"><th:block th:text="#{admin.utilisateurs.les_citoyens_creent_eux_memes_leur}">Les citoyens créent eux-mêmes leur compte et reçoivent le profil par défaut. Les agents sont créés
+        ici ; leurs droits viennent des profils qui leur sont attribués.</th:block></p>
+
+    <form class="row g-2 mb-3" method="get" role="search">
+        <div class="col-md-6"><input class="form-control" name="recherche" th:value="${recherche}"
+                                     placeholder="Nom, prénom ou adresse email" th:placeholder="#{admin.utilisateurs.nom_prenom_ou_adresse_email}" aria-label="Rechercher un compte" th:aria-label="#{admin.utilisateurs.rechercher_un_compte}"></div>
+        <div class="col-md-2"><button class="btn btn-primary w-100" type="submit"><i class="bi bi-search me-1"></i><th:block th:text="#{admin.journal.rechercher}">Rechercher</th:block></button></div>
+        <div class="col-md-2" th:if="${recherche != null and !#strings.isEmpty(recherche)}">
+            <a class="btn btn-contour w-100" th:href="@{/admin/utilisateurs}"><th:block th:text="#{admin.journal.effacer}">Effacer</th:block></a></div>
+    </form>
+
+    <div class="card"><div class="table-responsive">
+        <table class="table align-middle mb-0">
+            <thead><tr><th><th:block th:text="#{accueil.nom}">Nom</th:block></th><th><th:block th:text="#{admin.nouvel-utilisateur.adresse_email}">Adresse email</th:block></th><th><th:block th:text="#{admin.onglets.profils}">Profils</th:block></th><th><th:block th:text="#{admin.utilisateurs.compte}">Compte</th:block></th><th><th:block th:text="#{admin.utilisateurs.cree_le}">Créé le</th:block></th><th></th></tr></thead>
+            <tbody>
+            <tr th:if="${comptes.vide}"><td colspan="6" class="text-center text-muted py-4"><th:block th:text="#{admin.utilisateurs.aucun_compte_ne_correspond}">Aucun compte ne correspond.</th:block></td></tr>
+            <tr th:each="c : ${comptes.contenu}">
+                <td class="fw-semibold" th:text="${c.nomComplet}"></td>
+                <td th:text="${c.email}"></td>
+                <td>
+                    <span th:each="p : ${c.profils}" class="etiquette me-1" th:text="${p.nom}"></span>
+                    <span th:if="${c.profils == null or c.profils.isEmpty()}" class="small text-muted">aucun</span>
+                </td>
+                <td>
+                    <span th:if="${c.actif}" class="pastille pastille-success"><th:block th:text="#{admin.utilisateurs.actif}">Actif</th:block></span>
+                    <span th:unless="${c.actif}" class="pastille pastille-danger"><th:block th:text="#{admin.profil.desactive}">Désactivé</th:block></span>
+                </td>
+                <td class="small" th:text="${@dates.jour(c.dateCreation)}"></td>
+                <td class="text-end"><a class="btn btn-outline-primary btn-sm" th:href="@{/admin/utilisateurs/{id}(id=${c.id})}"><th:block th:text="#{admin.utilisateurs.fiche}">Fiche</th:block></a></td>
+            </tr>
+            </tbody>
+        </table>
+    </div></div>
+    <p class="small text-muted mt-2" th:text="${comptes.total} + #{admin.utilisateurs.compte_s}"></p>
+    <div th:replace="~{fragments/pagination :: pages(${comptes})}"></div>
+</main>
+</body>
+</html>

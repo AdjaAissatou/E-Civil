@@ -36,8 +36,8 @@ class PaiementApiTest {
     @MockBean PasserellePaiement passerelle;
 
     static RequestPostProcessor citoyen(String id) {
-        return jwt().jwt(j -> j.subject(id).claim("realm_access", Map.of("roles", List.of("CITOYEN", "offline_access"))))
-                .authorities(new SimpleGrantedAuthority("ROLE_CITOYEN"));
+        return jwt().jwt(j -> j.subject(id).claim("realm_access", Map.of("roles", List.of("CITOYEN", "DEMANDES_DEPOSER", "offline_access"))))
+                .authorities(new SimpleGrantedAuthority("ROLE_CITOYEN"), new SimpleGrantedAuthority("ROLE_DEMANDES_DEPOSER"));
     }
 
     @Test

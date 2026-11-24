@@ -9,6 +9,8 @@ spring:
     password: ${DB_PASSWORD:}
   flyway:
     locations: classpath:db/socle
+    # une installation existante a déjà appliqué V900 (socle) : les nouvelles migrations s'y ajoutent
+    out-of-order: true
   rabbitmq:
     host: ${RABBITMQ_HOST:localhost}
     username: ${RABBITMQ_USER:guest}

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
-      th:replace="~{fragments/layout :: page(${status == 403} ? 'Accès refusé' : (${status == 404} ? 'Page introuvable' : 'Erreur'), ~{::main})}">
+      th:replace="~{fragments/layout :: page(${status == 403} ? #{error.acces_refuse} : (${status == 404} ? #{error.page_introuvable} : #{error.erreur}), ~{::main})}">
 <body>
 <main class="page-erreur container">
     <div class="carte-erreur">
@@ -8,18 +8,18 @@
             <i class="bi" th:classappend="${status == 403} ? 'bi-shield-lock' : (${status == 404} ? 'bi-signpost-split' : 'bi-cloud-slash')"></i>
         </span>
         <span class="code-erreur" th:text="${status}">404</span>
-        <h1 th:text="${status == 404} ? 'Page introuvable' : (${status == 403} ? 'Accès refusé' : 'Une erreur est survenue')">Erreur</h1>
+        <h1 th:text="${status == 404} ? #{error.page_introuvable} : (${status == 403} ? #{error.acces_refuse} : #{error.une_erreur_est_survenue})">Erreur</h1>
 
-        <p th:if="${status == 403}">Cette page est réservée à un autre rôle (délégué, agent du registre, officier ou
-            administrateur). Votre compte ne vous y donne pas accès.</p>
-        <p th:if="${status == 404}">L'adresse demandée n'existe pas ou a été déplacée.</p>
+        <p th:if="${status == 403}"><th:block th:text="#{error.votre_profil_ne_comporte_pas_la}">Votre profil ne comporte pas la permission nécessaire pour ouvrir cette page.
+            Si vous pensez devoir y accéder, adressez-vous à l'administrateur de la plateforme.</th:block></p>
+        <p th:if="${status == 404}"><th:block th:text="#{error.l_adresse_demandee_n_existe_pas}">L'adresse demandée n'existe pas ou a été déplacée.</th:block></p>
         <p th:if="${status != 403 and status != 404}"
-           th:text="${message != null and !#strings.isEmpty(message)} ? ${message} : 'Le problème a été enregistré. Réessayez dans quelques instants.'"></p>
+           th:text="${message != null and !#strings.isEmpty(message)} ? ${message} : #{error.le_probleme_a_ete_enregistre_reessayez}"></p>
 
         <div class="d-flex flex-wrap justify-content-center gap-2 mt-4">
-            <a class="btn btn-primary" sec:authorize="hasRole('CITOYEN') and !hasAnyRole('DELEGUE','AGENT_REGISTRE','OFFICIER','ADMIN')"
-               th:href="@{/demandes}"><i class="bi bi-folder2-open me-2"></i>Mes demandes</a>
-            <a class="btn btn-contour" th:href="@{/}"><i class="bi bi-house me-2"></i>Retour à l'accueil</a>
+            <a class="btn btn-primary" sec:authorize="hasRole('DEMANDES_DEPOSER')"
+               th:href="@{/demandes}"><i class="bi bi-folder2-open me-2"></i><th:block th:text="#{citoyen.demande.mes_demandes}">Mes demandes</th:block></a>
+            <a class="btn btn-contour" th:href="@{/}"><i class="bi bi-house me-2"></i><th:block th:text="#{error.retour_a_l_accueil}">Retour à l'accueil</th:block></a>
         </div>
     </div>
 </main>
