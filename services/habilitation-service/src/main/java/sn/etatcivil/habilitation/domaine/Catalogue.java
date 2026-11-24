@@ -112,10 +112,16 @@ public final class Catalogue {
     public static final ProfilDeBase PROFIL_ADMINISTRATEUR = new ProfilDeBase("Administrateur",
             "Administration de la plateforme.", Set.of("ADMIN"), false);
 
+    /** Chargé de renseignement (version 1) : recherche dans les registres papier les actes non retrouvés. */
+    public static final ProfilDeBase PROFIL_RENSEIGNEMENT = new ProfilDeBase("Chargé de renseignement",
+            "Recherche dans les registres papier les actes que le registre national ne contient pas, les transcrit "
+                    + "ou conclut qu'ils n'existent pas.", Set.of("AGENT_REGISTRE"), false);
+
     public static final List<ProfilDeBase> PROFILS_DE_BASE = List.of(
             PROFIL_CITOYEN,
             new ProfilDeBase("Délégué de commune", "Délégué d'une mairie : instruction des demandes.", Set.of("DELEGUE"), false),
             new ProfilDeBase("Agent du registre", "Saisie et mise à jour du registre national.", Set.of("AGENT_REGISTRE"), false),
+            Catalogue.PROFIL_RENSEIGNEMENT,
             new ProfilDeBase("Officier de l'état civil", "Validation des actes et signature des documents.", Set.of("OFFICIER"), false),
             new ProfilDeBase("Chef de centre", "Officier qui instruit aussi les demandes de son centre.",
                     Set.of("OFFICIER", "DELEGUE"), false),

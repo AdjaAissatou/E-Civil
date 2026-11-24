@@ -8,7 +8,7 @@ Il décrit le domaine du service `habilitation-service` tel qu'il est implément
 | Notion | Question à laquelle elle répond | Exemples |
 |---|---|---|
 | **Utilisateur** | *Qui* se connecte | un citoyen, un agent (compte Keycloak : email, actif ou non) |
-| **Profil** | *Quelle situation* dans l'organisation | Citoyen, Délégué de commune, Agent du registre, Officier de l'état civil, Chef de centre, Administrateur |
+| **Profil** | *Quelle situation* dans l'organisation | Citoyen, Délégué de commune, Agent du registre, Chargé de renseignement, Officier de l'état civil, Chef de centre, Administrateur |
 | **Rôle** | *Quelle fonction* exercée | Citoyen, Délégué, Agent du registre, Officier de l'état civil, Administrateur (+ rôles créés par l'administrateur) |
 | **Permission** | *Quelle action élémentaire* est autorisée | `DEMANDES_VALIDER`, `DOCUMENTS_SIGNER`, `REGISTRE_VALIDER`… (15) |
 
@@ -63,6 +63,7 @@ Chaque permission porte aussi une description, ce qu'elle permet (*avantage*) et
 | Citoyen (*par défaut* : donné à chaque inscription) | Citoyen |
 | Délégué de commune | Délégué |
 | Agent du registre | Agent du registre |
+| Chargé de renseignement | Agent du registre |
 | Officier de l'état civil | Officier de l'état civil |
 | Chef de centre | Officier de l'état civil + Délégué |
 | Administrateur | Administrateur |

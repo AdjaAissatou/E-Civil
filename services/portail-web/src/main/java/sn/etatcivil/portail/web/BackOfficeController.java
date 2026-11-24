@@ -36,9 +36,11 @@ class BackOfficeController {
     }
 
     private final Api api;
+    private final RenseignementController renseignement;
 
-    BackOfficeController(Api api) {
+    BackOfficeController(Api api, RenseignementController renseignement) {
         this.api = api;
+        this.renseignement = renseignement;
     }
 
     // ---------------------------------------------------------------- files d'attente
@@ -66,6 +68,14 @@ class BackOfficeController {
 
     @GetMapping("/registre")
     String registre(@ModelAttribute("filtre") Api.FiltreDemandes f, @RequestParam(defaultValue = "0") int page, Model model) {
+        try {
+            model.addAttribute("statsRenseignement", api.statistiquesRenseignement());
+            Map<UUID, Vues.ResumeRenseignement> dossiers = new java.util.HashMap<>();
+            api.renseignementsEnCours().forEach(r -> dossiers.put(r.demandeId(), r));
+            model.addAttribute("dossiers", dossiers);
+        } catch (ApiException e) {
+            // résumés secondaires : la file reste affichée
+        }
         return file(model, "file.registre.titre", "file.registre.aide",
                 List.of("ACTE_INTROUVABLE", "PAYEE"), f, page, List.of("PAYEE", "ACTE_INTROUVABLE", "ACTE_TROUVE"));
     }
@@ -98,8 +108,10 @@ class BackOfficeController {
     }
 
     @GetMapping("/back-office/demandes/{id}")
-    String fiche(@PathVariable UUID id, Model model) {
+    String fiche(@PathVariable UUID id, @RequestParam(required = false) Integer annee,
+                 org.springframework.security.core.Authentication auth, Model model) {
         Vues.Demande d = api.demande(id);
+        renseignement.completerFiche(d, annee, auth, model);
         model.addAttribute("d", d);
         model.addAttribute("paiements", api.paiements(id));
         model.addAttribute("pieces", d.verificationIdentite() ? api.piecesIdentite(id) : List.of());

@@ -97,13 +97,32 @@ stateDiagram-v2
     PAYEE --> ACTE_TROUVE : recherche dans le registre
     PAYEE --> ACTE_INTROUVABLE
     ACTE_INTROUVABLE --> ACTE_TROUVE : l'acte est transcrit et validé<br/>(relance automatique) ou rattaché
-    ACTE_INTROUVABLE --> REJETEE
+    ACTE_INTROUVABLE --> REJETEE : le chargé de renseignement conclut<br/>que l'acte n'existe pas
     ACTE_TROUVE --> SIGNEE : l'officier signe
     ACTE_TROUVE --> ACTE_INTROUVABLE : l'officier conteste l'acte
     SIGNEE --> LIVREE : format papier expédié
     SOUMISE --> ANNULEE
     A_PAYER --> ANNULEE
 ```
+
+### Renseignement : quand l'acte manque au registre national
+
+Une grande partie des actes n'existe encore que sur papier. Quand la recherche automatique échoue, la demande
+passe « Acte non retrouvé » et le **chargé de renseignement** ouvre son dossier depuis la fiche de la demande :
+
+- les **registres papier** à consulter lui sont proposés : ceux du type d'acte, pour l'année de l'événement et
+  les deux années voisines, dans tous les centres, avec leur exemplaire (centre ou greffe), leur état et s'ils
+  sont numérisés ;
+- il **consigne** chaque registre consulté et ce qu'il y a constaté (aucun acte, acte présent, page illisible,
+  registre manquant), avec le folio et une note ; il peut marquer le dossier **urgent** ;
+- s'il trouve l'acte, il le transcrit puis le rattache : le dossier est clos « acte retrouvé » ;
+- sinon il **conclut** : la demande est rejetée avec son explication (registres consultés, jugement
+  d'autorisation d'inscription à demander au tribunal) et le citoyen est prévenu.
+
+Les **centres d'état civil** (principal par commune, secondaires rattachés, consulaires) et leurs **registres
+papier** (un par type d'acte et par année, en deux exemplaires) se gèrent dans *Espace agent › Centres et
+registres papier*. La file des actes non retrouvés affiche les recherches en cours, urgentes, abouties et
+infructueuses.
 
 ### Habilitations : utilisateurs, profils, rôles, permissions
 
@@ -117,6 +136,7 @@ Chaque service vérifie une **permission** sur chaque action (15 permissions : `
 | Citoyen (donné à chaque inscription) | Citoyen | déposer, payer, suivre, télécharger ses demandes |
 | Délégué de commune | Délégué | examiner les demandes, expédier les documents papier |
 | Agent du registre | Agent du registre | transcrire les actes, traiter les actes non retrouvés |
+| Chargé de renseignement | Agent du registre | chercher dans les registres papier les actes non retrouvés |
 | Officier de l'état civil | Officier | valider les transcriptions, contrôler et signer les documents |
 | Chef de centre | Officier + Délégué | les deux |
 | Administrateur | Administrateur | tout, sauf déposer des demandes |

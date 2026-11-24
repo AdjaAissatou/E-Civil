@@ -328,6 +328,68 @@ public class Api {
         return appeler(() -> http.get().uri("/api/registre/actes/statistiques").retrieve().body(StatistiquesRegistre.class));
     }
 
+    // ---------------------------------------------------------------- renseignement
+
+    public List<CentreEtatCivil> centres(String recherche, String type) {
+        return appeler(() -> http.get().uri(u -> {
+            if (recherche != null && !recherche.isBlank()) u.queryParam("recherche", recherche.trim());
+            if (type != null && !type.isBlank()) u.queryParam("type", type);
+            return u.path("/api/registre/centres").build();
+        }).retrieve().body(new ParameterizedTypeReference<List<CentreEtatCivil>>() {}));
+    }
+
+    public CentreEtatCivil centre(long id) {
+        return appeler(() -> http.get().uri("/api/registre/centres/{id}", id).retrieve().body(CentreEtatCivil.class));
+    }
+
+    public CentreEtatCivil enregistrerCentre(Long id, Map<String, Object> corps) {
+        return appeler(() -> (id == null ? http.post().uri("/api/registre/centres") : http.put().uri("/api/registre/centres/{id}", id))
+                .contentType(MediaType.APPLICATION_JSON).body(corps).retrieve().body(CentreEtatCivil.class));
+    }
+
+    public List<RegistrePapier> registresPapier(Long centreId, String typeActe, Integer annee) {
+        return appeler(() -> http.get().uri(u -> {
+            u.path("/api/registre/registres-papier");
+            if (centreId != null) u.queryParam("centre", centreId);
+            if (typeActe != null && !typeActe.isBlank()) u.queryParam("typeActe", typeActe);
+            if (annee != null) u.queryParam("annee", annee);
+            return u.build();
+        }).retrieve().body(new ParameterizedTypeReference<List<RegistrePapier>>() {}));
+    }
+
+    public RegistrePapier registrePapier(long id) {
+        return appeler(() -> http.get().uri("/api/registre/registres-papier/{id}", id).retrieve().body(RegistrePapier.class));
+    }
+
+    public RegistrePapier enregistrerRegistrePapier(Long id, Map<String, Object> corps) {
+        return appeler(() -> (id == null ? http.post().uri("/api/registre/registres-papier")
+                : http.put().uri("/api/registre/registres-papier/{id}", id))
+                .contentType(MediaType.APPLICATION_JSON).body(corps).retrieve().body(RegistrePapier.class));
+    }
+
+    /** Dossier de renseignement de la demande, ou vide s'il n'a pas encore été ouvert. */
+    public Optional<Renseignement> renseignement(UUID demandeId) {
+        return Optional.ofNullable(appeler(() -> http.get().uri("/api/demandes/{id}/renseignement", demandeId).retrieve()
+                .body(Renseignement.class)));
+    }
+
+    public Renseignement actionRenseignement(UUID demandeId, String action, Map<String, Object> corps) {
+        return appeler(() -> {
+            var r = http.post().uri("/api/demandes/{id}/renseignement/{action}", demandeId, action);
+            if (corps != null) r.contentType(MediaType.APPLICATION_JSON).body(corps);
+            return r.retrieve().body(Renseignement.class);
+        });
+    }
+
+    public List<ResumeRenseignement> renseignementsEnCours() {
+        return get("/api/demandes/renseignements", new ParameterizedTypeReference<>() {});
+    }
+
+    public StatistiquesRenseignement statistiquesRenseignement() {
+        return appeler(() -> http.get().uri("/api/demandes/renseignements/statistiques").retrieve()
+                .body(StatistiquesRenseignement.class));
+    }
+
     // ---------------------------------------------------------------- documents
 
     public byte[] pdf(UUID demandeId) {

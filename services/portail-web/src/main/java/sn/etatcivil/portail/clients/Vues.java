@@ -394,4 +394,35 @@ public final class Vues {
                                 int taille, Instant dateDepot, Instant datePurge) {
         public boolean purgee() { return datePurge != null; }
     }
+
+    // ---------------------------------------------------------------- renseignement
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record CentreEtatCivil(Long id, String nom, String type, String libelleType, String commune, String pays,
+                                  Long rattachementId, String nomRattachement, boolean actif) {
+        public String localisation() { return "CONSULAIRE".equals(type) ? pays : commune; }
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record RegistrePapier(Long id, Long centreId, String nomCentre, String typeActe, int annee, String exemplaire,
+                                 String libelleExemplaire, String volume, String lieuConservation, String etat,
+                                 String libelleEtat, boolean consultable, boolean numerise, String observations, String libelle) {}
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record Consultation(Long registreId, String registre, String resultat, String libelleResultat, String folio,
+                               String note, String agent, Instant date) {}
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record Renseignement(UUID demandeId, String etat, String libelleEtat, boolean urgent, String agentId,
+                                String agentNom, Instant dateOuverture, Instant datePriseEnCharge, String motifNonTrouve,
+                                String agentConclusion, Instant dateConclusion, List<Consultation> consultations) {
+        public boolean enCours() { return "EN_COURS".equals(etat); }
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record ResumeRenseignement(UUID demandeId, boolean urgent, String agentNom, int consultations,
+                                      Instant derniereConsultation) {}
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record StatistiquesRenseignement(long enCours, long urgents, long trouves, long nonTrouves) {}
 }

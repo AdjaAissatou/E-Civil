@@ -6,6 +6,14 @@
     <p class="text-muted" th:if="${aide}" th:text="${aide}"></p>
 
     <div th:replace="~{fragments/filtres :: compteurs(${compteurs})}"></div>
+    <div th:if="${statsRenseignement}" class="card mb-3 border-warning-subtle"><div class="card-body py-2 d-flex flex-wrap gap-4 align-items-center small">
+        <strong class="text-brun"><i class="bi bi-archive me-1"></i><th:block th:text="#{renseignement.file_titre}">Renseignement</th:block></strong>
+        <span><th:block th:text="#{renseignement.stat_en_cours}">Recherches en cours</th:block> : <strong th:text="${statsRenseignement.enCours}">0</strong></span>
+        <span class="text-danger"><th:block th:text="#{renseignement.stat_urgents}">Urgentes</th:block> : <strong th:text="${statsRenseignement.urgents}">0</strong></span>
+        <span class="text-success"><th:block th:text="#{renseignement.stat_trouves}">Actes retrouvés dans les registres</th:block> : <strong th:text="${statsRenseignement.trouves}">0</strong></span>
+        <span><th:block th:text="#{renseignement.stat_non_trouves}">Actes non trouvés</th:block> : <strong th:text="${statsRenseignement.nonTrouves}">0</strong></span>
+        <a class="ms-auto" th:href="@{/registre/centres}"><i class="bi bi-buildings me-1"></i><th:block th:text="#{nav.centres}">Centres et registres papier</th:block></a>
+    </div></div>
     <form th:replace="~{fragments/filtres :: formulaire(${filtre}, ${documents}, ${tousStatuts == true})}"></form>
 
     <div class="card">
@@ -21,7 +29,11 @@
                     <td th:text="${d.demandeurNom}"></td>
                     <td class="small" th:text="${d.numerique()} ? #{agent.demandes.numerique} : #{agent.demandes.papier}"></td>
                     <td th:text="${@dates.jour(d.dateCreation)}"></td>
-                    <td><span th:replace="~{fragments/statut :: badge(${d.statut}, ${d.libelleStatut})}"></span></td>
+                    <td><span th:replace="~{fragments/statut :: badge(${d.statut}, ${d.libelleStatut})}"></span>
+                        <th:block th:with="dossier=${dossiers == null ? null : dossiers.get(d.id)}"><th:block th:if="${dossier != null}">
+                            <span th:if="${dossier.urgent}" class="badge text-bg-danger" th:text="#{renseignement.urgent}">Urgent</span>
+                            <div class="small text-muted" th:text="${dossier.agentNom != null ? dossier.agentNom + ' · ' : ''} + ${dossier.consultations} + ' ' + #{renseignement.registres_consultes}"></div>
+                        </th:block></th:block></td>
                     <td class="text-end"><a class="btn btn-outline-primary btn-sm" th:href="@{/back-office/demandes/{id}(id=${d.id})}"><th:block th:text="#{admin.profils.ouvrir}">Ouvrir</th:block></a></td>
                 </tr>
                 </tbody>

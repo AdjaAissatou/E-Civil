@@ -58,7 +58,7 @@ class HabilitationApiTest {
         mvc.perform(get("/api/habilitations/utilisateurs")).andExpect(status().isUnauthorized());
         mvc.perform(get("/api/habilitations/utilisateurs").with(avec("u", "DOCUMENTS_SIGNER"))).andExpect(status().isForbidden());
         mvc.perform(get("/api/habilitations/synthese").with(avec("u", "STATISTIQUES_CONSULTER"))).andExpect(status().isOk())
-                .andExpect(jsonPath("$.permissions").value(15)).andExpect(jsonPath("$.profils").value(6));
+                .andExpect(jsonPath("$.permissions").value(15)).andExpect(jsonPath("$.profils").value(7));
 
         String chef = annuaire.idProfil("Chef de centre");
         mvc.perform(post("/api/habilitations/utilisateurs").with(administrateur).contentType(MediaType.APPLICATION_JSON)

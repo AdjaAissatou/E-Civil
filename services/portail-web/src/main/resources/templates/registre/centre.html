@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{fragments/layout :: page(${centre.nom}, ~{::main})}">
+<body>
+<main class="container py-4">
+    <a class="small" th:href="@{/registre/centres}"><i class="bi bi-arrow-left me-1"></i><th:block th:text="#{nav.centres}">Centres et registres papier</th:block></a>
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-2 mb-3">
+        <div>
+            <h1 class="h3 mb-0" th:text="${centre.nom}"></h1>
+            <span class="text-muted" th:text="#{'centre.type.' + ${centre.type}} + ' · ' + ${centre.localisation()}
+                + (${centre.nomRattachement} != null ? ' · ' + #{centres.rattache_a} + ' ' + ${centre.nomRattachement} : '')"></span>
+        </div>
+        <span th:unless="${centre.actif}" class="badge text-bg-secondary" th:text="#{centres.inactif}">Inactif</span>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-lg-8">
+            <h2 class="h5" th:text="#{registres.titre}">Registres papier</h2>
+            <div class="card"><div class="table-responsive">
+                <table class="table align-middle mb-0 small">
+                    <thead><tr><th th:text="#{registres.registre}">Registre</th><th th:text="#{registres.exemplaire}">Exemplaire</th><th th:text="#{registres.etat}">État</th><th></th></tr></thead>
+                    <tbody>
+                    <tr th:if="${registres.isEmpty()}"><td colspan="4" class="text-center text-muted py-4" th:text="#{registres.aucun}">Aucun registre enregistré pour ce centre.</td></tr>
+                    <tr th:each="g : ${registres}">
+                        <td>
+                            <div class="fw-semibold" th:text="#{'acte.' + ${g.typeActe}} + ' ' + ${g.annee} + (${g.volume} != null ? ', vol. ' + ${g.volume} : '')"></div>
+                            <div class="text-muted" th:if="${g.lieuConservation}" th:text="${g.lieuConservation}"></div>
+                            <div class="text-muted" th:if="${g.observations}" th:text="${g.observations}"></div>
+                        </td>
+                        <td th:text="#{'registre.exemplaire.' + ${g.exemplaire}}"></td>
+                        <td>
+                            <span th:class="${g.etat == 'BON'} ? 'badge text-bg-success' : (${g.consultable} ? 'badge text-bg-warning' : 'badge text-bg-danger')"
+                                  th:text="#{'registre.etat.' + ${g.etat}}"></span>
+                            <span th:if="${g.numerise}" class="badge text-bg-info" th:text="#{registre.numerise}">Numérisé</span>
+                        </td>
+                        <td class="text-end" sec:authorize="hasAnyRole('REGISTRE_SAISIR','DEMANDES_RECHERCHER')">
+                            <details>
+                                <summary class="btn btn-sm btn-outline-primary" th:text="#{registres.modifier}">Modifier</summary>
+                                <form class="text-start mt-2" method="post" th:action="@{/registre/registres/{id}(id=${g.id})}" style="min-width: 16rem">
+                                    <input type="hidden" name="typeActe" th:value="${g.typeActe}">
+                                    <input type="hidden" name="annee" th:value="${g.annee}">
+                                    <input type="hidden" name="exemplaire" th:value="${g.exemplaire}">
+                                    <input type="hidden" name="volume" th:value="${g.volume}">
+                                    <select class="form-select form-select-sm mb-1" name="etat" th:aria-label="#{registres.etat}">
+                                        <option th:each="e : ${etats}" th:value="${e}" th:text="#{'registre.etat.' + ${e}}" th:selected="${e == g.etat}"></option>
+                                    </select>
+                                    <input class="form-control form-control-sm mb-1" name="lieuConservation" maxlength="200" th:value="${g.lieuConservation}" th:placeholder="#{registres.lieu}">
+                                    <textarea class="form-control form-control-sm mb-1" name="observations" rows="2" maxlength="1000" th:text="${g.observations}" th:placeholder="#{registres.observations}"></textarea>
+                                    <div class="form-check mb-1">
+                                        <input class="form-check-input" type="checkbox" name="numerise" value="1" th:id="'num' + ${g.id}" th:checked="${g.numerise}">
+                                        <label class="form-check-label" th:for="'num' + ${g.id}" th:text="#{registre.numerise}">Numérisé</label>
+                                    </div>
+                                    <button class="btn btn-sm btn-primary" type="submit" th:text="#{centres.enregistrer}">Enregistrer</button>
+                                </form>
+                            </details>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div></div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card mb-3" sec:authorize="hasAnyRole('REGISTRE_SAISIR','DEMANDES_RECHERCHER')"><div class="card-body">
+                <h2 class="h6 text-brun" th:text="#{registres.nouveau}">Ajouter un registre</h2>
+                <form method="post" th:action="@{/registre/centres/{id}/registres(id=${centre.id})}">
+                    <div class="row g-2 mb-2">
+                        <div class="col-7">
+                            <label class="form-label small mb-0" for="typeActe" th:text="#{admin.missions.type}">Type</label>
+                            <select class="form-select" id="typeActe" name="typeActe" required>
+                                <option th:each="t : ${typesActe}" th:value="${t}" th:text="#{'acte.' + ${t}}"></option>
+                            </select>
+                        </div>
+                        <div class="col-5">
+                            <label class="form-label small mb-0" for="anneeRegistre" th:text="#{registres.annee}">Année</label>
+                            <input class="form-control" id="anneeRegistre" name="annee" type="number" min="1900" max="2100" required>
+                        </div>
+                        <div class="col-7">
+                            <label class="form-label small mb-0" for="exemplaire" th:text="#{registres.exemplaire}">Exemplaire</label>
+                            <select class="form-select" id="exemplaire" name="exemplaire" required>
+                                <option th:each="x : ${exemplaires}" th:value="${x}" th:text="#{'registre.exemplaire.' + ${x}}"></option>
+                            </select>
+                        </div>
+                        <div class="col-5">
+                            <label class="form-label small mb-0" for="volume" th:text="#{registres.volume}">Volume</label>
+                            <input class="form-control" id="volume" name="volume" maxlength="30">
+                        </div>
+                    </div>
+                    <label class="form-label small mb-0" for="etat" th:text="#{registres.etat}">État</label>
+                    <select class="form-select mb-2" id="etat" name="etat">
+                        <option th:each="e : ${etats}" th:value="${e}" th:text="#{'registre.etat.' + ${e}}"></option>
+                    </select>
+                    <label class="form-label small mb-0" for="lieu" th:text="#{registres.lieu}">Lieu de conservation</label>
+                    <input class="form-control mb-2" id="lieu" name="lieuConservation" maxlength="200">
+                    <label class="form-label small mb-0" for="observations" th:text="#{registres.observations}">Observations</label>
+                    <textarea class="form-control mb-2" id="observations" name="observations" rows="2" maxlength="1000"></textarea>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="numerise" name="numerise" value="1">
+                        <label class="form-check-label small" for="numerise" th:text="#{registre.numerise}">Numérisé</label>
+                    </div>
+                    <button class="btn btn-primary w-100" type="submit" th:text="#{registres.ajouter}">Ajouter le registre</button>
+                </form>
+            </div></div>
+
+            <div class="card" sec:authorize="hasRole('REGISTRE_SAISIR')"><div class="card-body">
+                <h2 class="h6 text-brun" th:text="#{centres.modifier}">Modifier le centre</h2>
+                <form method="post" th:action="@{/registre/centres/{id}(id=${centre.id})}">
+                    <div th:replace="~{registre/centres :: champs(${centre})}"></div>
+                    <button class="btn btn-primary w-100" type="submit" th:text="#{centres.enregistrer}">Enregistrer</button>
+                </form>
+            </div></div>
+        </div>
+    </div>
+</main>
+</body>
+</html>

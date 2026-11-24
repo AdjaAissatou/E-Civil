@@ -258,4 +258,44 @@ class DemandeApiTest {
         mvc.perform(get("/api/demandes/" + id + "/pieces/" + selfieId).with(DELEGUE)).andExpect(status().isUnprocessableEntity());
         mvc.perform(get("/api/demandes/" + id + "/pieces").with(FATOU)).andExpect(jsonPath("$[0].datePurge").isNotEmpty());
     }
+
+    @Autowired sn.etatcivil.demande.application.port.entree.TraiterPaiements paiements;
+
+    @Test
+    void leChargeDeRenseignementConsulteLesRegistresPuisConclut() throws Exception {
+        when(registre.rechercher(any(), any(), any())).thenReturn(new RegistreCivil.ResultatRecherche(
+                RegistreCivil.Resultat.NON_TROUVE, List.of()));
+        String id = deposer();
+        mvc.perform(post("/api/demandes/" + id + "/validation").with(DELEGUE)).andExpect(status().isOk());
+        paiements.enregistrerPaiement(java.util.UUID.fromString(id), 1000, "PayDunya");
+        mvc.perform(post("/api/demandes/" + id + "/recherche").with(AGENT)).andExpect(jsonPath("$.statut").value("ACTE_INTROUVABLE"));
+
+        mvc.perform(get("/api/demandes/" + id + "/renseignement").with(AGENT)).andExpect(status().isNoContent());
+        mvc.perform(get("/api/demandes/" + id + "/renseignement").with(DELEGUE)).andExpect(status().isForbidden());
+        String consultation = "{\"registreId\":7,\"registre\":\"Naissances 1998, Centre principal de Dakar-Plateau\","
+                + "\"resultat\":\"ABSENT\",\"note\":\"Relu de janvier à juin\"}";
+        mvc.perform(post("/api/demandes/" + id + "/renseignement/consultations").contentType(MediaType.APPLICATION_JSON)
+                        .content(consultation).with(AGENT))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.etat").value("EN_COURS"))
+                .andExpect(jsonPath("$.agentNom").value("Prénom ibrahima"))
+                .andExpect(jsonPath("$.consultations[0].libelleResultat").value("Aucun acte correspondant"));
+        mvc.perform(post("/api/demandes/" + id + "/renseignement/priorite").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"urgent\":true}").with(AGENT)).andExpect(jsonPath("$.urgent").value(true));
+        mvc.perform(get("/api/demandes/renseignements").with(AGENT))
+                .andExpect(jsonPath("$[0].consultations").value(1)).andExpect(jsonPath("$[0].urgent").value(true));
+        mvc.perform(get("/api/demandes/renseignements/statistiques").with(AGENT))
+                .andExpect(jsonPath("$.enCours").value(1)).andExpect(jsonPath("$.urgents").value(1));
+
+        mvc.perform(post("/api/demandes/" + id + "/renseignement/conclusion").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"motif\":\"Aucune naissance à ce nom en 1998\"}").with(AGENT))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.etat").value("NON_TROUVE"));
+        mvc.perform(get("/api/demandes/" + id).with(FATOU))
+                .andExpect(jsonPath("$.statut").value("REJETEE"))
+                .andExpect(jsonPath("$.motifRejet").value(org.hamcrest.Matchers.containsString("Aucune naissance à ce nom en 1998")));
+        mvc.perform(get("/api/demandes/renseignements/statistiques").with(AGENT))
+                .andExpect(jsonPath("$.enCours").value(0)).andExpect(jsonPath("$.nonTrouves").value(1));
+        mvc.perform(post("/api/demandes/" + id + "/renseignement/consultations").contentType(MediaType.APPLICATION_JSON)
+                .content(consultation).with(AGENT)).andExpect(status().isUnprocessableEntity());
+    }
 }

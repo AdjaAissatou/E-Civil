@@ -217,4 +217,51 @@ class PortailTest {
         mvc.perform(get("/demandes").with(utilisateur("DELEGUE"))).andExpect(status().isForbidden());
         mvc.perform(get("/espace").with(utilisateur("ADMIN"))).andExpect(redirectedUrl("/admin"));
     }
+
+    @Test
+    void ecranDuChargeDeRenseignement() throws Exception {
+        java.util.UUID id = java.util.UUID.randomUUID();
+        Instant t = Instant.now();
+        java.time.LocalDate naissance = java.time.LocalDate.of(1987, 2, 3);
+        when(api.demande(id)).thenReturn(new Vues.Demande(id, "DEM-2026-000002", "ACTE_INTROUVABLE", "Acte non retrouvé", "",
+                false, "u-1", "Awa Sy", "awa@example.sn", 1L, "Extrait d'acte de naissance", "NAISSANCE", false, 1000,
+                "Dossier administratif", "Moi-même", "NUMERIQUE", null, null, "Sy", "Awa", "F", naissance, "Kaolack",
+                null, null, "Ba", "Coumba", null, null, null, null, null, "Aucun acte validé", null, null,
+                null, null, t, t, List.of()));
+        when(api.paiements(id)).thenReturn(List.of());
+        var registre = new Vues.RegistrePapier(5L, 9L, "Centre principal de Kaolack", "NAISSANCE", 1987, "GREFFE",
+                "Exemplaire du greffe", null, "Greffe", "ABIME", "Abîmé", true, false, null,
+                "Naissances 1987, Centre principal de Kaolack, exemplaire du greffe");
+        when(api.registresPapier(null, "NAISSANCE", 1987)).thenReturn(List.of(registre));
+        when(api.renseignement(id)).thenReturn(java.util.Optional.of(new Vues.Renseignement(id, "EN_COURS", "En cours", true,
+                "u-AGENT_REGISTRE", "Awa Ndiaye", t, t, null, null, null, List.of(new Vues.Consultation(4L,
+                "Naissances 1987, Centre principal de Kaolack, exemplaire du centre", "REGISTRE_INDISPONIBLE",
+                "Registre manquant ou indisponible", null, "Détruit en 2009", "Awa Ndiaye (Agent du registre)", t)))));
+        mvc.perform(get("/back-office/demandes/" + id).with(utilisateur("AGENT_REGISTRE")))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Détruit en 2009")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Naissances 1987, Centre principal de Kaolack, exemplaire du greffe")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Retirer l&#39;urgence")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("acte non trouvé (la demande est rejetée)")))
+                .andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("Prendre en charge"))));
+
+        // aucun registre pour une autre année : la fiche invite à enregistrer les registres du centre
+        when(api.registresPapier(null, "NAISSANCE", 1950)).thenReturn(List.of());
+        mvc.perform(get("/back-office/demandes/" + id).param("annee", "1950").with(utilisateur("AGENT_REGISTRE")))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Aucun registre enregistré pour ce type")));
+
+        var centre = new Vues.CentreEtatCivil(9L, "Centre principal de Kaolack", "PRINCIPAL", "Centre principal", "Kaolack",
+                null, null, null, true);
+        when(api.centres(null, null)).thenReturn(List.of(centre));
+        when(api.centres(null, "PRINCIPAL")).thenReturn(List.of(centre));
+        when(api.centre(9L)).thenReturn(centre);
+        when(api.registresPapier(9L, null, null)).thenReturn(List.of(registre));
+        mvc.perform(get("/registre/centres").with(utilisateur("AGENT_REGISTRE"))).andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Nouveau centre")));
+        mvc.perform(get("/registre/centres/9").with(utilisateur("AGENT_REGISTRE"))).andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Exemplaire du greffe")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Abîmé")));
+        mvc.perform(get("/registre/centres").with(utilisateur("DELEGUE"))).andExpect(status().isForbidden());
+    }
 }

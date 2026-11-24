@@ -18,6 +18,11 @@
         <div class="col-lg-7">
             <div th:replace="~{fragments/demande :: resume(${d})}"></div>
 
+            <th:block th:if="${renseignement != null or ((s == 'PAYEE' or s == 'ACTE_INTROUVABLE')
+                    and #authorization.expression('hasRole(''DEMANDES_RECHERCHER'')'))}">
+                <div th:replace="~{fragments/renseignement :: dossier(${d}, ${renseignement})}"></div>
+            </th:block>
+
             <!-- Acte rattaché, relu dans le registre pour comparaison avant signature -->
             <div class="card mb-3 border-info" th:if="${acte}"><div class="card-body">
                 <h2 class="h6 text-brun"><th:block th:text="#{agent.demande.acte}">Acte</th:block> <span th:text="${acte.numeroActe}"></span> dans le registre national</h2>
@@ -97,8 +102,7 @@
 
                 <!-- Rejet : avant paiement (validation), acte introuvable (registre) ou à toute étape (supervision) -->
                 <div th:if="${(#authorization.expression('hasRole(''DEMANDES_SUPERVISER'')') and !d.terminee)
-                        or (#authorization.expression('hasRole(''DEMANDES_VALIDER'')') and (s == 'SOUMISE' or s == 'A_PAYER'))
-                        or (#authorization.expression('hasRole(''DEMANDES_RECHERCHER'')') and s == 'ACTE_INTROUVABLE')}">
+                        or (#authorization.expression('hasRole(''DEMANDES_VALIDER'')') and (s == 'SOUMISE' or s == 'A_PAYER'))}">
                     <hr>
                     <form th:action="@{/back-office/demandes/{id}/rejet(id=${d.id})}" method="post">
                         <label class="form-label small" for="motif"><th:block th:text="#{agent.demande.rejeter_la_demande}">Rejeter la demande</th:block></label>

@@ -61,6 +61,8 @@ Le formulaire est prérempli avec le profil du citoyen.
 | Filtres par statut, type de document, format, période | sur toutes les files (délégué, registre, officier, toutes les demandes) |
 | Journal des modifications du registre (`audit_registre`) | journal de chaque acte : saisie, correction champ par champ, validation, mention, avec l'agent |
 | Mentions marginales | rattachées à l'acte (type, date, référence, contenu) ; un divorce porté en marge d'un mariage le dissout |
+| Chargé de renseignement : fiche « renseignement » (numéro, volume, folio, année, commune, centre), statuts en attente / complet / non trouvé, priorité | dossier de renseignement de chaque demande dont l'acte manque : registres papier consultés et constat, priorité, prise en charge, conclusion « acte non trouvé » qui rejette la demande ; compteurs en tête de file ; profil « Chargé de renseignement » |
+| (absent de la version 1) | centres d'état civil (principaux, secondaires, consulaires) et registres papier (type, année, exemplaire centre ou greffe, état, numérisation) |
 | Professions, domiciles, médecin dans l'acte | énonciations de l'acte, reprises sur les actes originaux et copies littérales |
 
 ## 6. Administration

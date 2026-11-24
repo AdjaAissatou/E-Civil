@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 public class ServiceInitialisation implements InitialiserHabilitations {
 
     static final String ETAPE_MIGRATION = "profils-et-permissions-v1";
+    static final String ETAPE_RENSEIGNEMENT = "profil-charge-renseignement";
     private static final Administrateur SYSTEME = new Administrateur("systeme", "Système E-Civil", "systeme");
 
     private final AnnuaireIdentites annuaire;
@@ -53,7 +54,10 @@ public class ServiceInitialisation implements InitialiserHabilitations {
             if (!annuaire.nomDeRoleUtilise(base.code())) annuaire.creerRole(r);
             else if (premiere || !rolesConnus.contains(base.code())) annuaire.modifierRole(r);
         }
-        if (!premiere) return;
+        if (!premiere) {
+            ajouterLeProfilDeRenseignement();
+            return;
+        }
 
         Map<String, String> profils = new HashMap<>();
         annuaire.profils().forEach(p -> profils.put(p.nom(), p.id()));
@@ -67,9 +71,22 @@ public class ServiceInitialisation implements InitialiserHabilitations {
         annuaire.definirProfilParDefaut(profils.get(Catalogue.PROFIL_CITOYEN.nom()));
         annuaire.retirerDesRolesParDefaut("CITOYEN");
         marqueur.marquer(ETAPE_MIGRATION);
+        marqueur.marquer(ETAPE_RENSEIGNEMENT);
         journal.enregistrer(new Operation(horloge.maintenant(), SYSTEME.signature(), TypeOperation.INITIALISATION,
                 "Habilitations", Catalogue.PERMISSIONS.size() + " permissions, " + Catalogue.ROLES_DE_BASE.size()
                 + " rôles, " + Catalogue.PROFILS_DE_BASE.size() + " profils ; " + ranges + " compte(s) rangé(s) dans leur profil"));
+    }
+
+    /** Installations antérieures : le profil du chargé de renseignement est créé une fois (l'administrateur peut le supprimer). */
+    private void ajouterLeProfilDeRenseignement() {
+        if (marqueur.estFaite(ETAPE_RENSEIGNEMENT)) return;
+        Catalogue.ProfilDeBase base = Catalogue.PROFIL_RENSEIGNEMENT;
+        if (annuaire.profils().stream().noneMatch(p -> p.nom().equalsIgnoreCase(base.nom()))) {
+            annuaire.creerProfil(new Profil(null, base.nom(), base.description(), base.roles(), false));
+            journal.enregistrer(new Operation(horloge.maintenant(), SYSTEME.signature(), TypeOperation.INITIALISATION,
+                    "Habilitations", "Profil « " + base.nom() + " » ajouté"));
+        }
+        marqueur.marquer(ETAPE_RENSEIGNEMENT);
     }
 
     /**

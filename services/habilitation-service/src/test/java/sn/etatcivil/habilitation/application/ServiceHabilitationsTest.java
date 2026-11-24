@@ -54,7 +54,8 @@ class ServiceHabilitationsTest {
     void lInitialisationMigreLesComptesSansPerteDeDroits() {
         assertThat(annuaire.permissions).hasSize(15);
         assertThat(annuaire.profils.values()).extracting(Profil::nom).containsExactlyInAnyOrder(
-                "Citoyen", "Délégué de commune", "Agent du registre", "Officier de l'état civil", "Chef de centre", "Administrateur");
+                "Citoyen", "Délégué de commune", "Agent du registre", "Chargé de renseignement", "Officier de l'état civil",
+                "Chef de centre", "Administrateur");
         // chaque compte est rangé dans son profil, ses rôles directs ont disparu
         assertThat(annuaire.profilsParCompte.get(admin)).containsExactly(annuaire.idProfil("Administrateur"));
         assertThat(annuaire.profilsParCompte.get(officier)).containsExactly(annuaire.idProfil("Officier de l'état civil"));
@@ -73,7 +74,19 @@ class ServiceHabilitationsTest {
         service.modifierRole("DELEGUE", "Délégué", null, Set.of(DEMANDES_CONSULTER, DEMANDES_VALIDER), auteur);
         initialisation.initialiser();
         assertThat(annuaire.roles.get("DELEGUE").permissions()).containsExactlyInAnyOrder(DEMANDES_CONSULTER, DEMANDES_VALIDER);
-        assertThat(annuaire.profils).hasSize(6);
+        assertThat(annuaire.profils).hasSize(7);
+    }
+
+    @Test
+    void uneInstallationAnterieureRecoitLeProfilDuChargeDeRenseignement() {
+        annuaire.profils.remove(annuaire.idProfil("Chargé de renseignement"));
+        marqueurs.remove("profil-charge-renseignement");
+        initialisation.initialiser();
+        assertThat(annuaire.profils.values()).extracting(Profil::nom).contains("Chargé de renseignement");
+        // une fois ajouté, il n'est pas recréé si l'administrateur le supprime
+        annuaire.profils.remove(annuaire.idProfil("Chargé de renseignement"));
+        initialisation.initialiser();
+        assertThat(annuaire.profils.values()).extracting(Profil::nom).doesNotContain("Chargé de renseignement");
     }
 
     @Test

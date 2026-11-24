@@ -122,4 +122,34 @@ class ActeApiTest {
                 .andExpect(jsonPath("$[?(@.nom == 'Touba-Mosquée')].region").value("Diourbel"));
         mvc.perform(get("/api/registre/types-mentions")).andExpect(status().isOk());
     }
+
+    @Test
+    void centresEtRegistresPapier() throws Exception {
+        mvc.perform(get("/api/registre/centres").param("recherche", "kaolack").with(role("CITOYEN"))).andExpect(status().isForbidden());
+        String centres = mvc.perform(get("/api/registre/centres").param("recherche", "kaolack").with(role("AGENT_REGISTRE")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].nom").value("Centre principal de Kaolack"))
+                .andReturn().getResponse().getContentAsString();
+        Integer kaolack = JsonPath.read(centres, "$[0].id");
+        mvc.perform(json(post("/api/registre/centres")).content("{\"nom\":\"Centre de Médina Baye\",\"type\":\"SECONDAIRE\","
+                        + "\"commune\":\"Kaolack\",\"rattachementId\":" + kaolack + "}").with(role("AGENT_REGISTRE")))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.nomRattachement").value("Centre principal de Kaolack"));
+        String registre = "{\"centreId\":" + kaolack + ",\"typeActe\":\"NAISSANCE\",\"annee\":1987,\"exemplaire\":\"CENTRE\","
+                + "\"etat\":\"MANQUANT\",\"observations\":\"Inondation\"}";
+        String cree = mvc.perform(json(post("/api/registre/registres-papier")).content(registre).with(role("AGENT_REGISTRE")))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.consultable").value(false))
+                .andExpect(jsonPath("$.libelle").value("Naissances 1987, Centre principal de Kaolack, exemplaire du centre"))
+                .andReturn().getResponse().getContentAsString();
+        mvc.perform(json(post("/api/registre/registres-papier")).content(registre).with(role("AGENT_REGISTRE")))
+                .andExpect(status().isUnprocessableEntity());
+        Integer id = JsonPath.read(cree, "$.id");
+        mvc.perform(json(put("/api/registre/registres-papier/" + id)).content(registre.replace("MANQUANT", "ABIME"))
+                        .with(role("AGENT_REGISTRE")))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.libelleEtat").value("Abîmé"));
+        mvc.perform(get("/api/registre/registres-papier").param("typeActe", "NAISSANCE").param("annee", "1987")
+                        .with(role("AGENT_REGISTRE")))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(1));
+    }
 }
