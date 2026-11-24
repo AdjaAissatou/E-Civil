@@ -71,8 +71,21 @@ class RegistreController {
 
     @GetMapping("/{id}")
     String fiche(@PathVariable UUID id, Model model) {
-        model.addAttribute("a", api.acte(id));
+        Vues.Acte a = api.acte(id);
+        model.addAttribute("a", a);
+        model.addAttribute("journal", api.journalActe(id));
+        model.addAttribute("typesMentions", api.typesMentions().stream().filter(t -> t.actes().contains(a.typeActe())).toList());
         return "registre/acte";
+    }
+
+    @PostMapping("/{id}/mentions")
+    String mention(@PathVariable UUID id, @RequestParam String type,
+                   @RequestParam @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate date,
+                   @RequestParam(required = false) String reference, @RequestParam(required = false) String details,
+                   RedirectAttributes flash) {
+        api.ajouterMention(id, type, date, reference, details);
+        flash.addFlashAttribute("succes", "Mention portée en marge de l'acte");
+        return "redirect:/registre/actes/" + id;
     }
 
     @GetMapping("/{id}/modifier")
@@ -102,6 +115,7 @@ class RegistreController {
         model.addAttribute("acte", s);
         model.addAttribute("existant", existant);
         model.addAttribute("types", TYPES);
+        model.addAttribute("communes", api.communes());
         return "registre/formulaire";
     }
 }

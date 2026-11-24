@@ -5,7 +5,8 @@
 <main class="container py-4" style="max-width: 960px"
       th:with="t=${acte.typeActe}, verrouille=${existant != null and existant.estValide()}">
     <h1 class="h3" th:text="${existant} ? 'Acte ' + ${existant.numeroActe} : 'Transcrire un acte du registre papier'"></h1>
-    <p class="text-muted" th:if="${verrouille}">Cet acte est validé : seules les mentions marginales et les observations peuvent être modifiées.</p>
+    <p class="text-muted" th:if="${verrouille}">Cet acte est validé : son contenu ne change plus. Vous pouvez compléter ses
+        observations ; pour le faire évoluer, portez une mention marginale depuis la fiche de l'acte.</p>
 
     <form th:unless="${existant}" class="mb-3" method="get" th:action="@{/registre/actes/nouveau}">
         <div class="btn-group" role="group">
@@ -21,7 +22,10 @@
                 <h2 class="h6 text-brun">Registre papier</h2>
                 <div class="row">
                     <div class="col-md-6" th:insert="~{fragments/champs :: texte('centre', 'Centre d\'état civil', 'text', true)}"></div>
-                    <div class="col-md-6" th:insert="~{fragments/champs :: texte('commune', 'Commune', 'text', false)}"></div>
+                    <div class="col-md-6" th:insert="~{fragments/champs :: suggestions('commune', 'Commune', 'liste-communes', false)}"></div>
+                    <datalist id="liste-communes">
+                        <option th:each="c : ${communes}" th:value="${c.nom}" th:text="${c.departement} + ' — région de ' + ${c.region}"></option>
+                    </datalist>
                     <div class="col-md-3" th:insert="~{fragments/champs :: texte('volume', 'Volume', 'text', false)}"></div>
                     <div class="col-md-3" th:insert="~{fragments/champs :: texte('folio', 'Folio', 'text', false)}"></div>
                     <div class="col-md-3" th:insert="~{fragments/champs :: texte('dateEvenement', ${t == 'NAISSANCE'} ? 'Date de naissance' : (${t == 'DECES'} ? 'Date du décès' : (${t == 'RECONNAISSANCE'} ? 'Date de la reconnaissance' : 'Date de l\'acte')), 'date', true)}"></div>
@@ -59,6 +63,14 @@
                     <div class="col-md-3" th:insert="~{fragments/champs :: texte('nomPere', 'Nom du père', 'text', false)}"></div>
                     <div class="col-md-3" th:insert="~{fragments/champs :: texte('prenomMere', 'Prénom de la mère', 'text', false)}"></div>
                     <div class="col-md-3" th:insert="~{fragments/champs :: texte('nomMere', 'Nom de la mère', 'text', false)}"></div>
+                    <th:block th:if="${t != 'NAISSANCE' and t != 'RECONNAISSANCE'}">
+                        <div class="col-md-6" th:insert="~{fragments/champs :: texte('profession', 'Profession', 'text', false)}"></div>
+                        <div class="col-md-6" th:insert="~{fragments/champs :: texte('domicile', 'Domicile', 'text', false)}"></div>
+                    </th:block>
+                    <div class="col-md-3" th:insert="~{fragments/champs :: texte('professionPere', 'Profession du père', 'text', false)}"></div>
+                    <div class="col-md-3" th:insert="~{fragments/champs :: texte('domicilePere', 'Domicile du père', 'text', false)}"></div>
+                    <div class="col-md-3" th:insert="~{fragments/champs :: texte('professionMere', 'Profession de la mère', 'text', false)}"></div>
+                    <div class="col-md-3" th:insert="~{fragments/champs :: texte('domicileMere', 'Domicile de la mère', 'text', false)}"></div>
                 </div>
             </div></div>
 
@@ -69,6 +81,8 @@
                     <div class="col-md-6" th:insert="~{fragments/champs :: texte('nomConjoint', 'Nom', 'text', true)}"></div>
                     <div class="col-md-6" th:insert="~{fragments/champs :: texte('dateNaissanceConjoint', 'Date de naissance', 'date', false)}"></div>
                     <div class="col-md-6" th:insert="~{fragments/champs :: texte('lieuNaissanceConjoint', 'Lieu de naissance', 'text', false)}"></div>
+                    <div class="col-md-6" th:insert="~{fragments/champs :: texte('professionConjoint', 'Profession', 'text', false)}"></div>
+                    <div class="col-md-6" th:insert="~{fragments/champs :: texte('domicileConjoint', 'Domicile', 'text', false)}"></div>
                 </div>
             </div></div>
 
@@ -77,6 +91,7 @@
                 <div class="row">
                     <div class="col-md-3" th:insert="~{fragments/champs :: texte('heureDeces', 'Heure (HH:MM)', 'text', false)}"></div>
                     <div class="col-md-9" th:insert="~{fragments/champs :: texte('causeDeces', 'Cause déclarée', 'text', false)}"></div>
+                    <div class="col-md-12" th:insert="~{fragments/champs :: texte('medecin', 'Médecin ayant constaté le décès', 'text', false)}"></div>
                 </div>
             </div></div>
 
@@ -90,9 +105,9 @@
         </fieldset>
 
         <div class="card mb-3"><div class="card-body">
-            <h2 class="h6 text-brun">Mentions</h2>
-            <div class="mb-3"><label class="form-label" for="mentionsMarginales">Mentions marginales</label>
-                <textarea class="form-control" rows="3" th:field="*{mentionsMarginales}"></textarea></div>
+            <h2 class="h6 text-brun">Observations</h2>
+            <p class="small text-muted mb-2" th:unless="${existant}">Les mentions marginales du registre papier se reportent
+                ensuite une à une, depuis la fiche de l'acte.</p>
             <div><label class="form-label" for="observations">Observations</label>
                 <textarea class="form-control" rows="2" th:field="*{observations}"></textarea></div>
         </div></div>
@@ -101,7 +116,9 @@
         <th:block th:if="${verrouille}">
             <input type="hidden" th:each="c : ${ {'centre','commune','volume','folio','dateEvenement','lieuEvenement','prenom','nom','sexe',
                 'dateNaissance','lieuNaissance','prenomPere','nomPere','prenomMere','nomMere','prenomConjoint','nomConjoint',
-                'dateNaissanceConjoint','lieuNaissanceConjoint','heureDeces','causeDeces','temoin1','temoin2','origine','referenceOrigine'} }"
+                'dateNaissanceConjoint','lieuNaissanceConjoint','heureDeces','causeDeces','temoin1','temoin2','origine','referenceOrigine',
+                'profession','domicile','professionPere','domicilePere','professionMere','domicileMere','professionConjoint',
+                'domicileConjoint','medecin'} }"
                    th:name="${c}" th:value="*{__${c}__}">
         </th:block>
 

@@ -12,6 +12,8 @@ spring:
     open-in-view: false
   flyway:
     locations: classpath:db/migration,classpath:db/socle
+    # une installation de démonstration a déjà appliqué V1000+ : les nouvelles migrations s'y ajoutent
+    out-of-order: true
   rabbitmq:
     host: ${RABBITMQ_HOST:localhost}
     username: ${RABBITMQ_USER:guest}

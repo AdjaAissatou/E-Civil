@@ -20,25 +20,75 @@
             <dt class="col-sm-4">Titulaire</dt><dd class="col-sm-8" th:text="${a.prenom} + ' ' + ${a.nom} + (${a.sexe} ? ' (' + ${a.sexe} + ')' : '')"></dd>
             <dt class="col-sm-4" th:if="${a.dateNaissance}">Naissance</dt>
             <dd class="col-sm-8" th:if="${a.dateNaissance}" th:text="${#temporals.format(a.dateNaissance, 'dd/MM/yyyy')} + (${a.lieuNaissance} ? ' à ' + ${a.lieuNaissance} : '')"></dd>
-            <dt class="col-sm-4" th:if="${a.nomPere}">Père</dt><dd class="col-sm-8" th:if="${a.nomPere}" th:text="${a.prenomPere} + ' ' + ${a.nomPere}"></dd>
-            <dt class="col-sm-4" th:if="${a.nomMere}">Mère</dt><dd class="col-sm-8" th:if="${a.nomMere}" th:text="${a.prenomMere} + ' ' + ${a.nomMere}"></dd>
-            <dt class="col-sm-4" th:if="${a.nomConjoint}">Conjoint</dt><dd class="col-sm-8" th:if="${a.nomConjoint}" th:text="${a.prenomConjoint} + ' ' + ${a.nomConjoint}"></dd>
+            <th:block th:with="sit=${T(sn.etatcivil.portail.clients.Vues.Acte).situation(a.profession, a.domicile)}">
+                <dt class="col-sm-4" th:if="${sit}">Profession, domicile</dt><dd class="col-sm-8" th:if="${sit}" th:text="${sit}"></dd>
+            </th:block>
+            <th:block th:with="sit=${T(sn.etatcivil.portail.clients.Vues.Acte).situation(a.professionPere, a.domicilePere)}">
+                <dt class="col-sm-4" th:if="${a.nomPere}">Père</dt><dd class="col-sm-8" th:if="${a.nomPere}" th:text="${a.prenomPere} + ' ' + ${a.nomPere} + (${sit} ? ', ' + ${sit} : '')"></dd>
+            </th:block>
+            <th:block th:with="sit=${T(sn.etatcivil.portail.clients.Vues.Acte).situation(a.professionMere, a.domicileMere)}">
+                <dt class="col-sm-4" th:if="${a.nomMere}">Mère</dt><dd class="col-sm-8" th:if="${a.nomMere}" th:text="${a.prenomMere} + ' ' + ${a.nomMere} + (${sit} ? ', ' + ${sit} : '')"></dd>
+            </th:block>
+            <th:block th:with="sit=${T(sn.etatcivil.portail.clients.Vues.Acte).situation(a.professionConjoint, a.domicileConjoint)}">
+                <dt class="col-sm-4" th:if="${a.nomConjoint}">Conjoint</dt><dd class="col-sm-8" th:if="${a.nomConjoint}" th:text="${a.prenomConjoint} + ' ' + ${a.nomConjoint} + (${sit} ? ', ' + ${sit} : '')"></dd>
+            </th:block>
             <dt class="col-sm-4" th:if="${a.heureDeces}">Heure du décès</dt><dd class="col-sm-8" th:if="${a.heureDeces}" th:text="${a.heureDeces}"></dd>
             <dt class="col-sm-4" th:if="${a.causeDeces}">Cause</dt><dd class="col-sm-8" th:if="${a.causeDeces}" th:text="${a.causeDeces}"></dd>
+            <dt class="col-sm-4" th:if="${a.medecin}">Médecin</dt><dd class="col-sm-8" th:if="${a.medecin}" th:text="${a.medecin}"></dd>
             <dt class="col-sm-4" th:if="${a.temoin1}">Témoins</dt><dd class="col-sm-8" th:if="${a.temoin1}" th:text="${a.temoin1} + (${a.temoin2} ? ', ' + ${a.temoin2} : '')"></dd>
-            <dt class="col-sm-4" th:if="${a.mentionsMarginales}">Mentions marginales</dt><dd class="col-sm-8" th:if="${a.mentionsMarginales}" th:text="${a.mentionsMarginales}"></dd>
             <dt class="col-sm-4" th:if="${a.observations}">Observations</dt><dd class="col-sm-8" th:if="${a.observations}" th:text="${a.observations}"></dd>
             <dt class="col-sm-4">Saisi par</dt><dd class="col-sm-8" th:text="${a.agentSaisie} + ' le ' + ${@dates.heure(a.dateSaisie)}"></dd>
         </dl>
     </div></div>
-    <div class="d-flex gap-2">
-        <a class="btn btn-outline-primary" th:href="@{/registre/actes/{id}/modifier(id=${a.id})}"
-           th:text="${a.estValide()} ? 'Ajouter une mention marginale' : 'Corriger la saisie'"></a>
+    <div class="card mb-3"><div class="card-body">
+        <h2 class="h6 text-brun">Mentions marginales</h2>
+        <p th:if="${a.mentions == null or a.mentions.isEmpty()}" class="small text-muted">Aucune mention en marge de cet acte.</p>
+        <ul class="list-unstyled mb-0">
+            <li th:each="m : ${a.mentions}" class="py-2 border-bottom">
+                <span class="fw-semibold" th:text="${m.texte}"></span>
+                <span class="d-block small text-muted" th:text="'Portée par ' + ${m.agent}"></span>
+            </li>
+        </ul>
+        <form sec:authorize="hasRole('REGISTRE_SAISIR')" class="row g-2 mt-2" method="post"
+              th:action="@{/registre/actes/{id}/mentions(id=${a.id})}">
+            <div class="col-md-4"><label class="form-label small" for="m-type">Mention</label>
+                <select class="form-select form-select-sm" id="m-type" name="type" required>
+                    <option th:each="t : ${typesMentions}" th:value="${t.code}" th:text="${t.libelle}"></option>
+                </select></div>
+            <div class="col-md-3"><label class="form-label small" for="m-date">Date</label>
+                <input class="form-control form-control-sm" id="m-date" type="date" name="date" required></div>
+            <div class="col-md-5"><label class="form-label small" for="m-ref">Référence (jugement, acte…)</label>
+                <input class="form-control form-control-sm" id="m-ref" name="reference" maxlength="300"></div>
+            <div class="col-md-9"><label class="form-label small" for="m-det">Contenu</label>
+                <input class="form-control form-control-sm" id="m-det" name="details" maxlength="1000"
+                       placeholder="ex. avec Seynabou Diouf, acte M-2000-000001"></div>
+            <div class="col-md-3 d-flex align-items-end"><button class="btn btn-outline-primary btn-sm w-100" type="submit">Porter la mention</button></div>
+        </form>
+    </div></div>
+
+    <div class="d-flex gap-2 mb-4">
+        <a class="btn btn-outline-primary" sec:authorize="hasRole('REGISTRE_SAISIR')" th:href="@{/registre/actes/{id}/modifier(id=${a.id})}"
+           th:text="${a.estValide()} ? 'Compléter les observations' : 'Corriger la saisie'"></a>
         <form sec:authorize="hasRole('REGISTRE_VALIDER')" th:unless="${a.estValide()}"
               th:action="@{/officier/actes/{id}/validation(id=${a.id})}" method="post">
             <button class="btn btn-success" type="submit">Valider cet acte</button>
         </form>
     </div>
+
+    <div class="card"><div class="card-body">
+        <h2 class="h6 text-brun">Journal de l'acte</h2>
+        <p th:if="${journal.isEmpty()}" class="small text-muted mb-0">Aucune opération enregistrée.</p>
+        <ul class="list-unstyled mb-0">
+            <li th:each="o : ${journal}" class="py-2 border-bottom">
+                <div class="d-flex justify-content-between gap-2">
+                    <span class="fw-semibold small" th:text="${o.libelleAction}"></span>
+                    <span class="small text-muted text-nowrap" th:text="${@dates.heure(o.date)}"></span>
+                </div>
+                <div class="small text-muted" style="white-space: pre-line" th:text="${o.detail}"></div>
+                <div class="small" th:text="'par ' + ${o.auteur}"></div>
+            </li>
+        </ul>
+    </div></div>
 </main>
 </body>
 </html>

@@ -145,6 +145,34 @@ public class Api {
         return appeler(() -> http.post().uri("/api/registre/actes/{id}/validation", id).retrieve().body(Acte.class));
     }
 
+    public Acte ajouterMention(UUID id, String type, java.time.LocalDate date, String reference, String details) {
+        var corps = new HashMap<String, Object>();
+        corps.put("type", type);
+        corps.put("date", date == null ? null : date.toString());
+        corps.put("reference", reference);
+        corps.put("details", details);
+        return appeler(() -> http.post().uri("/api/registre/actes/{id}/mentions", id).contentType(MediaType.APPLICATION_JSON)
+                .body(corps).retrieve().body(Acte.class));
+    }
+
+    public List<OperationActe> journalActe(UUID id) {
+        return appeler(() -> http.get().uri("/api/registre/actes/{id}/journal", id).retrieve()
+                .body(new ParameterizedTypeReference<List<OperationActe>>() {}));
+    }
+
+    /** Communes du Sénégal ; liste vide si le registre ne répond pas (le champ reste alors en saisie libre). */
+    public List<Commune> communes() {
+        try {
+            return get("/api/registre/communes", new ParameterizedTypeReference<>() {});
+        } catch (ApiException e) {
+            return List.of();
+        }
+    }
+
+    public List<TypeMention> typesMentions() {
+        return get("/api/registre/types-mentions", new ParameterizedTypeReference<>() {});
+    }
+
     public StatistiquesRegistre statistiquesRegistre() {
         return appeler(() -> http.get().uri("/api/registre/actes/statistiques").retrieve().body(StatistiquesRegistre.class));
     }

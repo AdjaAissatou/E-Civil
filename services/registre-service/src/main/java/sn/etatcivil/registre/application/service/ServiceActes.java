@@ -6,6 +6,8 @@ import sn.etatcivil.registre.application.port.sortie.ActeRepository;
 import sn.etatcivil.registre.application.port.sortie.EvenementsRegistre;
 import sn.etatcivil.registre.application.port.sortie.Horloge;
 import sn.etatcivil.registre.application.port.sortie.Numerotation;
+import sn.etatcivil.registre.application.port.sortie.JournalRegistre;
+import sn.etatcivil.registre.application.port.sortie.ReferentielCommunes;
 import sn.etatcivil.registre.domaine.*;
 
 import java.util.Comparator;
@@ -23,12 +25,17 @@ public class ServiceActes implements TranscrireActe, ConsulterActes {
     private final Numerotation numerotation;
     private final EvenementsRegistre evenements;
     private final Horloge horloge;
+    private final JournalRegistre journal;
+    private final ReferentielCommunes communes;
 
-    public ServiceActes(ActeRepository actes, Numerotation numerotation, EvenementsRegistre evenements, Horloge horloge) {
+    public ServiceActes(ActeRepository actes, Numerotation numerotation, EvenementsRegistre evenements, Horloge horloge,
+                        JournalRegistre journal, ReferentielCommunes communes) {
         this.actes = actes;
         this.numerotation = numerotation;
         this.evenements = evenements;
         this.horloge = horloge;
+        this.journal = journal;
+        this.communes = communes;
     }
 
     @Override
@@ -37,23 +44,56 @@ public class ServiceActes implements TranscrireActe, ConsulterActes {
             throw new RegleMetierException("Le type d'acte et la date de l'événement sont obligatoires");
         }
         String numero = numerotation.attribuer(donnees.typeActe(), donnees.dateEvenement().getYear());
-        return actes.enregistrer(Acte.transcrire(donnees, numero, agent, horloge.maintenant()));
+        Acte acte = actes.enregistrer(Acte.transcrire(donnees, numero, agent, horloge.maintenant()));
+        tracer(acte, agent, ActionJournal.TRANSCRIPTION, "Acte " + numero + " saisi");
+        return acte;
     }
 
     @Override
-    public Acte corriger(UUID id, DonneesActe donnees) {
+    public Acte corriger(UUID id, DonneesActe donnees, String agent) {
         Acte acte = obtenir(id);
+        DonneesActe avant = acte.donnees();
         acte.corriger(donnees, horloge.maintenant());
-        return actes.enregistrer(acte);
+        List<String> changements = avant.differences(acte.donnees());
+        Acte enregistre = actes.enregistrer(acte);
+        if (!changements.isEmpty()) tracer(enregistre, agent, ActionJournal.CORRECTION, String.join("\n", changements));
+        return enregistre;
     }
 
     @Override
-    public Acte valider(UUID id) {
+    public Acte valider(UUID id, String agent) {
         Acte acte = obtenir(id);
         acte.valider(horloge.maintenant());
         Acte enregistre = actes.enregistrer(acte);
+        tracer(enregistre, agent, ActionJournal.VALIDATION, "Acte validé : il est délivrable et ne peut plus être modifié");
         evenements.acteValide(enregistre);
         return enregistre;
+    }
+
+    @Override
+    public Acte ajouterMention(UUID id, TypeMention type, java.time.LocalDate date, String reference, String details,
+                               String agent) {
+        Acte acte = obtenir(id);
+        Mention mention = new Mention(type, date, reference, details, agent, horloge.maintenant());
+        acte.ajouterMention(mention, horloge.maintenant());
+        Acte enregistre = actes.enregistrer(acte);
+        tracer(enregistre, agent, ActionJournal.MENTION, mention.texte());
+        return enregistre;
+    }
+
+    @Override
+    public List<EntreeJournal> journal(UUID id) {
+        obtenir(id);
+        return journal.pourActe(id);
+    }
+
+    @Override
+    public List<Commune> communes() {
+        return communes.toutes();
+    }
+
+    private void tracer(Acte acte, String agent, ActionJournal action, String detail) {
+        journal.enregistrer(new EntreeJournal(acte.id(), horloge.maintenant(), agent, action, detail));
     }
 
     @Override

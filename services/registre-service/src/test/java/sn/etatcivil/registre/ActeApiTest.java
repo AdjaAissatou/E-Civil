@@ -97,4 +97,29 @@ class ActeApiTest {
         mvc.perform(get("/api/registre/actes/statistiques").with(role("OFFICIER")))
                 .andExpect(jsonPath("$.total").value(1)).andExpect(jsonPath("$.parType.NAISSANCE").value(1));
     }
+
+    @Test
+    void mentionsJournalEtCommunes() throws Exception {
+        String id = transcrire();
+        mvc.perform(post("/api/registre/actes/" + id + "/validation").with(role("OFFICIER"))).andExpect(status().isOk());
+        mvc.perform(json(post("/api/registre/actes/" + id + "/mentions"))
+                        .content("{\"type\":\"MARIAGE\",\"date\":\"2020-06-06\",\"reference\":\"Acte M-2020-000004\"}")
+                        .with(role("CITOYEN"))).andExpect(status().isForbidden());
+        mvc.perform(json(post("/api/registre/actes/" + id + "/mentions"))
+                        .content("{\"type\":\"MARIAGE\",\"date\":\"2020-06-06\",\"reference\":\"Acte M-2020-000004\"}")
+                        .with(role("AGENT_REGISTRE")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.mentions[0].libelleType").value("Mention de mariage"))
+                .andExpect(jsonPath("$.mentionsMarginales").value("Mention de mariage du 06/06/2020 (Acte M-2020-000004)"));
+        mvc.perform(get("/api/registre/actes/" + id + "/journal").with(role("OFFICIER")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].action").value("MENTION"))
+                .andExpect(jsonPath("$[1].action").value("VALIDATION"))
+                .andExpect(jsonPath("$[1].auteur").value("Awa Ndiaye <officier@ecivil.sn>"))
+                .andExpect(jsonPath("$[2].action").value("TRANSCRIPTION"));
+        mvc.perform(get("/api/registre/communes")).andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(66))
+                .andExpect(jsonPath("$[?(@.nom == 'Touba-Mosquée')].region").value("Diourbel"));
+        mvc.perform(get("/api/registre/types-mentions")).andExpect(status().isOk());
+    }
 }

@@ -11,7 +11,7 @@ public record DonneesActe(
         String nomPere, String prenomPere, String nomMere, String prenomMere,
         String nomConjoint, String prenomConjoint, LocalDate dateNaissanceConjoint, String lieuNaissanceConjoint,
         String heureDeces, String causeDeces, String temoin1, String temoin2,
-        String mentionsMarginales, String observations,
+        DetailsActe details, String observations,
         OrigineActe origine, String referenceOrigine) {
 
     /** Origine ordinaire par défaut ; pour une naissance, la date et le lieu de naissance sont ceux de l'événement. */
@@ -20,22 +20,56 @@ public record DonneesActe(
             return new DonneesActe(typeActe, centre, commune, volume, folio, dateEvenement, lieuEvenement,
                     nom, prenom, sexe, dateNaissance, lieuNaissance, nomPere, prenomPere, nomMere, prenomMere,
                     nomConjoint, prenomConjoint, dateNaissanceConjoint, lieuNaissanceConjoint,
-                    heureDeces, causeDeces, temoin1, temoin2, mentionsMarginales, observations,
+                    heureDeces, causeDeces, temoin1, temoin2, DetailsActe.ou(details), observations,
                     OrigineActe.ORDINAIRE, null).completer();
+        }
+        if (details == null) {
+            return new DonneesActe(typeActe, centre, commune, volume, folio, dateEvenement, lieuEvenement,
+                    nom, prenom, sexe, dateNaissance, lieuNaissance, nomPere, prenomPere, nomMere, prenomMere,
+                    nomConjoint, prenomConjoint, dateNaissanceConjoint, lieuNaissanceConjoint,
+                    heureDeces, causeDeces, temoin1, temoin2, DetailsActe.AUCUN, observations, origine, referenceOrigine)
+                    .completer();
         }
         if (typeActe != TypeActe.NAISSANCE) return this;
         String lieu = lieuNaissance == null || lieuNaissance.isBlank() ? lieuEvenement : lieuNaissance;
         return new DonneesActe(typeActe, centre, commune, volume, folio, dateEvenement, lieuEvenement,
                 nom.trim(), prenom.trim(), sexe, dateEvenement, lieu, nomPere, prenomPere, nomMere, prenomMere,
                 nomConjoint, prenomConjoint, dateNaissanceConjoint, lieuNaissanceConjoint,
-                heureDeces, causeDeces, temoin1, temoin2, mentionsMarginales, observations, origine, referenceOrigine);
+                heureDeces, causeDeces, temoin1, temoin2, details, observations, origine, referenceOrigine);
     }
 
-    DonneesActe avecMentions(String mentions, String obs) {
+    DonneesActe avecObservations(String obs) {
         return new DonneesActe(typeActe, centre, commune, volume, folio, dateEvenement, lieuEvenement,
                 nom, prenom, sexe, dateNaissance, lieuNaissance, nomPere, prenomPere, nomMere, prenomMere,
                 nomConjoint, prenomConjoint, dateNaissanceConjoint, lieuNaissanceConjoint,
-                heureDeces, causeDeces, temoin1, temoin2, mentions, obs, origine, referenceOrigine);
+                heureDeces, causeDeces, temoin1, temoin2, details, obs, origine, referenceOrigine);
+    }
+
+    /** Champs qui diffèrent entre ces données et les nouvelles, sous la forme « libellé : avant → après ». */
+    public java.util.List<String> differences(DonneesActe nouvelles) {
+        java.util.List<String> r = new java.util.ArrayList<>();
+        comparer(this, nouvelles, "", r);
+        return r;
+    }
+
+    private static void comparer(Record avant, Record apres, String prefixe, java.util.List<String> r) {
+        for (var c : avant.getClass().getRecordComponents()) {
+            try {
+                Object a = c.getAccessor().invoke(avant), b = c.getAccessor().invoke(apres);
+                if (a instanceof Record ra && b instanceof Record rb) {
+                    comparer(ra, rb, prefixe, r);
+                } else if (!java.util.Objects.equals(texte(a), texte(b))) {
+                    r.add(prefixe + c.getName() + " : " + (texte(a).isEmpty() ? "∅" : texte(a)) + " → "
+                            + (texte(b).isEmpty() ? "∅" : texte(b)));
+                }
+            } catch (ReflectiveOperationException e) {
+                throw new IllegalStateException(e);
+            }
+        }
+    }
+
+    private static String texte(Object o) {
+        return o == null ? "" : o.toString().trim();
     }
 
     void verifierCoherence() {

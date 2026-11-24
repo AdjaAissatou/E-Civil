@@ -20,6 +20,7 @@ class ConfigurationSecurite {
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(a -> a
                         .requestMatchers("/actuator/health/**", "/error").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/registre/communes", "/api/registre/types-mentions").permitAll()
                         .requestMatchers("/api/**").authenticated()
                         .anyRequest().denyAll())
                 .oauth2ResourceServer(o -> o.jwt(j -> j.jwtAuthenticationConverter(roles)))

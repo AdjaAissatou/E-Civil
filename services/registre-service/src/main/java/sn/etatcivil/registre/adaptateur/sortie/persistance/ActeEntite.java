@@ -75,8 +75,19 @@ class ActeEntite {
     String temoin1;
     @Column(name = "temoin2")
     String temoin2;
-    @Column(name = "mentions_marginales")
-    String mentionsMarginales;
+    String profession;
+    String domicile;
+    String professionPere;
+    String domicilePere;
+    String professionMere;
+    String domicileMere;
+    String professionConjoint;
+    String domicileConjoint;
+    String medecin;
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "mention", joinColumns = @JoinColumn(name = "acte_id"))
+    java.util.List<MentionEmbarquee> mentions = new java.util.ArrayList<>();
     @Column(name = "observations")
     String observations;
     @Enumerated(EnumType.STRING)

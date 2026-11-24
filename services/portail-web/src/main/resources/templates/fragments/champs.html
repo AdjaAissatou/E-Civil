@@ -7,3 +7,13 @@
            th:classappend="${#fields.hasErrors(champ)} ? 'is-invalid'">
     <div class="invalid-feedback" th:if="${#fields.hasErrors(champ)}" th:errors="*{__${champ}__}"></div>
 </div>
+
+<!-- Champ texte avec suggestions (datalist) : la saisie libre reste possible -->
+<div xmlns:th="http://www.thymeleaf.org" th:fragment="suggestions(champ, libelle, liste, requis)" class="mb-3">
+    <label class="form-label" th:for="${champ}">
+        <span th:text="${libelle}"></span><span th:if="${requis}" class="text-danger"> *</span>
+    </label>
+    <input class="form-control" type="text" th:field="*{__${champ}__}" th:required="${requis}" th:attr="list=${liste}"
+           autocomplete="off" th:classappend="${#fields.hasErrors(champ)} ? 'is-invalid'">
+    <div class="invalid-feedback" th:if="${#fields.hasErrors(champ)}" th:errors="*{__${champ}__}"></div>
+</div>

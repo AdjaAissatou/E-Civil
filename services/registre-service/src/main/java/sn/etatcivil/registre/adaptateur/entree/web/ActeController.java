@@ -1,5 +1,7 @@
 package sn.etatcivil.registre.adaptateur.entree.web;
 
+import sn.etatcivil.registre.domaine.TypeMention;
+
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -48,14 +50,39 @@ class ActeController {
 
     @PutMapping("/{id}")
     @PreAuthorize(Permissions.A_REGISTRE_SAISIR)
-    ActeReponse corriger(@PathVariable UUID id, @Valid @RequestBody ActeRequete requete) {
-        return ActeReponse.de(transcription.corriger(id, requete.versDomaine()));
+    ActeReponse corriger(@PathVariable UUID id, @Valid @RequestBody ActeRequete requete, @AuthenticationPrincipal Jwt jwt) {
+        return ActeReponse.de(transcription.corriger(id, requete.versDomaine(), agent(jwt)));
     }
 
     @PostMapping("/{id}/validation")
     @PreAuthorize(Permissions.A_REGISTRE_VALIDER)
-    ActeReponse valider(@PathVariable UUID id) {
-        return ActeReponse.de(transcription.valider(id));
+    ActeReponse valider(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt) {
+        return ActeReponse.de(transcription.valider(id, agent(jwt)));
+    }
+
+    public record MentionRequete(@jakarta.validation.constraints.NotNull TypeMention type,
+                                 @jakarta.validation.constraints.NotNull @jakarta.validation.constraints.PastOrPresent java.time.LocalDate date,
+                                 @jakarta.validation.constraints.Size(max = 300) String reference,
+                                 @jakarta.validation.constraints.Size(max = 1000) String details) {}
+
+    @PostMapping("/{id}/mentions")
+    @PreAuthorize(Permissions.A_REGISTRE_SAISIR)
+    ActeReponse ajouterMention(@PathVariable UUID id, @Valid @RequestBody MentionRequete r, @AuthenticationPrincipal Jwt jwt) {
+        return ActeReponse.de(transcription.ajouterMention(id, r.type(), r.date(), r.reference(), r.details(), agent(jwt)));
+    }
+
+    public record EntreeJournalReponse(java.time.Instant date, String auteur, String action, String libelleAction, String detail) {}
+
+    @GetMapping("/{id}/journal")
+    @PreAuthorize(CONSULTER)
+    List<EntreeJournalReponse> journal(@PathVariable UUID id) {
+        return consultation.journal(id).stream().map(e -> new EntreeJournalReponse(e.date(), e.auteur(), e.action().name(),
+                e.action().libelle(), e.detail())).toList();
+    }
+
+    private static String agent(Jwt jwt) {
+        UtilisateurJwt u = UtilisateurJwt.depuis(jwt);
+        return u.nomComplet() + " <" + u.email() + ">";
     }
 
     @GetMapping("/{id}")
@@ -95,7 +122,7 @@ class ActeController {
     }
 
     public record MariageReponse(ActeReponse acte, String nomConjoint, String prenomConjoint, boolean dissous,
-                                 ActeReponse dissolution) {}
+                                 ActeReponse dissolution, String mentionDissolution) {}
 
     public record SituationReponse(List<MariageReponse> mariages, List<ActeReponse> deces) {}
 
@@ -107,7 +134,8 @@ class ActeController {
         SituationCivile s = consultation.situation(personne.versDomaine());
         return new SituationReponse(
                 s.mariages().stream().map(m -> new MariageReponse(ActeReponse.de(m.acte()), m.conjoint().nom(),
-                        m.conjoint().prenom(), m.dissous(), m.dissous() ? ActeReponse.de(m.dissolution()) : null)).toList(),
+                        m.conjoint().prenom(), m.dissous(), m.dissolution() != null ? ActeReponse.de(m.dissolution()) : null,
+                        m.mentionDivorce() != null ? m.mentionDivorce().texte() : null)).toList(),
                 s.deces().stream().map(ActeReponse::de).toList());
     }
 

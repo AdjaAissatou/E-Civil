@@ -156,8 +156,35 @@ public final class Vues {
                        String nomConjoint, String prenomConjoint, LocalDate dateNaissanceConjoint, String lieuNaissanceConjoint,
                        String heureDeces, String causeDeces, String temoin1, String temoin2,
                        String mentionsMarginales, String observations, String origine, String referenceOrigine,
-                       String agentSaisie, Instant dateSaisie, Instant dateModification) {
+                       String agentSaisie, Instant dateSaisie, Instant dateModification,
+                       String profession, String domicile, String professionPere, String domicilePere,
+                       String professionMere, String domicileMere, String professionConjoint, String domicileConjoint,
+                       String medecin, List<MentionActe> mentions) {
+
+        public Acte(UUID id, String typeActe, String numeroActe, Integer annee, String statut,
+                    String centre, String commune, String volume, String folio,
+                    LocalDate dateEvenement, String lieuEvenement,
+                    String nom, String prenom, String sexe, LocalDate dateNaissance, String lieuNaissance,
+                    String nomPere, String prenomPere, String nomMere, String prenomMere,
+                    String nomConjoint, String prenomConjoint, LocalDate dateNaissanceConjoint, String lieuNaissanceConjoint,
+                    String heureDeces, String causeDeces, String temoin1, String temoin2,
+                    String mentionsMarginales, String observations, String origine, String referenceOrigine,
+                    String agentSaisie, Instant dateSaisie, Instant dateModification) {
+            this(id, typeActe, numeroActe, annee, statut, centre, commune, volume, folio, dateEvenement, lieuEvenement,
+                    nom, prenom, sexe, dateNaissance, lieuNaissance, nomPere, prenomPere, nomMere, prenomMere,
+                    nomConjoint, prenomConjoint, dateNaissanceConjoint, lieuNaissanceConjoint, heureDeces, causeDeces,
+                    temoin1, temoin2, mentionsMarginales, observations, origine, referenceOrigine, agentSaisie, dateSaisie,
+                    dateModification, null, null, null, null, null, null, null, null, null, List.of());
+        }
+
         public boolean estValide() { return "VALIDE".equals(statut); }
+
+        /** Profession et domicile réunis pour l'affichage (« commerçant, domicilié à Thiès »). */
+        public static String situation(String profession, String domicile) {
+            String p = profession == null ? "" : profession.trim(), d = domicile == null ? "" : domicile.trim();
+            if (p.isEmpty()) return d.isEmpty() ? null : "domicilié(e) à " + d;
+            return d.isEmpty() ? p : p + ", domicilié(e) à " + d;
+        }
 
         public String libelleOrigine() {
             return "JUGEMENT_SUPPLETIF".equals(origine) ? "Jugement supplétif"
@@ -235,4 +262,19 @@ public final class Vues {
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record Synthese(long utilisateurs, int profils, int roles, int permissions, List<Operation> dernieresOperations) {}
+
+    // ---------------------------------------------------------------- registre : mentions, journal, référentiels
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record MentionActe(String type, String libelleType, LocalDate date, String reference, String details,
+                              String agent, String texte) {}
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record OperationActe(Instant date, String auteur, String action, String libelleAction, String detail) {}
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record Commune(String nom, String departement, String region) {}
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record TypeMention(String code, String libelle, List<String> actes) {}
 }
