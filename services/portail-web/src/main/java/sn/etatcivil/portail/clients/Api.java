@@ -150,16 +150,20 @@ public class Api {
 
     /** Dépôt avec la pièce d'identité et le selfie (multipart). */
     public Demande deposer(Object depot, String typePiece, Map<String, Photo> photos) {
-        var corps = new org.springframework.http.client.MultipartBodyBuilder();
-        corps.part("demande", depot, MediaType.APPLICATION_JSON);
-        if (typePiece != null) corps.part("typePiece", typePiece);
+        var corps = new org.springframework.util.LinkedMultiValueMap<String, Object>();
+        var entete = new org.springframework.http.HttpHeaders();
+        entete.setContentType(MediaType.APPLICATION_JSON);
+        corps.add("demande", new org.springframework.http.HttpEntity<>(depot, entete));
+        if (typePiece != null) corps.add("typePiece", typePiece);
         photos.forEach((nom, p) -> {
             if (p == null || p.contenu().length == 0) return;
-            corps.part(nom, new org.springframework.core.io.ByteArrayResource(p.contenu()) {
-                @Override public String getFilename() { return p.nom() == null ? nom : p.nom(); }
-            }, MediaType.parseMediaType(p.contentType() == null ? "application/octet-stream" : p.contentType()));
+            var h = new org.springframework.http.HttpHeaders();
+            h.setContentType(MediaType.parseMediaType(p.contentType() == null ? "application/octet-stream" : p.contentType()));
+            h.setContentDisposition(org.springframework.http.ContentDisposition.formData().name(nom)
+                    .filename(p.nom() == null || p.nom().isBlank() ? nom : p.nom()).build());
+            corps.add(nom, new org.springframework.http.HttpEntity<>(p.contenu(), h));
         });
-        return appeler(() -> http.post().uri("/api/demandes").contentType(MediaType.MULTIPART_FORM_DATA).body(corps.build())
+        return appeler(() -> http.post().uri("/api/demandes").contentType(MediaType.MULTIPART_FORM_DATA).body(corps)
                 .retrieve().body(Demande.class));
     }
 

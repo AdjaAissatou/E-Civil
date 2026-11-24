@@ -38,7 +38,7 @@ class PiecesIdentiteSql implements PiecesIdentiteRepository {
                         r.getString("content_type"), r.getInt("taille"), r.getString("empreinte"),
                         r.getTimestamp("date_depot").toInstant(),
                         r.getTimestamp("date_purge") == null ? null : r.getTimestamp("date_purge").toInstant()))
-                .list();
+                .list().stream().sorted(Comparator.comparing(PieceIdentite::nature)).toList();
     }
 
     @Override
