@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: page('Natures', ~{::main})}">
+<body>
+<main class="container py-4">
+    <span class="surtitre">Administration</span>
+    <h1 class="h3">Natures de documents</h1>
+    <nav th:replace="~{admin/_onglets :: onglets('natures')}"></nav>
+    <p class="text-muted">Une nature regroupe des documents (Naissance, Célibat, Copie…) ; elle sert de filtre dans le catalogue.
+        Une nature inactive n'apparaît plus dans le catalogue, ses documents restent.</p>
+    <div class="card mb-4"><div class="table-responsive">
+        <table class="table align-middle mb-0">
+            <thead><tr><th>Ordre</th><th>Code</th><th>Libellé</th><th>Description</th><th>Documents</th><th>Active</th><th></th></tr></thead>
+            <tbody>
+            <tr th:each="n : ${natures}">
+                <td colspan="7">
+                    <form class="row g-2 align-items-center" method="post" th:action="@{/admin/natures}">
+                        <input type="hidden" name="id" th:value="${n.id}">
+                        <div class="col-md-1"><input class="form-control form-control-sm" type="number" name="ordre" min="0" max="999" th:value="${n.ordre}" aria-label="Ordre"></div>
+                        <div class="col-md-2"><code th:text="${n.code}"></code></div>
+                        <div class="col-md-3"><input class="form-control form-control-sm" name="libelle" required maxlength="100" th:value="${n.libelle}" aria-label="Libellé"></div>
+                        <div class="col-md-3"><input class="form-control form-control-sm" name="description" maxlength="500" th:value="${n.description}" aria-label="Description"></div>
+                        <div class="col-md-1 small" th:text="${nombre[n.id] ?: 0}"></div>
+                        <div class="col-md-1"><input class="form-check-input" type="checkbox" name="active" value="true" th:checked="${n.active}" aria-label="Active"></div>
+                        <div class="col-md-1"><button class="btn btn-outline-primary btn-sm" type="submit">OK</button></div>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div></div>
+    <div class="card"><div class="card-body">
+        <h2 class="h6 text-brun">Nouvelle nature</h2>
+        <form class="row g-2" method="post" th:action="@{/admin/natures}">
+            <div class="col-md-2"><input class="form-control" name="code" required maxlength="40" placeholder="Code (ex. ADOPTION)"></div>
+            <div class="col-md-3"><input class="form-control" name="libelle" required maxlength="100" placeholder="Libellé"></div>
+            <div class="col-md-4"><input class="form-control" name="description" maxlength="500" placeholder="Description"></div>
+            <div class="col-md-1"><input class="form-control" name="ordre" type="number" min="0" max="999" value="200" aria-label="Ordre"></div>
+            <div class="col-md-2"><button class="btn btn-primary w-100" type="submit">Créer</button></div>
+        </form>
+    </div></div>
+</main>
+</body>
+</html>

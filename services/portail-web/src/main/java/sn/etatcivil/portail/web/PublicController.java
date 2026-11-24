@@ -1,5 +1,7 @@
 package sn.etatcivil.portail.web;
 
+import java.util.List;
+
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Controller;
@@ -41,9 +43,19 @@ class PublicController {
 
     @GetMapping("/documents")
     String documents(Model model) {
-        model.addAttribute("documents", api.documents().stream()
-                .sorted(java.util.Comparator.comparingInt(Vues.TypeDocument::rangFamille))
+        List<Vues.Nature> natures = api.natures(true);
+        java.util.Map<Long, Integer> rang = new java.util.HashMap<>();
+        for (int i = 0; i < natures.size(); i++) rang.put(natures.get(i).id(), i);
+        List<Vues.TypeDocument> documents = api.documents();
+        model.addAttribute("documents", documents.stream()
+                .sorted(java.util.Comparator.comparingInt((Vues.TypeDocument t) -> rang.getOrDefault(t.natureId(), 999))
+                        .thenComparing(Vues.TypeDocument::libelle))
                 .toList());
+        // seules les natures qui ont des documents disponibles servent de filtre
+        model.addAttribute("natures", natures.stream().filter(n -> documents.stream().anyMatch(t -> n.id().equals(t.natureId()))).toList());
+        java.util.Map<Long, String> libelles = new java.util.HashMap<>();
+        documents.forEach(t -> libelles.put(t.id(), t.libelle()));
+        model.addAttribute("libelles", libelles);
         return "documents";
     }
 

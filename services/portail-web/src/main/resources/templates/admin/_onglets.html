@@ -7,6 +7,9 @@
     <a sec:authorize="hasRole('HABILITATIONS_GERER')" class="nav-link" th:classappend="${actif == 'roles'} ? 'active'" th:href="@{/admin/roles}"><i class="bi bi-diagram-3 me-1"></i>Rôles</a>
     <a sec:authorize="hasRole('HABILITATIONS_GERER')" class="nav-link" th:classappend="${actif == 'permissions'} ? 'active'" th:href="@{/admin/permissions}"><i class="bi bi-ui-checks-grid me-1"></i>Permissions</a>
     <a sec:authorize="hasRole('CATALOGUE_GERER')" class="nav-link" th:classappend="${actif == 'documents'} ? 'active'" th:href="@{/admin/documents}"><i class="bi bi-tags me-1"></i>Documents et tarifs</a>
+    <a sec:authorize="hasRole('CATALOGUE_GERER')" class="nav-link" th:classappend="${actif == 'natures'} ? 'active'" th:href="@{/admin/natures}"><i class="bi bi-collection me-1"></i>Natures</a>
+    <a sec:authorize="hasRole('CATALOGUE_GERER')" class="nav-link" th:classappend="${actif == 'motifs'} ? 'active'" th:href="@{/admin/motifs}"><i class="bi bi-list-check me-1"></i>Motifs</a>
+    <a sec:authorize="hasRole('CATALOGUE_GERER')" class="nav-link" th:classappend="${actif == 'missions'} ? 'active'" th:href="@{/admin/missions}"><i class="bi bi-globe-americas me-1"></i>Diaspora</a>
     <a sec:authorize="hasRole('JOURNAL_CONSULTER')" class="nav-link" th:classappend="${actif == 'journal'} ? 'active'" th:href="@{/admin/journal}"><i class="bi bi-clock-history me-1"></i>Journal</a>
 </nav>
 

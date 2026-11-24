@@ -50,7 +50,7 @@ class PortailTest {
                         "desc", "MARIAGE", true, true, "COPIE_INTEGRALE", "TRANSCRIPTION", 500, 1, true)));
         mvc.perform(get("/")).andExpect(status().isOk()).andExpect(content().string(org.hamcrest.Matchers.containsString(">500<")));
         mvc.perform(get("/documents")).andExpect(status().isOk())
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("data-category=\"CERTIFICAT\"")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("data-famille=\"CERTIFICAT\"")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString(">Transcription<")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("accent-certificat")));
         mvc.perform(get("/verification")).andExpect(status().isOk());
@@ -191,6 +191,15 @@ class PortailTest {
         mvc.perform(get("/admin/permissions/DEMANDES_DEPOSER").with(utilisateur("ADMIN"))).andExpect(status().isOk());
         mvc.perform(get("/admin/journal").with(utilisateur("ADMIN"))).andExpect(status().isOk());
         mvc.perform(get("/admin/documents").with(utilisateur("ADMIN"))).andExpect(status().isOk());
+        when(api.referentielsCatalogue()).thenReturn(new Vues.ReferentielsCatalogue(
+                List.of(new Vues.Libelle("EXTRAIT", "Extrait")), List.of(new Vues.Libelle("PARENTS", "Filiation")),
+                List.of(new Vues.Libelle("NAISSANCE", "Naissance")), List.of()));
+        when(api.diaspora()).thenReturn(new Vues.ReferentielDiaspora(List.of(new Vues.Pays(1L, "France", "FRA", "Europe", "Paris", "Europe")),
+                List.of("Consulat"), List.of("Europe")));
+        for (String page : List.of("/admin/documents/nouveau", "/admin/natures", "/admin/motifs", "/admin/missions")) {
+            mvc.perform(get(page).with(utilisateur("ADMIN"))).andExpect(status().isOk());
+        }
+        mvc.perform(get("/admin/natures").with(utilisateur("DELEGUE"))).andExpect(status().isForbidden());
 
         // la matrice envoie, pour chaque rôle, les permissions cochées (un rôle tout décoché part vide)
         mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/admin/permissions/matrice")

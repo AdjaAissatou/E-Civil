@@ -14,6 +14,10 @@
         <strong th:text="${code}"></strong>. Ce document n'est pas authentique ou le code a été mal saisi.
     </div>
 
+    <div th:if="${document != null and document.complements != null and document.complements.expire()}" class="alert alert-warning">
+        <i class="bi bi-hourglass-bottom me-2"></i>Ce document est authentique mais <strong>n'est plus valable</strong> depuis le
+        <span th:text="${#temporals.format(document.complements.valableJusquAu, 'dd/MM/yyyy')}"></span> : demandez-en un nouveau.
+    </div>
     <div th:if="${document}" class="card border-success">
         <div class="card-header bg-success text-white"><i class="bi bi-patch-check me-2"></i>Document authentique</div>
         <div class="card-body">
@@ -21,6 +25,14 @@
                toute différence signifie qu'il a été falsifié.</p>
             <dl class="row fiche">
                 <dt class="col-sm-4">Document</dt><dd class="col-sm-8" th:text="${document.libelleDocument}"></dd>
+                <th:block th:if="${document.acte == null and document.complements != null and document.complements.declaration != null}"
+                          th:with="dc=${document.complements.declaration}">
+                    <dt class="col-sm-4">Établi</dt><dd class="col-sm-8">sur comparution devant l'officier, sans acte du registre</dd>
+                    <dt class="col-sm-4">Personne</dt><dd class="col-sm-8" th:text="${dc.prenom} + ' ' + ${dc.nom}"></dd>
+                    <dt class="col-sm-4" th:if="${dc.dateNaissance}">Née le</dt>
+                    <dd class="col-sm-8" th:if="${dc.dateNaissance}" th:text="${#temporals.format(dc.dateNaissance, 'dd/MM/yyyy')} + (${dc.lieuNaissance} ? ' à ' + ${dc.lieuNaissance} : '')"></dd>
+                </th:block>
+                <th:block th:if="${document.acte}">
                 <dt class="col-sm-4">Numéro d'acte</dt><dd class="col-sm-8" th:text="${document.acte.numeroActe}"></dd>
                 <dt class="col-sm-4">Centre d'état civil</dt><dd class="col-sm-8" th:text="${document.acte.centre}"></dd>
                 <dt class="col-sm-4" th:text="${document.acte.typeActe == 'RECONNAISSANCE'} ? 'Enfant reconnu' : 'Titulaire'">Titulaire</dt><dd class="col-sm-8" th:text="${document.acte.prenom} + ' ' + ${document.acte.nom}"></dd>
@@ -31,6 +43,14 @@
                 <th:block th:if="${document.acte.libelleOrigine}">
                     <dt class="col-sm-4" th:text="${document.acte.libelleOrigine}"></dt>
                     <dd class="col-sm-8" th:text="${document.acte.referenceOrigine}"></dd>
+                </th:block>
+                </th:block>
+                <th:block th:if="${document.complements != null and document.complements.mention != null}">
+                    <dt class="col-sm-4">Mention reproduite</dt><dd class="col-sm-8" th:text="${document.complements.mention}"></dd>
+                </th:block>
+                <th:block th:if="${document.complements != null and document.complements.valableJusquAu != null}">
+                    <dt class="col-sm-4">Valable jusqu'au</dt>
+                    <dd class="col-sm-8" th:text="${#temporals.format(document.complements.valableJusquAu, 'dd/MM/yyyy')}"></dd>
                 </th:block>
                 <th:block th:if="${document.complements != null and document.complements.constat != null}">
                     <dt class="col-sm-4">Constat</dt><dd class="col-sm-8" th:text="${document.complements.constat}"></dd>

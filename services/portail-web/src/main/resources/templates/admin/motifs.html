@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: page('Motifs', ~{::main})}">
+<body>
+<main class="container-fluid px-lg-5 py-4">
+    <span class="surtitre">Administration</span>
+    <h1 class="h3">Motifs de demande</h1>
+    <nav th:replace="~{admin/_onglets :: onglets('motifs')}"></nav>
+    <p class="text-muted">Un motif commun est proposé pour tous les documents ; un motif propre ne l'est que pour son document.
+        Les pièces à fournir s'affichent au citoyen quand il choisit le motif.</p>
+    <div class="card mb-4"><div class="table-responsive">
+        <table class="table align-middle mb-0">
+            <thead><tr><th style="width:80px">Ordre</th><th>Libellé</th><th>Pièces à fournir</th><th>Document</th><th></th></tr></thead>
+            <tbody>
+            <tr th:each="m : ${motifs}">
+                <td colspan="5">
+                    <form class="row g-2 align-items-center" method="post" th:action="@{/admin/motifs}">
+                        <input type="hidden" name="id" th:value="${m.id}">
+                        <div class="col-md-1"><input class="form-control form-control-sm" type="number" name="ordre" min="0" max="999" th:value="${m.ordre}" aria-label="Ordre"></div>
+                        <div class="col-md-3"><input class="form-control form-control-sm" name="libelle" required maxlength="150" th:value="${m.libelle}" aria-label="Libellé"></div>
+                        <div class="col-md-4"><input class="form-control form-control-sm" name="piecesRequises" maxlength="500" th:value="${m.piecesRequises}" aria-label="Pièces"></div>
+                        <div class="col-md-3"><select class="form-select form-select-sm" name="typeDocumentId" aria-label="Document">
+                            <option value="">Tous les documents</option>
+                            <option th:each="d : ${documents}" th:value="${d.key}" th:text="${d.value}" th:selected="${m.typeDocumentId == d.key}"></option>
+                        </select></div>
+                        <div class="col-md-1"><button class="btn btn-outline-primary btn-sm" type="submit">OK</button></div>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div></div>
+    <div class="card"><div class="card-body">
+        <h2 class="h6 text-brun">Nouveau motif</h2>
+        <form class="row g-2" method="post" th:action="@{/admin/motifs}">
+            <div class="col-md-3"><input class="form-control" name="libelle" required maxlength="150" placeholder="Libellé"></div>
+            <div class="col-md-4"><input class="form-control" name="piecesRequises" maxlength="500" placeholder="Pièces à fournir"></div>
+            <div class="col-md-3"><select class="form-select" name="typeDocumentId" aria-label="Document">
+                <option value="">Tous les documents</option>
+                <option th:each="d : ${documents}" th:value="${d.key}" th:text="${d.value}"></option>
+            </select></div>
+            <div class="col-md-2"><button class="btn btn-primary w-100" type="submit">Ajouter</button></div>
+        </form>
+    </div></div>
+</main>
+</body>
+</html>

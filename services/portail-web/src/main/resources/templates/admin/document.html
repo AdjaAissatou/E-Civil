@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page(${document} ? ${document.libelle} : 'Nouveau document', ~{::main})}">
+<body>
+<main class="container py-4" th:with="t=${document}">
+    <a class="small text-decoration-none" th:href="@{/admin/documents}"><i class="bi bi-arrow-left me-1"></i>Documents et tarifs</a>
+    <h1 class="h3 mt-2 mb-4" th:text="${t} ? ${t.libelle} : 'Nouveau document'"></h1>
+
+    <form method="post" th:action="@{/admin/documents/enregistrement}" class="row g-4">
+        <input type="hidden" name="id" th:if="${t}" th:value="${t.id}">
+        <div class="col-lg-8">
+            <div class="card mb-3"><div class="card-body row g-3">
+                <h2 class="h6 text-brun col-12 mb-0">Identification</h2>
+                <div class="col-md-5" th:unless="${t}"><label class="form-label" for="code">Code</label>
+                    <input class="form-control text-uppercase" id="code" name="code" required maxlength="60" placeholder="ex. COPIE_ADOPTION"></div>
+                <div th:class="${t} ? 'col-12' : 'col-md-7'"><label class="form-label" for="libelle">Libellé</label>
+                    <input class="form-control" id="libelle" name="libelle" required maxlength="150" th:value="${t?.libelle}"></div>
+                <div class="col-12"><label class="form-label" for="description">Description (visible des citoyens)</label>
+                    <textarea class="form-control" id="description" name="description" rows="2" maxlength="500" th:text="${t?.description}"></textarea></div>
+                <div class="col-md-6"><label class="form-label" for="natureId">Nature</label>
+                    <select class="form-select" id="natureId" name="natureId" required>
+                        <option th:each="n : ${natures}" th:value="${n.id}" th:text="${n.libelle} + (${n.active} ? '' : ' (inactive)')"
+                                th:selected="${t != null and t.natureId == n.id}"></option>
+                    </select></div>
+                <div class="col-md-6"><label class="form-label" for="motsCles">Mots-clés de recherche</label>
+                    <input class="form-control" id="motsCles" name="motsCles" maxlength="255" th:value="${t?.motsCles}"
+                           placeholder="naissance, enfant, filiation…"></div>
+            </div></div>
+
+            <div class="card mb-3"><div class="card-body row g-3">
+                <h2 class="h6 text-brun col-12 mb-0">Contenu</h2>
+                <div class="col-md-6"><label class="form-label" for="modele">Modèle (ce que contient le document)</label>
+                    <select class="form-select" id="modele" name="modele" required>
+                        <option th:each="m : ${referentiels.modeles}" th:value="${m.code}" th:text="${m.libelle}"
+                                th:selected="${t != null and t.modele == m.code}"></option>
+                    </select></div>
+                <div class="col-md-6"><label class="form-label" for="typeActe">Acte sur lequel il s'appuie</label>
+                    <select class="form-select" id="typeActe" name="typeActe" required>
+                        <option th:each="a : ${referentiels.typesActe}" th:value="${a.code}" th:text="${a.libelle}"
+                                th:selected="${t != null and t.typeActe == a.code}"></option>
+                    </select></div>
+                <div class="col-md-6"><label class="form-label" for="origine">Origine exigée de l'acte</label>
+                    <select class="form-select" id="origine" name="origine">
+                        <option value="">Toute origine</option>
+                        <option value="JUGEMENT_SUPPLETIF" th:selected="${t != null and t.origine == 'JUGEMENT_SUPPLETIF'}">Jugement supplétif</option>
+                        <option value="TRANSCRIPTION" th:selected="${t != null and t.origine == 'TRANSCRIPTION'}">Transcription d'un acte étranger</option>
+                    </select></div>
+                <div class="col-md-6"><label class="form-label" for="typeMention">Mention reproduite (extrait de mention)</label>
+                    <select class="form-select" id="typeMention" name="typeMention">
+                        <option value="">—</option>
+                        <option th:each="m : ${typesMentions}" th:value="${m.code}" th:text="${m.libelle}"
+                                th:selected="${t != null and t.typeMention == m.code}"></option>
+                    </select></div>
+                <div class="col-12">
+                    <span class="form-label d-block">Rubriques du formulaire de demande</span>
+                    <div class="form-check form-check-inline" th:each="c : ${referentiels.champs}">
+                        <input class="form-check-input" type="checkbox" name="champ" th:value="${c.code}" th:id="'c-' + ${c.code}"
+                               th:checked="${t != null and t.demande(c.code)}">
+                        <label class="form-check-label" th:for="'c-' + ${c.code}" th:text="${c.libelle}"></label>
+                    </div>
+                </div>
+                <div class="col-12"><label class="form-label" for="piecesAFournir">Pièces à fournir</label>
+                    <textarea class="form-control" id="piecesAFournir" name="piecesAFournir" rows="2" maxlength="1000" th:text="${t?.piecesAFournir}"></textarea></div>
+            </div></div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card mb-3"><div class="card-body row g-3">
+                <h2 class="h6 text-brun col-12 mb-0">Délivrance</h2>
+                <div class="col-6"><label class="form-label" for="tarif">Tarif (FCFA)</label>
+                    <input class="form-control" id="tarif" name="tarif" type="number" min="200" step="50" required th:value="${t?.tarif ?: 500}"></div>
+                <div class="col-6"><label class="form-label" for="delaiJours">Délai (jours)</label>
+                    <input class="form-control" id="delaiJours" name="delaiJours" type="number" min="1" max="60" required th:value="${t?.delaiJours ?: 1}"></div>
+                <div class="col-12"><label class="form-label" for="dureeValiditeJours">Durée de validité (jours)</label>
+                    <input class="form-control" id="dureeValiditeJours" name="dureeValiditeJours" type="number" min="1" max="3650" th:value="${t?.dureeValiditeJours}">
+                    <div class="form-text">Laisser vide : sans limite.</div></div>
+                <div class="col-12 form-check ms-2">
+                    <input class="form-check-input" type="checkbox" id="estOriginal" name="estOriginal" value="true" th:checked="${t != null and t.estOriginal}">
+                    <label class="form-check-label" for="estOriginal">Document original</label></div>
+                <div class="col-12"><label class="form-label" for="copieDeId">Copie de</label>
+                    <select class="form-select" id="copieDeId" name="copieDeId">
+                        <option value="">—</option>
+                        <option th:each="o : ${originaux}" th:value="${o.id}" th:text="${o.libelle}"
+                                th:selected="${t != null and t.copieDeId == o.id}"></option>
+                    </select></div>
+                <div class="col-12 form-check ms-2">
+                    <input class="form-check-input" type="checkbox" id="actif" name="actif" value="true" th:checked="${t == null or t.actif}">
+                    <label class="form-check-label" for="actif">Proposé aux citoyens</label></div>
+            </div></div>
+            <button class="btn btn-primary w-100" type="submit" th:text="${t} ? 'Enregistrer' : 'Créer le document'"></button>
+            <div class="card mt-3" th:if="${t}"><div class="card-body">
+                <h2 class="h6 text-brun">Motifs propres</h2>
+                <p th:if="${motifsPropres.isEmpty()}" class="small text-muted mb-1">Seuls les motifs communs sont proposés.</p>
+                <div th:each="m : ${motifsPropres}" class="small py-1"><strong th:text="${m.libelle}"></strong>
+                    <span class="text-muted" th:if="${m.piecesRequises}" th:text="' — ' + ${m.piecesRequises}"></span></div>
+                <a class="small" th:href="@{/admin/motifs}">Gérer les motifs</a>
+            </div></div>
+        </div>
+    </form>
+</main>
+</body>
+</html>

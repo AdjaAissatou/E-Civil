@@ -1,26 +1,38 @@
 <!DOCTYPE html>
 <html lang="fr" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: page('Documents et tarifs', ~{::main})}">
 <body>
-<main class="container py-4">
-    <span class="surtitre">Administration</span>
-    <h1 class="h3">Documents et tarifs</h1>
+<main class="container-fluid px-lg-5 py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-3">
+        <div>
+            <span class="surtitre">Administration</span>
+            <h1 class="h3 mb-0">Documents et tarifs</h1>
+        </div>
+        <a class="btn btn-primary btn-sm" th:href="@{/admin/documents/nouveau}"><i class="bi bi-plus-lg me-1"></i>Nouveau document</a>
+    </div>
     <nav th:replace="~{admin/_onglets :: onglets('documents')}"></nav>
-    <p class="text-muted">Le tarif est figé au dépôt de chaque demande : une modification ne s'applique qu'aux nouvelles demandes.</p>
+    <p class="text-muted">Chaque document (variété) appartient à une nature. Le tarif est figé au dépôt de chaque demande :
+        une modification ne s'applique qu'aux nouvelles demandes.</p>
     <div class="card"><div class="table-responsive">
         <table class="table align-middle mb-0">
-            <thead><tr><th>Document</th><th>Acte</th><th style="width:150px">Tarif (FCFA)</th><th style="width:120px">Délai (jours)</th><th>Proposé</th><th></th></tr></thead>
+            <thead><tr><th>Document</th><th>Nature</th><th>Modèle</th><th>Validité</th>
+                <th style="width:130px">Tarif (FCFA)</th><th style="width:100px">Délai (j)</th><th>Proposé</th><th></th><th></th></tr></thead>
             <tbody>
             <tr th:each="t : ${documents}">
-                <td th:text="${t.libelle}"></td>
-                <td th:text="${t.libelleActe}"></td>
+                <td><div class="fw-semibold" th:text="${t.libelle}"></div><code class="small" th:text="${t.code}"></code>
+                    <span th:if="${t.estOriginal}" class="etiquette ms-1">original</span>
+                    <span th:if="${t.copieDeId}" class="etiquette ms-1">copie</span></td>
+                <td class="small" th:text="${t.libelleNature}"></td>
+                <td class="small" th:text="${t.libelleModele}"></td>
+                <td class="small" th:text="${t.libelleValidite()}"></td>
                 <td colspan="4">
                     <form class="row g-2 align-items-center" th:action="@{/admin/documents/{id}(id=${t.id})}" method="post">
-                        <div class="col-4"><input class="form-control form-control-sm" type="number" min="200" step="50" name="tarif" th:value="${t.tarif}"></div>
-                        <div class="col-3"><input class="form-control form-control-sm" type="number" min="1" max="60" name="delaiJours" th:value="${t.delaiJours}"></div>
-                        <div class="col-2"><input class="form-check-input" type="checkbox" name="actif" value="true" th:checked="${t.actif}"></div>
+                        <div class="col-5"><input class="form-control form-control-sm" type="number" min="200" step="50" name="tarif" th:value="${t.tarif}" aria-label="Tarif"></div>
+                        <div class="col-3"><input class="form-control form-control-sm" type="number" min="1" max="60" name="delaiJours" th:value="${t.delaiJours}" aria-label="Délai"></div>
+                        <div class="col-1"><input class="form-check-input" type="checkbox" name="actif" value="true" th:checked="${t.actif}" aria-label="Proposé"></div>
                         <div class="col-3"><button class="btn btn-sm btn-outline-primary" type="submit">Enregistrer</button></div>
                     </form>
                 </td>
+                <td class="text-end"><a class="btn btn-link btn-sm" th:href="@{/admin/documents/{id}/modifier(id=${t.id})}">Tout modifier</a></td>
             </tr>
             </tbody>
         </table>

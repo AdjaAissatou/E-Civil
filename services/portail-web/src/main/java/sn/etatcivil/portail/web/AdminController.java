@@ -54,7 +54,12 @@ class AdminController {
 
     @GetMapping("/documents")
     String documents(Model model) {
-        model.addAttribute("documents", api.tousLesDocuments());
+        var natures = api.natures(false);
+        java.util.Map<Long, Integer> rang = new java.util.HashMap<>();
+        for (int i = 0; i < natures.size(); i++) rang.put(natures.get(i).id(), i);
+        model.addAttribute("documents", api.tousLesDocuments().stream()
+                .sorted(java.util.Comparator.comparingInt((sn.etatcivil.portail.clients.Vues.TypeDocument t) -> rang.getOrDefault(t.natureId(), 999))
+                        .thenComparing(sn.etatcivil.portail.clients.Vues.TypeDocument::libelle)).toList());
         return "admin/documents";
     }
 

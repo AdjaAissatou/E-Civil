@@ -43,7 +43,8 @@ class ConfigurationSecurite {
                         .requestMatchers("/admin/utilisateurs/**").hasRole("UTILISATEURS_GERER")
                         .requestMatchers("/admin/profils/**", "/admin/roles/**", "/admin/permissions/**").hasRole("HABILITATIONS_GERER")
                         .requestMatchers("/admin/journal/**").hasRole("JOURNAL_CONSULTER")
-                        .requestMatchers("/admin/documents/**").hasRole("CATALOGUE_GERER")
+                        .requestMatchers("/admin/documents/**", "/admin/natures/**", "/admin/motifs/**", "/admin/missions/**")
+                                .hasRole("CATALOGUE_GERER")
                         .requestMatchers("/admin", "/admin/").hasAnyRole("STATISTIQUES_CONSULTER", "UTILISATEURS_GERER", "HABILITATIONS_GERER",
                                 "CATALOGUE_GERER", "JOURNAL_CONSULTER")
                         .requestMatchers("/admin/**").denyAll()

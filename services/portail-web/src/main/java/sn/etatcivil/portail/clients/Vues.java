@@ -295,7 +295,22 @@ public final class Vues {
                          String lieuNaissance) {}
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public record Complements(String modele, String motif, String constat, List<Enfant> enfants) {}
+    public record Complements(String modele, String motif, String constat, List<Enfant> enfants, LocalDate valableJusquAu,
+                              Declaration declaration, String mention) {
+        public Complements(String modele, String motif, String constat, List<Enfant> enfants) {
+            this(modele, motif, constat, enfants, null, null, null);
+        }
+
+        /** Le document a cessé d'être valable (date de fin dépassée, heure de Dakar). */
+        public boolean expire() {
+            return valableJusquAu != null && java.time.LocalDate.now(java.time.ZoneId.of("Africa/Dakar")).isAfter(valableJusquAu);
+        }
+    }
+
+    /** Identité et déclaration de la personne, pour un document établi sur comparution. */
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record Declaration(String nom, String prenom, String sexe, LocalDate dateNaissance, String lieuNaissance,
+                              String profession, String residence, String temoin1, String temoin2, String precisions) {}
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record Verification(String libelleDocument, Acte acte, Complements complements, String signataire,
