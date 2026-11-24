@@ -127,21 +127,38 @@ Les comptes techniques des services portent le rôle `SERVICE`.
 
 ## Catalogue des documents
 
-19 documents, repris du catalogue de la version d'origine et limités à ce que délivre l'état civil. Chacun a
-un **modèle** (ce qu'il contient) et, pour certains, une **origine exigée** de l'acte :
+Le catalogue suit le modèle **Nature / Variété** de la version d'origine : **15 natures** (familles) regroupent
+**46 variétés** (documents délivrables). Chaque variété a un **modèle** (ce que contient le document), l'acte
+sur lequel elle s'appuie, les rubriques du formulaire de demande, un tarif, un délai, une **durée de validité**,
+des mots-clés, les **pièces à fournir**, et, pour une copie, le document **original** qu'elle reproduit.
 
-| Famille | Documents | Comment ils sont établis |
-|---|---|---|
-| Naissance | Extrait (avec ou sans filiation), copie littérale, jugement supplétif, transcription d'acte étranger | à partir de l'acte de naissance |
-| Reconnaissance | Copie d'acte de reconnaissance (paternelle, maternelle, anticipée) | à partir de l'acte de reconnaissance |
-| Mariage | Extrait, copie littérale, jugement supplétif, transcription, duplicata de livret de famille | le livret reprend l'acte de mariage et les naissances des enfants du couple |
-| Divorce | Extrait d'acte de divorce | à partir de l'acte de divorce |
-| Décès | Extrait, copie littérale, jugement supplétif, transcription | à partir de l'acte de décès |
-| Certificats | Célibat, capacité matrimoniale, vie | à partir de l'acte de naissance **et** de la situation de la personne dans le registre |
+| Nature | Documents |
+|---|---|
+| Naissance | Acte original, extrait (avec ou sans filiation), certificat de naissance |
+| Reconnaissance | Copie d'acte, enfant naturel, anticipée, paternelle, maternelle, certificat de reconnaissance |
+| Mariage | Acte original, extrait, certificat de mariage |
+| Divorce | Extrait d'acte de divorce |
+| Décès | Acte original, extrait, certificat de décès |
+| Copie | Copies littérales de naissance, de mariage et de décès (copies de l'original) |
+| Jugement supplétif, Transcription | Naissance, mariage, décès |
+| Mention marginale | Extraits de mention de divorce et de légitimation |
+| Livret de famille | Livret, duplicata |
+| Célibat, Vie individuelle | Célibat (mariage civil, religieux, adoption) ; vie (retraite, pension, succession, vie individuelle) |
+| Nationalité, Domicile, Coutume | Nationalité (3), non-appartenance, domicile (3), coutume, capacité matrimoniale |
+
+L'administration gère natures, documents, motifs (communs ou propres à un document, avec leurs pièces) et le
+référentiel de la diaspora (pays, missions diplomatiques). Les certificats de non-appartenance et de coutume
+sont établis **sur comparution** devant l'officier, sans acte du registre. Un Sénégalais de l'étranger peut
+retirer un document papier à la **mission diplomatique** qui couvre son pays de résidence.
+
+Ce que la version d'origine faisait et comment chaque élément a été rétabli : [`docs/comparaison-v1.md`](docs/comparaison-v1.md).
 
 - **Origine de l'acte.** Un acte est dressé sur déclaration ordinaire, en exécution d'un **jugement supplétif**
   ou par **transcription** d'un acte étranger ; l'agent en saisit les références. Les documents « jugement
   supplétif » et « transcription » ne retrouvent que les actes de cette origine.
+- **Registre.** Les mentions marginales (mariage, divorce, légitimation…) sont rattachées à l'acte qu'elles
+  modifient ; chaque acte a son journal (saisie, corrections champ par champ, validation, mentions, avec
+  l'agent) ; la commune se choisit dans le référentiel (66 communes, 14 régions).
 - **Certificats.** registre-service établit la situation civile d'une personne : ses mariages (dissous ou non
   par un divorce ou le décès du conjoint) et son décès. Le certificat de célibat exige qu'aucun mariage ne
   soit inscrit, la capacité matrimoniale qu'aucun mariage ne soit en cours, le certificat de vie qu'aucun décès

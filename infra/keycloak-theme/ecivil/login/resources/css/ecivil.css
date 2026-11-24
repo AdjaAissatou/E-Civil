@@ -224,3 +224,19 @@ h1#kc-page-title {
   .login-pf-page .card-pf { margin: 0 14px; max-width: none; width: auto; padding: 30px 22px 24px; }
   h1#kc-page-title { font-size: 23px; }
 }
+
+/* Listes déroulantes (sexe…) : la règle « background » ci-dessus effaçait la flèche de PatternFly et la répétait */
+select.pf-c-form-control {
+  background-color: var(--ivoire);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='%23417867' d='M3.2 5.6 8 10.4l4.8-4.8'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right .9rem center;
+  background-size: 14px 14px;
+  padding-right: 2.4rem;
+  appearance: none;
+}
+select.pf-c-form-control:focus {
+  background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='%23417867' d='M3.2 5.6 8 10.4l4.8-4.8'/%3E%3C/svg%3E") no-repeat right .9rem center / 14px 14px;
+}
+/* Groupe « Informations personnelles » aligné sur les autres champs */
+.pf-c-form__group .kc-form-group-header, #kc-register-form .pf-c-form__group-header { padding-left: 0; }

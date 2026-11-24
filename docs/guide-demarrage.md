@@ -138,8 +138,14 @@ git pull
 docker compose up --build -d
 ```
 
-Les données sont conservées. Au premier démarrage, le service des habilitations crée sa base, les profils,
-rôles et permissions, puis range chaque compte existant dans le profil de son ancien rôle.
+Les données sont conservées. Au premier démarrage :
+
+- le service des habilitations crée sa base, les profils, rôles et permissions, range chaque compte existant
+  dans le profil de son ancien rôle et ajoute les informations personnelles à la page d'inscription ;
+- le catalogue passe aux natures et variétés (46 documents), les référentiels (communes, diaspora) sont créés ;
+- les mentions marginales déjà saisies deviennent des mentions rattachées à leur acte.
+
+Comptez deux à trois minutes avant que tous les services répondent (`docker compose ps`).
 
 ## 6. Activer le paiement (PayDunya, mode test)
 
