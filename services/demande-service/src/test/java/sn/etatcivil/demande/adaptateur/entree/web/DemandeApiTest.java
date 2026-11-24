@@ -122,6 +122,25 @@ class DemandeApiTest {
     }
 
     @Test
+    void referentielDeLaDiaspora() throws Exception {
+        mvc.perform(get("/api/catalogue/diaspora")).andExpect(status().isOk())
+                .andExpect(jsonPath("$.pays.length()").value(14))
+                .andExpect(jsonPath("$.typesMission.length()").value(4))
+                .andExpect(jsonPath("$.zones.length()").value(8));
+        String referentiel = mvc.perform(get("/api/catalogue/diaspora")).andReturn().getResponse()
+                .getContentAsString(java.nio.charset.StandardCharsets.UTF_8);
+        Integer belgique = JsonPath.<List<Integer>>read(referentiel, "$.pays[?(@.codeIso == 'BEL')].id").get(0);
+        mvc.perform(get("/api/catalogue/diaspora/missions").param("pays", belgique.toString()))
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].nom").value("Ambassade du Sénégal en France"));
+        mvc.perform(get("/api/catalogue/diaspora/missions")).andExpect(jsonPath("$.length()").value(5));
+        mvc.perform(post("/api/catalogue/diaspora/pays").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"nom\":\"Maroc\",\"codeIso\":\"mar\",\"continent\":\"Afrique\",\"capitale\":\"Rabat\",\"zone\":\"Afrique du Nord\"}")
+                        .with(utilisateur("admin", "ADMIN")))
+                .andExpect(status().isCreated()).andExpect(jsonPath("$.codeIso").value("MAR"));
+    }
+
+    @Test
     void parcoursEtCloisonnement() throws Exception {
         String id = deposer();
         mvc.perform(get("/api/demandes/" + id).with(MOUSSA)).andExpect(status().isNotFound());

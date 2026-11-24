@@ -48,12 +48,13 @@ public record DepotRequete(
         @Size(max = 255) String lieuDeces,
         @Size(max = 255) String typeMention,
         @Size(max = 1000) String detailsMention,
-        @Size(max = 1000) String precisions) {
+        @Size(max = 1000) String precisions,
+        Long missionRetraitId) {
 
     DemandeADeposer versCommande() {
         return new DemandeADeposer(typeDocumentId, motifId, precisionMotif, lien, format, adresseLivraison, villeLivraison,
                 new PersonneConcernee(nom, prenom, sexe, dateNaissance, lieuNaissance, nomPere, prenomPere, nomMere,
                         prenomMere, nomConjoint, prenomConjoint, dateEvenement),
-                new ComplementsDemande(profession, residence, professionPere, residencePere, professionMere, residenceMere, dateNaissanceConjoint, lieuNaissanceConjoint, professionConjoint, residenceConjoint, temoin1, temoin2, medecin, adresseMedecin, causeDeces, lieuDeces, typeMention, detailsMention, precisions));
+                new ComplementsDemande(profession, residence, professionPere, residencePere, professionMere, residenceMere, dateNaissanceConjoint, lieuNaissanceConjoint, professionConjoint, residenceConjoint, temoin1, temoin2, medecin, adresseMedecin, causeDeces, lieuDeces, typeMention, detailsMention, precisions), missionRetraitId);
     }
 }

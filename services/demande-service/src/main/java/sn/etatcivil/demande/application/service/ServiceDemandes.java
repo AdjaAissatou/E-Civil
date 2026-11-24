@@ -22,10 +22,12 @@ public class ServiceDemandes implements GererMesDemandes, ConsulterDemandes, Ins
     private final ServiceDocuments documents;
     private final EvenementsDemande evenements;
     private final Horloge horloge;
+    private final ReferentielDiaspora diaspora;
 
     public ServiceDemandes(DemandeRepository demandes, CatalogueRepository catalogue, GenerateurReference references,
                            RegistreCivil registre, ServiceDocuments documents, EvenementsDemande evenements,
-                           Horloge horloge) {
+                           Horloge horloge, ReferentielDiaspora diaspora) {
+        this.diaspora = diaspora;
         this.demandes = demandes;
         this.catalogue = catalogue;
         this.references = references;
@@ -44,8 +46,16 @@ public class ServiceDemandes implements GererMesDemandes, ConsulterDemandes, Ins
         Motif motif = catalogue.motif(c.motifId()).orElseThrow(() -> new RegleMetierException("Motif inconnu"));
         Instant maintenant = horloge.maintenant();
         String reference = references.suivante(maintenant.atZone(ZoneId.of("Africa/Dakar")).getYear());
+        String adresse = c.adresseLivraison(), ville = c.villeLivraison();
+        if (c.missionRetraitId() != null && c.format() == FormatDocument.PHYSIQUE) {
+            // document papier retiré à la mission diplomatique (diaspora) : l'adresse est celle de la mission
+            MissionDiplomatique m = diaspora.mission(c.missionRetraitId()).filter(MissionDiplomatique::active)
+                    .orElseThrow(() -> new RegleMetierException("Mission diplomatique inconnue"));
+            adresse = m.adresseDeRetrait();
+            ville = m.ville() + " (" + m.pays() + ")";
+        }
         Demande d = Demande.deposer(reference, demandeur, type, motif, c.precisionMotif(), c.lien(), c.format(),
-                c.adresseLivraison(), c.villeLivraison(), c.personne(), c.complements(), maintenant);
+                adresse, ville, c.personne(), c.complements(), maintenant);
         return sauver(d);
     }
 

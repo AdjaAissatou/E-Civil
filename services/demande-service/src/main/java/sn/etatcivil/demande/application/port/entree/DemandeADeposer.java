@@ -8,7 +8,14 @@ import sn.etatcivil.demande.domaine.PersonneConcernee;
 
 public record DemandeADeposer(Long typeDocumentId, Long motifId, String precisionMotif, LienDemandeur lien,
                               FormatDocument format, String adresseLivraison, String villeLivraison,
-                              PersonneConcernee personne, ComplementsDemande complements) {
+                              PersonneConcernee personne, ComplementsDemande complements, Long missionRetraitId) {
+
+    public DemandeADeposer(Long typeDocumentId, Long motifId, String precisionMotif, LienDemandeur lien,
+                           FormatDocument format, String adresseLivraison, String villeLivraison, PersonneConcernee personne,
+                           ComplementsDemande complements) {
+        this(typeDocumentId, motifId, precisionMotif, lien, format, adresseLivraison, villeLivraison, personne,
+                complements, null);
+    }
 
     public DemandeADeposer(Long typeDocumentId, Long motifId, String precisionMotif, LienDemandeur lien,
                            FormatDocument format, String adresseLivraison, String villeLivraison, PersonneConcernee personne) {

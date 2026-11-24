@@ -61,7 +61,21 @@ class ServiceDemandesTest {
 
     final ServiceDemandes service = new ServiceDemandes(depot, catalogue, annee -> "DEM-" + annee + "-" + (++compteur),
             registre, doc -> { documents.add(doc); return "ABCDE-23456"; },
-            (d, c) -> evenements.add(c.nouveau().name()), () -> MAINTENANT);
+            (d, c) -> evenements.add(c.nouveau().name()), () -> MAINTENANT, diaspora());
+
+    static ReferentielDiaspora diaspora() {
+        MissionDiplomatique paris = new MissionDiplomatique(7L, "Consulat", "Consulat du Sénégal à Paris", 5L, "France", "Paris",
+                "75008", null, "12 Rue de Tilsitt, 75008 Paris", null, null, List.of(), true);
+        return new ReferentielDiaspora() {
+            public List<Pays> pays() { return List.of(); }
+            public List<String> typesMission() { return List.of("Consulat"); }
+            public List<String> zones() { return List.of(); }
+            public List<MissionDiplomatique> missions() { return List.of(paris); }
+            public Optional<MissionDiplomatique> mission(Long id) { return id == 7L ? Optional.of(paris) : Optional.empty(); }
+            public Long enregistrer(MissionDiplomatique m) { return 7L; }
+            public Long ajouterPays(String n, String c, String co, String ca, String z) { return 1L; }
+        };
+    }
 
     Demande deposer() {
         return service.deposer(new DemandeADeposer(1L, 1L, null, LienDemandeur.MOI_MEME, FormatDocument.NUMERIQUE,
@@ -231,5 +245,15 @@ class ServiceDemandesTest {
         reponseRegistre = new RegistreCivil.ResultatRecherche(RegistreCivil.Resultat.TROUVE, List.of(divorce));
         service.rechercher(d.id(), Acteur.SYSTEME);
         assertThat(stock.get(d.id()).statut()).isEqualTo(StatutDemande.ACTE_TROUVE);
+    }
+
+    @Test
+    void unDocumentPapierSeRetireALaMissionDiplomatique() {
+        Demande d = service.deposer(new DemandeADeposer(1L, 1L, null, LienDemandeur.MOI_MEME, FormatDocument.PHYSIQUE,
+                null, null, fatou(), ComplementsDemande.AUCUN, 7L), FATOU);
+        assertThat(d.adresseLivraison()).isEqualTo("Retrait à la mission : Consulat du Sénégal à Paris, 12 Rue de Tilsitt, 75008 Paris");
+        assertThat(d.villeLivraison()).isEqualTo("Paris (France)");
+        assertThatThrownBy(() -> service.deposer(new DemandeADeposer(1L, 1L, null, LienDemandeur.MOI_MEME, FormatDocument.PHYSIQUE,
+                null, null, fatou(), ComplementsDemande.AUCUN, 99L), FATOU)).hasMessageContaining("Mission");
     }
 }
