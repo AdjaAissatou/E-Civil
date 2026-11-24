@@ -18,7 +18,7 @@ Le catalogue suit le modèle Nature / Variété :
 | Élément de la version 1 | Version actuelle |
 |---|---|
 | Variétés et leurs indicateurs de champs (`conjoint`, `temoins`, `parents`, `medecin`, `mentionmarginale`, `causedeces`) | rubriques de chaque variété : filiation, professions et domiciles, conjoint, témoins, médecin, décès, mention marginale, domicile, précisions |
-| 36 natures avec tarif, **durée de validité**, délai | tarif, délai, durée de validité (imprimée sur le document, contrôlée à la vérification) |
+| 36 natures avec tarif, **durée de validité**, délai | tarif, délai, durée de validité : 3 mois pour tout document administratif, sans limite pour le livret de famille (imprimée sur le document, contrôlée à la vérification) |
 | Mots-clés de recherche | mots-clés par variété, utilisés par la recherche du catalogue |
 | Motifs par nature avec **pièces à fournir** | motifs communs ou propres à une variété, avec leurs pièces ; pièces à fournir de chaque variété |
 | Actes « originaux », premier livret de famille | variétés « Acte de … (original) » et « Livret de famille » |
@@ -43,7 +43,7 @@ Le formulaire est prérempli avec le profil du citoyen.
 | Type d'utilisateur : résident ou diaspora | « Je réside au Sénégal / à l'étranger », avec le pays de résidence |
 | Modifier son profil | page *Mon compte* |
 | Notifications par email (oui / non) | *Mon compte* ; le service de notification n'écrit plus à qui les a refusées |
-| Langue (français, wolof, anglais) | choix dans *Mon compte* ou en pied de page ; menus et pied de page traduits, le reste en français (traduction wolof à faire relire) |
+| Langue (français, wolof, anglais) | choix dans *Mon compte* ou en pied de page ; tout le portail est traduit, seuls les noms de documents et les messages des services restent en français (traduction wolof à faire relire) |
 | Compteurs des demandes par statut | en tête de *Mes demandes* |
 
 ## 4. Référentiels

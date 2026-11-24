@@ -146,6 +146,21 @@ des mots-clés, les **pièces à fournir**, et, pour une copie, le document **or
 | Célibat, Vie individuelle | Célibat (mariage civil, religieux, adoption) ; vie (retraite, pension, succession, vie individuelle) |
 | Nationalité, Domicile, Coutume | Nationalité (3), non-appartenance, domicile (3), coutume, capacité matrimoniale |
 
+**Validité.** Un document administratif est valable **3 mois** (90 jours) à compter de sa signature : la date
+limite est imprimée sur le document et contrôlée par la page de vérification. Le livret de famille et son
+duplicata restent sans limite. L'administrateur peut changer la durée de chaque variété.
+
+**Vérification d'identité.** Pour les documents sensibles (actes originaux, copies intégrales, livret de famille,
+extraits de mention, certificats de situation, de nationalité, de domicile et sur comparution), le demandeur joint
+la photo de sa pièce d'identité (recto et verso de la carte, ou page du passeport) et un selfie, pris avec la
+caméra ou importé. Les images sont réencodées (métadonnées retirées), visibles seulement des agents qui valident,
+signent ou supervisent, et effacées 30 jours après la clôture de la demande. Le délégué atteste avoir comparé
+les photos avant de valider. Les extraits et les certificats d'événement ne demandent rien de plus.
+
+**Langues.** Tout le portail est traduit en français, wolof et anglais (choix dans *Mon compte* ou en pied de
+page, paramètre `?lang=`). Les noms des documents, les libellés modifiables par l'administrateur et les messages
+d'erreur des services restent en français. La traduction wolof est à faire relire par un locuteur natif.
+
 L'administration gère natures, documents, motifs (communs ou propres à un document, avec leurs pièces) et le
 référentiel de la diaspora (pays, missions diplomatiques). Les certificats de non-appartenance et de coutume
 sont établis **sur comparution** devant l'officier, sans acte du registre. Un Sénégalais de l'étranger peut
