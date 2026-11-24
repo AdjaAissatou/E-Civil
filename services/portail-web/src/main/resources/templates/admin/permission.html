@@ -2,33 +2,33 @@
 <html lang="fr" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: page(${permission.libelle}, ~{::main})}">
 <body>
 <main class="container py-4">
-    <a class="small text-decoration-none" th:href="@{/admin/permissions}"><i class="bi bi-arrow-left me-1"></i>Permissions</a>
+    <a class="small text-decoration-none" th:href="@{/admin/permissions}"><i class="bi bi-arrow-left me-1"></i><th:block th:text="#{admin.onglets.permissions}">Permissions</th:block></a>
     <div class="d-flex flex-wrap align-items-center gap-2 mt-2 mb-1">
         <h1 class="h3 mb-0" th:text="${permission.libelle}"></h1>
         <code th:text="${permission.code}"></code>
         <span class="etiquette" th:text="${permission.famille}"></span>
     </div>
-    <p class="text-muted mb-4">Le code est vérifié par les services : il ne se modifie pas. Les textes ci-dessous
-        expliquent la permission aux administrateurs.</p>
+    <p class="text-muted mb-4"><th:block th:text="#{admin.permission.le_code_est_verifie_par_les}">Le code est vérifié par les services : il ne se modifie pas. Les textes ci-dessous
+        expliquent la permission aux administrateurs.</th:block></p>
 
     <div class="row g-4">
         <form class="col-lg-8" th:action="@{/admin/permissions/{c}(c=${permission.code})}" method="post">
             <div class="card"><div class="card-body">
-                <div class="mb-3"><label class="form-label" for="libelle">Libellé</label>
+                <div class="mb-3"><label class="form-label" for="libelle"><th:block th:text="#{admin.document.libelle}">Libellé</th:block></label>
                     <input class="form-control" id="libelle" name="libelle" required maxlength="100" th:value="${permission.libelle}"></div>
-                <div class="mb-3"><label class="form-label" for="description">Description</label>
+                <div class="mb-3"><label class="form-label" for="description"><th:block th:text="#{admin.natures.description}">Description</th:block></label>
                     <textarea class="form-control" id="description" name="description" rows="2" maxlength="300" th:text="${permission.description}"></textarea></div>
-                <div class="mb-3"><label class="form-label" for="avantage">Ce qu'elle permet</label>
+                <div class="mb-3"><label class="form-label" for="avantage"><th:block th:text="#{admin.permission.ce_qu_elle_permet}">Ce qu'elle permet</th:block></label>
                     <textarea class="form-control" id="avantage" name="avantage" rows="2" maxlength="300" th:text="${permission.avantage}"></textarea></div>
-                <div class="mb-3"><label class="form-label" for="interdiction">Sans elle</label>
+                <div class="mb-3"><label class="form-label" for="interdiction"><th:block th:text="#{admin.permission.sans_elle}">Sans elle</th:block></label>
                     <textarea class="form-control" id="interdiction" name="interdiction" rows="2" maxlength="300" th:text="${permission.interdiction}"></textarea></div>
-                <button class="btn btn-primary" type="submit">Enregistrer</button>
+                <button class="btn btn-primary" type="submit"><th:block th:text="#{admin.document.enregistrer}">Enregistrer</th:block></button>
             </div></div>
         </form>
         <div class="col-lg-4">
             <div class="card"><div class="card-body">
-                <h2 class="h6 text-brun">Rôles qui l'accordent</h2>
-                <p th:if="${roles.isEmpty()}" class="small text-muted mb-0">Aucun rôle n'accorde cette permission.</p>
+                <h2 class="h6 text-brun"><th:block th:text="#{admin.permission.roles_qui_l_accordent}">Rôles qui l'accordent</th:block></h2>
+                <p th:if="${roles.isEmpty()}" class="small text-muted mb-0"><th:block th:text="#{admin.permission.aucun_role_n_accorde_cette_permission}">Aucun rôle n'accorde cette permission.</th:block></p>
                 <a th:each="r : ${roles}" class="d-block py-1" th:href="@{/admin/roles/{c}(c=${r.code})}" th:text="${r.libelle}"></a>
             </div></div>
         </div>

@@ -1,70 +1,70 @@
 <!-- Blocs communs à la fiche citoyen et à la fiche agent -->
 <div xmlns:th="http://www.thymeleaf.org" th:fragment="resume(d)" class="card mb-3"><div class="card-body">
-    <h2 class="h6 text-brun">Personne concernée</h2>
+    <h2 class="h6 text-brun"><th:block th:text="#{agent.demandes.personne_concernee}">Personne concernée</th:block></h2>
     <dl class="row fiche mb-0">
-        <dt class="col-sm-4">Nom complet</dt><dd class="col-sm-8" th:text="${d.personneConcernee}"></dd>
-        <dt class="col-sm-4" th:if="${d.sexe}">Sexe</dt><dd class="col-sm-8" th:if="${d.sexe}" th:text="${d.sexe == 'M'} ? 'Masculin' : 'Féminin'"></dd>
-        <dt class="col-sm-4" th:if="${d.dateNaissance}">Né(e) le</dt>
-        <dd class="col-sm-8" th:if="${d.dateNaissance}" th:text="${#temporals.format(d.dateNaissance, 'dd/MM/yyyy')} + (${d.lieuNaissance} ? ' à ' + ${d.lieuNaissance} : '')"></dd>
-        <dt class="col-sm-4" th:if="${d.nomPere}">Père</dt><dd class="col-sm-8" th:if="${d.nomPere}" th:text="${d.prenomPere} + ' ' + ${d.nomPere}"></dd>
-        <dt class="col-sm-4" th:if="${d.nomMere}">Mère</dt><dd class="col-sm-8" th:if="${d.nomMere}" th:text="${d.prenomMere} + ' ' + ${d.nomMere}"></dd>
-        <dt class="col-sm-4" th:if="${d.nomConjoint}">Conjoint</dt><dd class="col-sm-8" th:if="${d.nomConjoint}" th:text="${d.prenomConjoint} + ' ' + ${d.nomConjoint}"></dd>
-        <dt class="col-sm-4" th:if="${d.dateEvenement}">Date de l'événement</dt>
+        <dt class="col-sm-4"><th:block th:text="#{fragments.demande.nom_complet}">Nom complet</th:block></dt><dd class="col-sm-8" th:text="${d.personneConcernee}"></dd>
+        <dt class="col-sm-4" th:if="${d.sexe}"><th:block th:text="#{citoyen.nouvelle.sexe}">Sexe</th:block></dt><dd class="col-sm-8" th:if="${d.sexe}" th:text="${d.sexe == 'M'} ? #{citoyen.nouvelle.masculin} : #{citoyen.nouvelle.feminin}"></dd>
+        <dt class="col-sm-4" th:if="${d.dateNaissance}"><th:block th:text="#{fragments.demande.ne_e_le}">Né(e) le</th:block></dt>
+        <dd class="col-sm-8" th:if="${d.dateNaissance}" th:text="${#temporals.format(d.dateNaissance, 'dd/MM/yyyy')} + (${d.lieuNaissance} ? #{agent.demande.a} + ${d.lieuNaissance} : '')"></dd>
+        <dt class="col-sm-4" th:if="${d.nomPere}"><th:block th:text="#{agent.demande.pere}">Père</th:block></dt><dd class="col-sm-8" th:if="${d.nomPere}" th:text="${d.prenomPere} + ' ' + ${d.nomPere}"></dd>
+        <dt class="col-sm-4" th:if="${d.nomMere}"><th:block th:text="#{agent.demande.mere}">Mère</th:block></dt><dd class="col-sm-8" th:if="${d.nomMere}" th:text="${d.prenomMere} + ' ' + ${d.nomMere}"></dd>
+        <dt class="col-sm-4" th:if="${d.nomConjoint}"><th:block th:text="#{agent.demande.conjoint}">Conjoint</th:block></dt><dd class="col-sm-8" th:if="${d.nomConjoint}" th:text="${d.prenomConjoint} + ' ' + ${d.nomConjoint}"></dd>
+        <dt class="col-sm-4" th:if="${d.dateEvenement}"><th:block th:text="#{fragments.demande.date_de_l_evenement}">Date de l'événement</th:block></dt>
         <dd class="col-sm-8" th:if="${d.dateEvenement}" th:text="${#temporals.format(d.dateEvenement, 'dd/MM/yyyy')}"></dd>
     </dl>
     <th:block th:with="c=${d.complements}" th:if="${d.complements != null and !d.complements.vide()}">
         <hr>
-        <h3 class="h6 text-muted">Informations complémentaires</h3>
+        <h3 class="h6 text-muted"><th:block th:text="#{fragments.demande.informations_complementaires}">Informations complémentaires</th:block></h3>
         <dl class="row fiche mb-0">
             <th:block th:with="sit=${T(sn.etatcivil.portail.clients.Vues.Acte).situation(c.profession, c.residence)}">
-                <dt class="col-sm-4" th:if="${sit}">Profession, domicile</dt><dd class="col-sm-8" th:if="${sit}" th:text="${sit}"></dd>
+                <dt class="col-sm-4" th:if="${sit}"><th:block th:text="#{fragments.demande.profession_domicile}">Profession, domicile</th:block></dt><dd class="col-sm-8" th:if="${sit}" th:text="${sit}"></dd>
             </th:block>
             <th:block th:with="sit=${T(sn.etatcivil.portail.clients.Vues.Acte).situation(c.professionPere, c.residencePere)}">
-                <dt class="col-sm-4" th:if="${sit}">Père</dt><dd class="col-sm-8" th:if="${sit}" th:text="${sit}"></dd>
+                <dt class="col-sm-4" th:if="${sit}"><th:block th:text="#{agent.demande.pere}">Père</th:block></dt><dd class="col-sm-8" th:if="${sit}" th:text="${sit}"></dd>
             </th:block>
             <th:block th:with="sit=${T(sn.etatcivil.portail.clients.Vues.Acte).situation(c.professionMere, c.residenceMere)}">
-                <dt class="col-sm-4" th:if="${sit}">Mère</dt><dd class="col-sm-8" th:if="${sit}" th:text="${sit}"></dd>
+                <dt class="col-sm-4" th:if="${sit}"><th:block th:text="#{agent.demande.mere}">Mère</th:block></dt><dd class="col-sm-8" th:if="${sit}" th:text="${sit}"></dd>
             </th:block>
-            <dt class="col-sm-4" th:if="${c.dateNaissanceConjoint != null or c.lieuNaissanceConjoint != null}">Conjoint né(e)</dt>
+            <dt class="col-sm-4" th:if="${c.dateNaissanceConjoint != null or c.lieuNaissanceConjoint != null}"><th:block th:text="#{fragments.demande.conjoint_ne_e}">Conjoint né(e)</th:block></dt>
             <dd class="col-sm-8" th:if="${c.dateNaissanceConjoint != null or c.lieuNaissanceConjoint != null}"
-                th:text="(${c.dateNaissanceConjoint} ? ${#temporals.format(c.dateNaissanceConjoint, 'dd/MM/yyyy')} : '') + (${c.lieuNaissanceConjoint} ? ' à ' + ${c.lieuNaissanceConjoint} : '')"></dd>
+                th:text="(${c.dateNaissanceConjoint} ? ${#temporals.format(c.dateNaissanceConjoint, 'dd/MM/yyyy')} : '') + (${c.lieuNaissanceConjoint} ? #{agent.demande.a} + ${c.lieuNaissanceConjoint} : '')"></dd>
             <th:block th:with="sit=${T(sn.etatcivil.portail.clients.Vues.Acte).situation(c.professionConjoint, c.residenceConjoint)}">
-                <dt class="col-sm-4" th:if="${sit}">Conjoint</dt><dd class="col-sm-8" th:if="${sit}" th:text="${sit}"></dd>
+                <dt class="col-sm-4" th:if="${sit}"><th:block th:text="#{agent.demande.conjoint}">Conjoint</th:block></dt><dd class="col-sm-8" th:if="${sit}" th:text="${sit}"></dd>
             </th:block>
-            <dt class="col-sm-4" th:if="${c.temoin1}">Témoins</dt>
+            <dt class="col-sm-4" th:if="${c.temoin1}"><th:block th:text="#{citoyen.nouvelle.temoins}">Témoins</th:block></dt>
             <dd class="col-sm-8" th:if="${c.temoin1}" th:text="${c.temoin1} + (${c.temoin2} ? ' ; ' + ${c.temoin2} : '')"></dd>
-            <dt class="col-sm-4" th:if="${c.lieuDeces}">Lieu du décès</dt><dd class="col-sm-8" th:if="${c.lieuDeces}" th:text="${c.lieuDeces}"></dd>
-            <dt class="col-sm-4" th:if="${c.causeDeces}">Cause du décès</dt><dd class="col-sm-8" th:if="${c.causeDeces}" th:text="${c.causeDeces}"></dd>
-            <dt class="col-sm-4" th:if="${c.medecin}">Médecin</dt>
+            <dt class="col-sm-4" th:if="${c.lieuDeces}"><th:block th:text="#{citoyen.nouvelle.lieu_du_deces}">Lieu du décès</th:block></dt><dd class="col-sm-8" th:if="${c.lieuDeces}" th:text="${c.lieuDeces}"></dd>
+            <dt class="col-sm-4" th:if="${c.causeDeces}"><th:block th:text="#{fragments.demande.cause_du_deces}">Cause du décès</th:block></dt><dd class="col-sm-8" th:if="${c.causeDeces}" th:text="${c.causeDeces}"></dd>
+            <dt class="col-sm-4" th:if="${c.medecin}"><th:block th:text="#{fragments.demande.medecin}">Médecin</th:block></dt>
             <dd class="col-sm-8" th:if="${c.medecin}" th:text="${c.medecin} + (${c.adresseMedecin} ? ', ' + ${c.adresseMedecin} : '')"></dd>
-            <dt class="col-sm-4" th:if="${c.typeMention}">Mention marginale</dt>
+            <dt class="col-sm-4" th:if="${c.typeMention}"><th:block th:text="#{fragments.demande.mention_marginale}">Mention marginale</th:block></dt>
             <dd class="col-sm-8" th:if="${c.typeMention}" th:text="${c.typeMention} + (${c.detailsMention} ? ' — ' + ${c.detailsMention} : '')"></dd>
-            <dt class="col-sm-4" th:if="${c.precisions}">Précisions</dt><dd class="col-sm-8" th:if="${c.precisions}" th:text="${c.precisions}"></dd>
+            <dt class="col-sm-4" th:if="${c.precisions}"><th:block th:text="#{citoyen.nouvelle.precisions}">Précisions</th:block></dt><dd class="col-sm-8" th:if="${c.precisions}" th:text="${c.precisions}"></dd>
         </dl>
     </th:block>
     <hr>
     <dl class="row fiche mb-0">
-        <dt class="col-sm-4">Motif</dt><dd class="col-sm-8" th:text="${d.motif}"></dd>
-        <dt class="col-sm-4">Lien</dt><dd class="col-sm-8" th:text="${d.libelleLien}"></dd>
-        <dt class="col-sm-4">Format</dt><dd class="col-sm-8" th:text="${d.libelleFormat}"></dd>
-        <dt class="col-sm-4" th:if="${d.adresseLivraison}">Livraison</dt>
+        <dt class="col-sm-4"><th:block th:text="#{citoyen.nouvelle.motif}">Motif</th:block></dt><dd class="col-sm-8" th:text="${d.motif}"></dd>
+        <dt class="col-sm-4"><th:block th:text="#{fragments.demande.lien}">Lien</th:block></dt><dd class="col-sm-8" th:text="${d.libelleLien}"></dd>
+        <dt class="col-sm-4"><th:block th:text="#{agent.demandes.format}">Format</th:block></dt><dd class="col-sm-8" th:text="${d.libelleFormat}"></dd>
+        <dt class="col-sm-4" th:if="${d.adresseLivraison}"><th:block th:text="#{fragments.demande.livraison}">Livraison</th:block></dt>
         <dd class="col-sm-8" th:if="${d.adresseLivraison}" th:text="${d.adresseLivraison} + ', ' + ${d.villeLivraison}"></dd>
-        <dt class="col-sm-4">Montant</dt><dd class="col-sm-8" th:text="${#numbers.formatInteger(d.montant, 1, 'WHITESPACE')} + ' FCFA'"></dd>
-        <dt class="col-sm-4" th:if="${d.numeroActe}">Acte</dt><dd class="col-sm-8" th:if="${d.numeroActe}" th:text="${d.numeroActe}"></dd>
-        <dt class="col-sm-4" th:if="${d.surComparution()}">Acte</dt><dd class="col-sm-8" th:if="${d.surComparution()}">aucun : document établi sur comparution devant l'officier</dd>
-        <dt class="col-sm-4" th:if="${d.verificationIdentite}">Identité</dt>
-        <dd class="col-sm-8" th:if="${d.verificationIdentite}">pièce d'identité et selfie joints, vérifiés par le délégué ;
-            effacés 30 jours après la clôture de la demande</dd>
-        <dt class="col-sm-4" th:if="${d.dureeValiditeJours}">Validité</dt>
-        <dd class="col-sm-8" th:if="${d.dureeValiditeJours}" th:text="${d.dureeValiditeJours} + ' jours à compter de la signature'"></dd>
-        <dt class="col-sm-4" th:if="${d.codeVerification}">Code de vérification</dt>
+        <dt class="col-sm-4"><th:block th:text="#{fragments.demande.montant}">Montant</th:block></dt><dd class="col-sm-8" th:text="${#numbers.formatInteger(d.montant, 1, 'WHITESPACE')} + ' FCFA'"></dd>
+        <dt class="col-sm-4" th:if="${d.numeroActe}"><th:block th:text="#{agent.demande.acte}">Acte</th:block></dt><dd class="col-sm-8" th:if="${d.numeroActe}" th:text="${d.numeroActe}"></dd>
+        <dt class="col-sm-4" th:if="${d.surComparution()}"><th:block th:text="#{agent.demande.acte}">Acte</th:block></dt><dd class="col-sm-8" th:if="${d.surComparution()}"><th:block th:text="#{fragments.demande.aucun_document_etabli_sur_comparution_devant}">aucun : document établi sur comparution devant l'officier</th:block></dd>
+        <dt class="col-sm-4" th:if="${d.verificationIdentite}"><th:block th:text="#{admin.nouvel-utilisateur.identite}">Identité</th:block></dt>
+        <dd class="col-sm-8" th:if="${d.verificationIdentite}"><th:block th:text="#{fragments.demande.piece_d_identite_et_selfie_joints}">pièce d'identité et selfie joints, vérifiés par le délégué ;
+            effacés 30 jours après la clôture de la demande</th:block></dd>
+        <dt class="col-sm-4" th:if="${d.dureeValiditeJours}"><th:block th:text="#{admin.documents.validite}">Validité</th:block></dt>
+        <dd class="col-sm-8" th:if="${d.dureeValiditeJours}" th:text="${d.dureeValiditeJours} + #{fragments.demande.jours_a_compter_de_la_signature}"></dd>
+        <dt class="col-sm-4" th:if="${d.codeVerification}"><th:block th:text="#{accueil.code_de_verification}">Code de vérification</th:block></dt>
         <dd class="col-sm-8" th:if="${d.codeVerification}"><a th:href="@{/verification/{c}(c=${d.codeVerification})}" th:text="${d.codeVerification}"></a></dd>
     </dl>
 </div></div>
 
 <div xmlns:th="http://www.thymeleaf.org" th:fragment="historique(historique, paiements)">
     <div class="card mb-3"><div class="card-body">
-        <h2 class="h6 text-brun">Historique</h2>
+        <h2 class="h6 text-brun"><th:block th:text="#{admin.utilisateur.historique}">Historique</th:block></h2>
         <ul class="timeline mb-0">
             <li th:each="h : ${historique}">
                 <div class="fw-semibold" th:text="${h.libelle}"></div>
@@ -74,13 +74,13 @@
         </ul>
     </div></div>
     <div class="card mb-3" th:unless="${#lists.isEmpty(paiements)}"><div class="card-body">
-        <h2 class="h6 text-brun">Paiements</h2>
+        <h2 class="h6 text-brun"><th:block th:text="#{fragments.demande.paiements}">Paiements</th:block></h2>
         <ul class="list-unstyled small mb-0">
             <li th:each="p : ${paiements}" class="mb-1">
                 <span th:text="${@dates.heure(p.dateCreation)}"></span> —
                 <span th:text="${p.montant} + ' FCFA'"></span> —
-                <strong th:text="${p.statut == 'PAYE'} ? 'confirmé' : (${p.statut == 'ANNULE'} ? 'annulé' : 'en attente')"></strong>
-                <a th:if="${p.urlRecu}" th:href="${p.urlRecu}" target="_blank" rel="noopener">reçu</a>
+                <strong th:text="${p.statut == 'PAYE'} ? #{fragments.demande.confirme} : (${p.statut == 'ANNULE'} ? #{fragments.demande.annule} : #{fragments.demande.en_attente})"></strong>
+                <a th:if="${p.urlRecu}" th:href="${p.urlRecu}" target="_blank" rel="noopener"><th:block th:text="#{fragments.demande.recu}">reçu</th:block></a>
             </li>
         </ul>
     </div></div>

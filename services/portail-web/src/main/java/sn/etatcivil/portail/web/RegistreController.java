@@ -1,5 +1,7 @@
 package sn.etatcivil.portail.web;
 
+import sn.etatcivil.portail.i18n.Textes;
+
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -61,11 +63,10 @@ class RegistreController {
             a = api.transcrire(s);
         } catch (ApiException e) {
             if (e.indisponible()) throw e;
-            model.addAttribute("erreur", e.getMessage());
+            model.addAttribute("erreur", Textes.t("message.texte_4", e.getMessage()));
             return formulaire(model, s, null);
         }
-        flash.addFlashAttribute("succes", "Acte transcrit sous le numéro " + a.numeroActe()
-                + ". Il doit maintenant être validé par un officier de l'état civil.");
+        flash.addFlashAttribute("succes", Textes.t("message.acte_transcrit_sous_le_numero_il", a.numeroActe()));
         return "redirect:/registre/actes/" + a.id();
     }
 
@@ -84,7 +85,7 @@ class RegistreController {
                    @RequestParam(required = false) String reference, @RequestParam(required = false) String details,
                    RedirectAttributes flash) {
         api.ajouterMention(id, type, date, reference, details);
-        flash.addFlashAttribute("succes", "Mention portée en marge de l'acte");
+        flash.addFlashAttribute("succes", Textes.t("message.mention_portee_en_marge_de_l"));
         return "redirect:/registre/actes/" + id;
     }
 
@@ -104,10 +105,10 @@ class RegistreController {
             api.corriger(id, s);
         } catch (ApiException e) {
             if (e.indisponible()) throw e;
-            model.addAttribute("erreur", e.getMessage());
+            model.addAttribute("erreur", Textes.t("message.texte_5", e.getMessage()));
             return formulaire(model, s, existant);
         }
-        flash.addFlashAttribute("succes", "Acte mis à jour");
+        flash.addFlashAttribute("succes", Textes.t("message.acte_mis_a_jour"));
         return "redirect:/registre/actes/" + id;
     }
 

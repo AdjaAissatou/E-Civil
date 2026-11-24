@@ -1,5 +1,7 @@
 package sn.etatcivil.portail.web;
 
+import sn.etatcivil.portail.i18n.Textes;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -49,8 +51,7 @@ class HabilitationsController {
                             @RequestParam(name = "profil", required = false) Set<String> profils,
                             @RequestParam String motDePasse, RedirectAttributes flash) {
         String id = api.creerCompte(email, prenom, nom, profils == null ? Set.of() : profils, motDePasse);
-        flash.addFlashAttribute("succes", "Compte créé. Communiquez le mot de passe provisoire à " + email.trim()
-                + " : il devra le changer à sa première connexion.");
+        flash.addFlashAttribute("succes", Textes.t("message.compte_cree_communiquez_le_mot_de", email.trim()));
         return "redirect:/admin/utilisateurs/" + id;
     }
 
@@ -67,21 +68,21 @@ class HabilitationsController {
     String profilsDuCompte(@PathVariable String id, @RequestParam(name = "profil", required = false) Set<String> profils,
                            RedirectAttributes flash) {
         api.profilsDuCompte(id, profils == null ? Set.of() : profils);
-        flash.addFlashAttribute("succes", "Profils enregistrés. La personne retrouvera ses nouveaux droits à sa prochaine connexion.");
+        flash.addFlashAttribute("succes", Textes.t("message.profils_enregistres_la_personne_retrouvera_ses"));
         return "redirect:/admin/utilisateurs/" + id;
     }
 
     @PostMapping("/utilisateurs/{id}/activation")
     String activation(@PathVariable String id, @RequestParam boolean actif, RedirectAttributes flash) {
         api.activerCompte(id, actif);
-        flash.addFlashAttribute("succes", actif ? "Compte réactivé" : "Compte désactivé : la personne ne peut plus se connecter");
+        flash.addFlashAttribute("succes", Textes.t(actif ? "message.compte_reactive" : "message.compte_desactive"));
         return "redirect:/admin/utilisateurs/" + id;
     }
 
     @PostMapping("/utilisateurs/{id}/mot-de-passe")
     String motDePasse(@PathVariable String id, @RequestParam String motDePasse, RedirectAttributes flash) {
         api.motDePasseProvisoire(id, motDePasse);
-        flash.addFlashAttribute("succes", "Mot de passe provisoire enregistré : il devra être changé à la prochaine connexion.");
+        flash.addFlashAttribute("succes", Textes.t("message.mot_de_passe_provisoire_enregistre_il"));
         return "redirect:/admin/utilisateurs/" + id;
     }
 
@@ -114,7 +115,7 @@ class HabilitationsController {
     String creerProfil(@RequestParam String nom, @RequestParam(required = false) String description,
                        @RequestParam(name = "role", required = false) Set<String> roles, RedirectAttributes flash) {
         String id = api.creerProfil(nom, description, roles);
-        flash.addFlashAttribute("succes", "Profil « " + nom.trim() + " » créé. Attribuez-le depuis la fiche des utilisateurs.");
+        flash.addFlashAttribute("succes", Textes.t("message.profil_cree_attribuez_le_depuis_la", nom.trim()));
         return "redirect:/admin/profils/" + id;
     }
 
@@ -122,14 +123,14 @@ class HabilitationsController {
     String modifierProfil(@PathVariable String id, @RequestParam String nom, @RequestParam(required = false) String description,
                           @RequestParam(name = "role", required = false) Set<String> roles, RedirectAttributes flash) {
         api.modifierProfil(id, nom, description, roles);
-        flash.addFlashAttribute("succes", "Profil enregistré. Ses membres retrouveront leurs nouveaux droits à leur prochaine connexion.");
+        flash.addFlashAttribute("succes", Textes.t("message.profil_enregistre_ses_membres_retrouveront_leurs"));
         return "redirect:/admin/profils/" + id;
     }
 
     @PostMapping("/profils/{id}/suppression")
     String supprimerProfil(@PathVariable String id, RedirectAttributes flash) {
         api.supprimerProfil(id);
-        flash.addFlashAttribute("succes", "Profil supprimé");
+        flash.addFlashAttribute("succes", Textes.t("message.profil_supprime"));
         return "redirect:/admin/profils";
     }
 
@@ -160,7 +161,7 @@ class HabilitationsController {
     String creerRole(@RequestParam String code, @RequestParam String libelle, @RequestParam(required = false) String description,
                      @RequestParam(name = "permission", required = false) Set<String> permissions, RedirectAttributes flash) {
         String cree = api.creerRole(code, libelle, description, permissions);
-        flash.addFlashAttribute("succes", "Rôle « " + libelle.trim() + " » créé. Ajoutez-le à un profil pour l'attribuer.");
+        flash.addFlashAttribute("succes", Textes.t("message.role_cree_ajoutez_le_a_un", libelle.trim()));
         return "redirect:/admin/roles/" + cree;
     }
 
@@ -168,14 +169,14 @@ class HabilitationsController {
     String modifierRole(@PathVariable String code, @RequestParam String libelle, @RequestParam(required = false) String description,
                         @RequestParam(name = "permission", required = false) Set<String> permissions, RedirectAttributes flash) {
         api.modifierRole(code, libelle, description, permissions);
-        flash.addFlashAttribute("succes", "Rôle enregistré");
+        flash.addFlashAttribute("succes", Textes.t("message.role_enregistre"));
         return "redirect:/admin/roles/" + code;
     }
 
     @PostMapping("/roles/{code}/suppression")
     String supprimerRole(@PathVariable String code, RedirectAttributes flash) {
         api.supprimerRole(code);
-        flash.addFlashAttribute("succes", "Rôle supprimé");
+        flash.addFlashAttribute("succes", Textes.t("message.role_supprime"));
         return "redirect:/admin/roles";
     }
 
@@ -200,7 +201,7 @@ class HabilitationsController {
             }
         }
         api.modifierMatrice(matrice);
-        flash.addFlashAttribute("succes", "Matrice enregistrée. Les comptes concernés retrouveront leurs droits à leur prochaine connexion.");
+        flash.addFlashAttribute("succes", Textes.t("message.matrice_enregistree_les_comptes_concernes_retrouveront"));
         return "redirect:/admin/permissions";
     }
 
@@ -219,7 +220,7 @@ class HabilitationsController {
                               @RequestParam(required = false) String description, @RequestParam(required = false) String avantage,
                               @RequestParam(required = false) String interdiction, RedirectAttributes flash) {
         api.modifierPermission(code, libelle, description, avantage, interdiction);
-        flash.addFlashAttribute("succes", "Permission enregistrée");
+        flash.addFlashAttribute("succes", Textes.t("message.permission_enregistree"));
         return "redirect:/admin/permissions/" + code;
     }
 

@@ -1,5 +1,7 @@
 package sn.etatcivil.portail.web;
 
+import sn.etatcivil.portail.i18n.Textes;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,11 +38,11 @@ class DemandeController {
         model.addAttribute("demandes", demandes);
         // compteurs par étape, comme le tableau de bord du citoyen de la version 1
         java.util.Map<String, Long> etapes = new java.util.LinkedHashMap<>();
-        etapes.put("En examen", compter(demandes, "SOUMISE"));
-        etapes.put("À payer", compter(demandes, "A_PAYER"));
-        etapes.put("En traitement", compter(demandes, "PAYEE", "ACTE_TROUVE", "ACTE_INTROUVABLE"));
-        etapes.put("Délivrées", compter(demandes, "SIGNEE", "LIVREE"));
-        etapes.put("Rejetées ou annulées", compter(demandes, "REJETEE", "ANNULEE"));
+        etapes.put(Textes.t("etape.examen"), compter(demandes, "SOUMISE"));
+        etapes.put(Textes.t("etape.a_payer"), compter(demandes, "A_PAYER"));
+        etapes.put(Textes.t("etape.traitement"), compter(demandes, "PAYEE", "ACTE_TROUVE", "ACTE_INTROUVABLE"));
+        etapes.put(Textes.t("etape.delivrees"), compter(demandes, "SIGNEE", "LIVREE"));
+        etapes.put(Textes.t("etape.rejetees"), compter(demandes, "REJETEE", "ANNULEE"));
         model.addAttribute("etapes", etapes);
         return "citoyen/demandes";
     }
@@ -80,14 +82,13 @@ class DemandeController {
         try {
             d = type.verificationIdentite() ? api.deposer(f, f.getTypePiece(), photos(f)) : api.deposer(f);
         } catch (java.io.IOException e) {
-            model.addAttribute("erreur", "Les photos n'ont pas pu être lues : envoyez-les de nouveau.");
+            model.addAttribute("erreur", Textes.t("message.les_photos_n_ont_pas_pu"));
             return formulaire(model, f, type);
         } catch (ApiException e) {
-            model.addAttribute("erreur", e.getMessage());
+            model.addAttribute("erreur", Textes.t("message.texte_3", e.getMessage()));
             return formulaire(model, f, type);
         }
-        flash.addFlashAttribute("succes", "Demande " + d.reference() + " enregistrée. Vous serez prévenu(e) par email "
-                + "dès qu'elle aura été examinée.");
+        flash.addFlashAttribute("succes", Textes.t("message.demande_enregistree_vous_serez_prevenu_e", d.reference()));
         return "redirect:/demandes/" + d.id();
     }
 
@@ -106,7 +107,7 @@ class DemandeController {
     @PostMapping("/{id}/annulation")
     String annuler(@PathVariable UUID id, RedirectAttributes flash) {
         api.action(id, "annulation", null);
-        flash.addFlashAttribute("succes", "Demande annulée");
+        flash.addFlashAttribute("succes", Textes.t("message.demande_annulee"));
         return "redirect:/demandes/" + id;
     }
 

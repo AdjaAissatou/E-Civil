@@ -1,23 +1,23 @@
 <!DOCTYPE html>
-<html lang="fr" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: page('Diaspora', ~{::main})}">
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: page(#{admin.onglets.diaspora}, ~{::main})}">
 <body>
 <main class="container py-4" th:with="m=${mission}">
-    <span class="surtitre">Administration</span>
-    <h1 class="h3">Diaspora : missions diplomatiques</h1>
+    <span class="surtitre"><th:block th:text="#{admin.onglets.administration}">Administration</th:block></span>
+    <h1 class="h3"><th:block th:text="#{admin.missions.diaspora_missions_diplomatiques}">Diaspora : missions diplomatiques</th:block></h1>
     <nav th:replace="~{admin/_onglets :: onglets('missions')}"></nav>
-    <p class="text-muted">Un Sénégalais de l'étranger peut retirer un document papier à la mission qui couvre son pays de résidence.</p>
+    <p class="text-muted"><th:block th:text="#{admin.missions.un_senegalais_de_l_etranger_peut}">Un Sénégalais de l'étranger peut retirer un document papier à la mission qui couvre son pays de résidence.</th:block></p>
 
     <div class="card mb-4"><div class="table-responsive">
         <table class="table align-middle mb-0">
-            <thead><tr><th>Mission</th><th>Pays hôte, ville</th><th>Compétence</th><th>Contact</th><th>Active</th><th></th></tr></thead>
+            <thead><tr><th><th:block th:text="#{admin.missions.mission}">Mission</th:block></th><th><th:block th:text="#{admin.missions.pays_hote_ville}">Pays hôte, ville</th:block></th><th><th:block th:text="#{admin.missions.competence}">Compétence</th:block></th><th><th:block th:text="#{admin.missions.contact}">Contact</th:block></th><th><th:block th:text="#{admin.missions.active}">Active</th:block></th><th></th></tr></thead>
             <tbody>
             <tr th:each="x : ${missions}">
                 <td><div class="fw-semibold" th:text="${x.nom}"></div><span class="etiquette" th:text="${x.type}"></span></td>
                 <td th:text="${x.pays} + ', ' + ${x.ville}"></td>
                 <td class="small" th:text="${x.competence}"></td>
                 <td class="small"><div th:text="${x.adresse}"></div><div th:text="${x.telephone}"></div><div th:text="${x.email}"></div></td>
-                <td><span th:if="${x.active}" class="pastille pastille-success">Oui</span><span th:unless="${x.active}" class="pastille pastille-danger">Non</span></td>
-                <td class="text-end"><a class="btn btn-link btn-sm" th:href="@{/admin/missions(modifier=${x.id})}">Modifier</a></td>
+                <td><span th:if="${x.active}" class="pastille pastille-success"><th:block th:text="#{admin.missions.oui}">Oui</th:block></span><span th:unless="${x.active}" class="pastille pastille-danger"><th:block th:text="#{admin.missions.non}">Non</th:block></span></td>
+                <td class="text-end"><a class="btn btn-link btn-sm" th:href="@{/admin/missions(modifier=${x.id})}"><th:block th:text="#{admin.missions.modifier}">Modifier</th:block></a></td>
             </tr>
             </tbody>
         </table>
@@ -26,31 +26,31 @@
     <div class="row g-4">
         <div class="col-lg-8">
             <form class="card" method="post" th:action="@{/admin/missions}"><div class="card-body row g-2">
-                <h2 class="h6 text-brun col-12" th:text="${m} ? 'Modifier : ' + ${m.nom} : 'Nouvelle mission'"></h2>
+                <h2 class="h6 text-brun col-12" th:text="${m} ? #{admin.missions.modifier_2} + ${m.nom} : #{admin.missions.nouvelle_mission}"></h2>
                 <input type="hidden" name="id" th:if="${m}" th:value="${m.id}">
-                <div class="col-md-4"><label class="form-label small" for="type">Type</label>
+                <div class="col-md-4"><label class="form-label small" for="type"><th:block th:text="#{admin.missions.type}">Type</th:block></label>
                     <select class="form-select" id="type" name="type">
                         <option th:each="ty : ${referentiel.typesMission}" th:value="${ty}" th:text="${ty}" th:selected="${m != null and m.type == ty}"></option>
                     </select></div>
-                <div class="col-md-8"><label class="form-label small" for="nom">Nom</label>
+                <div class="col-md-8"><label class="form-label small" for="nom"><th:block th:text="#{accueil.nom}">Nom</th:block></label>
                     <input class="form-control" id="nom" name="nom" required maxlength="200" th:value="${m?.nom}"></div>
-                <div class="col-md-4"><label class="form-label small" for="paysId">Pays hôte</label>
+                <div class="col-md-4"><label class="form-label small" for="paysId"><th:block th:text="#{admin.missions.pays_hote}">Pays hôte</th:block></label>
                     <select class="form-select" id="paysId" name="paysId">
                         <option th:each="p : ${referentiel.pays}" th:value="${p.id}" th:text="${p.nom}" th:selected="${m != null and m.paysId == p.id}"></option>
                     </select></div>
-                <div class="col-md-5"><label class="form-label small" for="ville">Ville</label>
+                <div class="col-md-5"><label class="form-label small" for="ville"><th:block th:text="#{admin.missions.ville}">Ville</th:block></label>
                     <input class="form-control" id="ville" name="ville" required maxlength="150" th:value="${m?.ville}"></div>
-                <div class="col-md-3"><label class="form-label small" for="codePostal">Code postal</label>
+                <div class="col-md-3"><label class="form-label small" for="codePostal"><th:block th:text="#{admin.missions.code_postal}">Code postal</th:block></label>
                     <input class="form-control" id="codePostal" name="codePostal" maxlength="20" th:value="${m?.codePostal}"></div>
-                <div class="col-12"><label class="form-label small" for="adresse">Adresse</label>
+                <div class="col-12"><label class="form-label small" for="adresse"><th:block th:text="#{admin.missions.adresse}">Adresse</th:block></label>
                     <input class="form-control" id="adresse" name="adresse" required maxlength="255" th:value="${m?.adresse}"></div>
-                <div class="col-md-6"><label class="form-label small" for="telephone">Téléphone</label>
+                <div class="col-md-6"><label class="form-label small" for="telephone"><th:block th:text="#{admin.missions.telephone}">Téléphone</th:block></label>
                     <input class="form-control" id="telephone" name="telephone" maxlength="50" th:value="${m?.telephone}"></div>
-                <div class="col-md-6"><label class="form-label small" for="email">Email</label>
+                <div class="col-md-6"><label class="form-label small" for="email"><th:block th:text="#{admin.missions.email}">Email</th:block></label>
                     <input class="form-control" id="email" name="email" type="email" maxlength="150" th:value="${m?.email}"></div>
-                <div class="col-12"><label class="form-label small" for="competence">Zone de compétence</label>
+                <div class="col-12"><label class="form-label small" for="competence"><th:block th:text="#{admin.missions.zone_de_competence}">Zone de compétence</th:block></label>
                     <input class="form-control" id="competence" name="competence" maxlength="255" th:value="${m?.competence}"></div>
-                <div class="col-12"><span class="form-label small d-block">Pays couverts</span>
+                <div class="col-12"><span class="form-label small d-block"><th:block th:text="#{admin.missions.pays_couverts}">Pays couverts</th:block></span>
                     <div class="form-check form-check-inline" th:each="p : ${referentiel.pays}">
                         <input class="form-check-input" type="checkbox" name="paysCouvert" th:value="${p.id}" th:id="'pc-' + ${p.id}"
                                th:checked="${m != null and m.paysCouverts.contains(p.id)}">
@@ -58,23 +58,23 @@
                 </div>
                 <div class="col-12 form-check ms-2" th:if="${m}">
                     <input class="form-check-input" type="checkbox" id="active" name="active" value="true" th:checked="${m.active}">
-                    <label class="form-check-label" for="active">Active</label></div>
-                <div class="col-12"><button class="btn btn-primary" type="submit">Enregistrer</button>
-                    <a class="btn btn-link" th:if="${m}" th:href="@{/admin/missions}">Annuler</a></div>
+                    <label class="form-check-label" for="active"><th:block th:text="#{admin.missions.active}">Active</th:block></label></div>
+                <div class="col-12"><button class="btn btn-primary" type="submit"><th:block th:text="#{admin.document.enregistrer}">Enregistrer</th:block></button>
+                    <a class="btn btn-link" th:if="${m}" th:href="@{/admin/missions}"><th:block th:text="#{admin.missions.annuler}">Annuler</th:block></a></div>
             </div></form>
         </div>
         <div class="col-lg-4">
             <form class="card" method="post" th:action="@{/admin/missions/pays}"><div class="card-body row g-2">
-                <h2 class="h6 text-brun col-12">Ajouter un pays</h2>
-                <div class="col-8"><input class="form-control" name="nom" required maxlength="150" placeholder="Nom"></div>
+                <h2 class="h6 text-brun col-12"><th:block th:text="#{admin.missions.ajouter_un_pays}">Ajouter un pays</th:block></h2>
+                <div class="col-8"><input class="form-control" name="nom" required maxlength="150" placeholder="Nom" th:placeholder="#{accueil.nom}"></div>
                 <div class="col-4"><input class="form-control text-uppercase" name="codeIso" required minlength="3" maxlength="3" placeholder="ISO"></div>
-                <div class="col-6"><input class="form-control" name="continent" maxlength="50" placeholder="Continent"></div>
-                <div class="col-6"><input class="form-control" name="capitale" maxlength="100" placeholder="Capitale"></div>
-                <div class="col-12"><select class="form-select" name="zone" aria-label="Zone de compétence">
-                    <option value="">Zone de compétence</option>
+                <div class="col-6"><input class="form-control" name="continent" maxlength="50" placeholder="Continent" th:placeholder="#{admin.missions.continent}"></div>
+                <div class="col-6"><input class="form-control" name="capitale" maxlength="100" placeholder="Capitale" th:placeholder="#{admin.missions.capitale}"></div>
+                <div class="col-12"><select class="form-select" name="zone" aria-label="Zone de compétence" th:aria-label="#{admin.missions.zone_de_competence}">
+                    <option value=""><th:block th:text="#{admin.missions.zone_de_competence}">Zone de compétence</th:block></option>
                     <option th:each="z : ${referentiel.zones}" th:value="${z}" th:text="${z}"></option>
                 </select></div>
-                <div class="col-12"><button class="btn btn-outline-primary w-100" type="submit">Ajouter</button></div>
+                <div class="col-12"><button class="btn btn-outline-primary w-100" type="submit"><th:block th:text="#{admin.missions.ajouter}">Ajouter</th:block></button></div>
             </div></form>
         </div>
     </div>

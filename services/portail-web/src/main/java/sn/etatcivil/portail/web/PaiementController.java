@@ -1,5 +1,7 @@
 package sn.etatcivil.portail.web;
 
+import sn.etatcivil.portail.i18n.Textes;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -30,16 +32,16 @@ class PaiementController {
         if (token == null) return "redirect:/demandes";
         Map<?, ?> r = api.confirmerPaiement(token);
         switch (String.valueOf(r.get("statut"))) {
-            case "PAYE" -> flash.addFlashAttribute("succes", "Paiement confirmé. La recherche de votre acte a commencé.");
-            case "ANNULE" -> flash.addFlashAttribute("erreur", "Le paiement a été annulé. Vous pouvez réessayer quand vous voulez.");
-            default -> flash.addFlashAttribute("info", "Paiement en cours de traitement par l'opérateur. Cette page se mettra à jour dès sa confirmation.");
+            case "PAYE" -> flash.addFlashAttribute("succes", Textes.t("message.paiement_confirme_la_recherche_de_votre"));
+            case "ANNULE" -> flash.addFlashAttribute("erreur", Textes.t("message.le_paiement_a_ete_annule_vous"));
+            default -> flash.addFlashAttribute("info", Textes.t("message.paiement_en_cours_de_traitement_par"));
         }
         return "redirect:/demandes/" + r.get("demandeId");
     }
 
     @GetMapping("/annulation")
     String annulation(@RequestParam("demande") UUID demandeId, RedirectAttributes flash) {
-        flash.addFlashAttribute("info", "Paiement interrompu. Votre demande reste en attente de paiement.");
+        flash.addFlashAttribute("info", Textes.t("message.paiement_interrompu_votre_demande_reste_en"));
         return "redirect:/demandes/" + demandeId;
     }
 }

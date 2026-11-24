@@ -1,5 +1,7 @@
 package sn.etatcivil.portail.web;
 
+import sn.etatcivil.portail.i18n.Textes;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -69,8 +71,7 @@ class CatalogueAdminController {
         corps.put("copieDeId", copieDeId);
         corps.put("actif", actif);
         Vues.TypeDocument t = id == null ? api.creerDocument(corps) : api.modifierDocumentComplet(id, corps);
-        flash.addFlashAttribute("succes", "Document « " + t.libelle() + " » enregistré"
-                + (id == null ? " : il est proposé aux citoyens s'il est actif." : "."));
+        flash.addFlashAttribute("succes", Textes.t(id == null ? "message.document_cree" : "message.document_enregistre", t.libelle()));
         return "redirect:/admin/documents/" + t.id() + "/modifier";
     }
 
@@ -114,7 +115,7 @@ class CatalogueAdminController {
         corps.put("ordre", ordre);
         corps.put("active", id == null || active);
         api.enregistrerNature(id, corps);
-        flash.addFlashAttribute("succes", "Nature « " + libelle.trim() + " » enregistrée");
+        flash.addFlashAttribute("succes", Textes.t("message.nature_enregistree", libelle.trim()));
         return "redirect:/admin/natures";
     }
 
@@ -140,7 +141,7 @@ class CatalogueAdminController {
         corps.put("piecesRequises", piecesRequises);
         corps.put("typeDocumentId", typeDocumentId);
         api.enregistrerMotif(id, corps);
-        flash.addFlashAttribute("succes", "Motif « " + libelle.trim() + " » enregistré");
+        flash.addFlashAttribute("succes", Textes.t("message.motif_enregistre", libelle.trim()));
         return "redirect:/admin/motifs";
     }
 
@@ -175,7 +176,7 @@ class CatalogueAdminController {
         corps.put("paysCouverts", paysCouverts == null ? List.of() : paysCouverts);
         corps.put("active", id == null || active);
         api.enregistrerMission(id, corps);
-        flash.addFlashAttribute("succes", "Mission « " + nom.trim() + " » enregistrée");
+        flash.addFlashAttribute("succes", Textes.t("message.mission_enregistree", nom.trim()));
         return "redirect:/admin/missions";
     }
 
@@ -190,7 +191,7 @@ class CatalogueAdminController {
         corps.put("capitale", capitale);
         corps.put("zone", vide(zone));
         api.ajouterPays(corps);
-        flash.addFlashAttribute("succes", "Pays « " + nom.trim() + " » ajouté");
+        flash.addFlashAttribute("succes", Textes.t("message.pays_ajoute", nom.trim()));
         return "redirect:/admin/missions";
     }
 

@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#053a2c">
     <meta name="description" content="Demandez vos actes d'état civil en ligne : naissance, mariage, divorce, décès. Paiement mobile, suivi en temps réel, documents vérifiables.">
-    <title th:text="${titre} + ' · E-Civil Sénégal'">E-Civil Sénégal</title>
+    <title th:text="${titre} + #{fragments.layout.e_civil_senegal}">E-Civil Sénégal</title>
     <link rel="icon" th:href="@{/favicon_io/favicon-32x32.png}">
     <link rel="preload" th:href="@{/fonts/jakarta.woff2}" as="font" type="font/woff2" crossorigin>
     <link rel="preload" th:href="@{/fonts/fraunces.woff2}" as="font" type="font/woff2" crossorigin>
@@ -15,16 +15,16 @@
     <link rel="stylesheet" th:href="@{/css/app.css}">
 </head>
 <body th:classappend="${pageAccueil} ? 'page-accueil'">
-<a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 btn btn-primary" href="#contenu" style="z-index: 2000">Aller au contenu</a>
+<a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 btn btn-primary" href="#contenu" style="z-index: 2000"><th:block th:text="#{fragments.layout.aller_au_contenu}">Aller au contenu</th:block></a>
 
-<nav class="navbar navbar-expand-lg fixed-top" aria-label="Navigation principale">
+<nav class="navbar navbar-expand-lg fixed-top" aria-label="Navigation principale" th:aria-label="#{fragments.layout.navigation_principale}">
     <div class="container">
         <a class="navbar-brand" th:href="@{/}">
             <span class="logo-marque" aria-hidden="true"><i class="bi bi-journal-bookmark-fill"></i></span>
             E-Civil
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menu"
-                aria-controls="menu" aria-expanded="false" aria-label="Ouvrir le menu">
+                aria-controls="menu" aria-expanded="false" aria-label="Ouvrir le menu" th:aria-label="#{fragments.layout.ouvrir_le_menu}">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="menu">
@@ -99,15 +99,15 @@
 <div class="zone-messages container mt-3" th:if="${succes != null or erreur != null or info != null}" role="status">
     <div th:if="${succes}" class="alert alert-success alert-dismissible fade show">
         <i class="bi bi-check-circle-fill me-2"></i><span th:text="${succes}"></span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer" th:aria-label="#{fragments.layout.fermer}"></button>
     </div>
     <div th:if="${erreur}" class="alert alert-danger alert-dismissible fade show">
         <i class="bi bi-exclamation-triangle-fill me-2"></i><span th:text="${erreur}"></span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer" th:aria-label="#{fragments.layout.fermer}"></button>
     </div>
     <div th:if="${info}" class="alert alert-info alert-dismissible fade show">
         <i class="bi bi-info-circle-fill me-2"></i><span th:text="${info}"></span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer" th:aria-label="#{fragments.layout.fermer}"></button>
     </div>
 </div>
 
@@ -117,10 +117,10 @@
     <div class="container">
         <div class="row g-4">
             <div class="col-lg-4">
-                <div class="marque"><span class="logo-marque" aria-hidden="true"><i class="bi bi-journal-bookmark-fill"></i></span>E-Civil Sénégal</div>
+                <div class="marque"><span class="logo-marque" aria-hidden="true"><i class="bi bi-journal-bookmark-fill"></i></span><th:block th:text="#{fragments.layout.e_civil_senegal_2}">E-Civil Sénégal</th:block></div>
                 <p class="mb-3" style="color: rgba(255,255,255,.6)"><span th:text="#{pied.presentation}">Le service public de délivrance des actes d'état civil, accessible partout, y compris depuis la diaspora.</span></p>
                 <span class="drapeau" aria-hidden="true"><span style="background:#00853f"></span><span style="background:#fdef42"></span><span style="background:#e31b23"></span></span>
-                <small>République du Sénégal</small>
+                <small><th:block th:text="#{fragments.layout.republique_du_senegal}">République du Sénégal</th:block></small>
             </div>
             <div class="col-6 col-lg-2 offset-lg-1">
                 <h5><span th:text="#{pied.services}">Services</span></h5>
@@ -141,14 +141,14 @@
             <div class="col-lg-3">
                 <h5><span th:text="#{pied.contact}">Contact</span></h5>
                 <ul class="list-unstyled">
-                    <li><i class="bi bi-geo-alt me-2"></i>Dakar, Sénégal</li>
+                    <li><i class="bi bi-geo-alt me-2"></i><th:block th:text="#{fragments.layout.dakar_senegal}">Dakar, Sénégal</th:block></li>
                     <li><i class="bi bi-telephone me-2"></i>+221 70 857 85 45</li>
                     <li><i class="bi bi-envelope me-2"></i>contact@etatcivil.sn</li>
                 </ul>
             </div>
         </div>
         <div class="bas d-flex flex-column flex-md-row justify-content-between gap-2">
-            <span>&copy; 2026 République du Sénégal · E-Civil</span>
+            <span><th:block th:text="#{fragments.layout.2026_republique_du_senegal_e_civil}">&copy; 2026 République du Sénégal · E-Civil</th:block></span>
             <span><i class="bi bi-shield-check me-1"></i><span th:text="#{pied.garanties}">Paiements sécurisés · Documents vérifiables par QR code</span>
                     <span class="ms-3"><span th:text="#{pied.langue}">Langue</span> :
                         <a th:href="@{''(lang='fr')}" class="ms-1">Français</a> ·

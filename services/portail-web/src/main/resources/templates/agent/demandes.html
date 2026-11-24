@@ -11,18 +11,18 @@
     <div class="card">
         <div class="table-responsive">
             <table class="table align-middle mb-0">
-                <thead><tr><th>Référence</th><th>Document</th><th>Personne concernée</th><th>Demandeur</th><th>Format</th><th>Déposée le</th><th>Statut</th><th></th></tr></thead>
+                <thead><tr><th><th:block th:text="#{agent.demandes.reference}">Référence</th:block></th><th><th:block th:text="#{admin.documents.document}">Document</th:block></th><th><th:block th:text="#{agent.demandes.personne_concernee}">Personne concernée</th:block></th><th><th:block th:text="#{agent.demandes.demandeur}">Demandeur</th:block></th><th><th:block th:text="#{agent.demandes.format}">Format</th:block></th><th><th:block th:text="#{agent.demandes.deposee_le}">Déposée le</th:block></th><th><th:block th:text="#{agent.demande.statut}">Statut</th:block></th><th></th></tr></thead>
                 <tbody>
-                <tr th:if="${page.vide}"><td colspan="8" class="text-center text-muted py-4">Aucune demande dans cette file.</td></tr>
+                <tr th:if="${page.vide}"><td colspan="8" class="text-center text-muted py-4"><th:block th:text="#{agent.demandes.aucune_demande_dans_cette_file}">Aucune demande dans cette file.</th:block></td></tr>
                 <tr th:each="d : ${page.contenu}">
                     <td class="fw-semibold" th:text="${d.reference}"></td>
                     <td th:text="${d.libelleDocument}"></td>
                     <td th:text="${d.personneConcernee}"></td>
                     <td th:text="${d.demandeurNom}"></td>
-                    <td class="small" th:text="${d.numerique()} ? 'Numérique' : 'Papier'"></td>
+                    <td class="small" th:text="${d.numerique()} ? #{agent.demandes.numerique} : #{agent.demandes.papier}"></td>
                     <td th:text="${@dates.jour(d.dateCreation)}"></td>
                     <td><span th:replace="~{fragments/statut :: badge(${d.statut}, ${d.libelleStatut})}"></span></td>
-                    <td class="text-end"><a class="btn btn-outline-primary btn-sm" th:href="@{/back-office/demandes/{id}(id=${d.id})}">Ouvrir</a></td>
+                    <td class="text-end"><a class="btn btn-outline-primary btn-sm" th:href="@{/back-office/demandes/{id}(id=${d.id})}"><th:block th:text="#{admin.profils.ouvrir}">Ouvrir</th:block></a></td>
                 </tr>
                 </tbody>
             </table>

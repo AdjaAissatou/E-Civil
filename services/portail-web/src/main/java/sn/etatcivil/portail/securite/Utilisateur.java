@@ -1,5 +1,7 @@
 package sn.etatcivil.portail.securite;
 
+import sn.etatcivil.portail.i18n.Textes;
+
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 
 import java.util.Collection;
@@ -50,8 +52,8 @@ public record Utilisateur(String id, String email, String prenom, String nom, Li
     }
 
     public String libelleRole() {
-        for (var f : FONCTIONS.entrySet()) if (roles.contains(f.getKey())) return f.getValue();
-        return estAgent() ? "Agent" : "Citoyen";
+        for (var f : FONCTIONS.entrySet()) if (roles.contains(f.getKey())) return Textes.t("fonction." + f.getKey());
+        return Textes.t(estAgent() ? "fonction.AGENT" : "fonction.CITOYEN");
     }
 
     /** Page d'arrivée après la connexion, selon ce que la personne peut faire. */

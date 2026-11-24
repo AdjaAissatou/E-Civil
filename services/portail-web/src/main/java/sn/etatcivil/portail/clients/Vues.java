@@ -1,5 +1,7 @@
 package sn.etatcivil.portail.clients;
 
+import sn.etatcivil.portail.i18n.Textes;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.time.Instant;
@@ -49,24 +51,18 @@ public final class Vues {
 
         /** Durée de validité lisible (« 3 mois », « 1 an », « illimitée »). */
         public String libelleValidite() {
-            if (dureeValiditeJours == null) return "sans limite";
+            if (dureeValiditeJours == null) return Textes.t("validite.sans_limite");
             int j = dureeValiditeJours;
-            if (j % 365 == 0) return j / 365 == 1 ? "1 an" : j / 365 + " ans";
-            if (j % 30 == 0) return j / 30 + " mois";
-            return j + " jours";
+            if (j % 365 == 0) return j / 365 == 1 ? Textes.t("validite.un_an") : Textes.t("validite.ans", j / 365);
+            if (j % 30 == 0) return Textes.t("validite.mois", j / 30);
+            return Textes.t("validite.jours", j);
         }
 
         /** Ordre d'affichage des familles dans le catalogue. */
         public static final List<String> FAMILLES = List.of("NAISSANCE", "RECONNAISSANCE", "MARIAGE", "DIVORCE", "DECES", "CERTIFICAT");
 
         public String libelleActe() {
-            return switch (typeActe) {
-                case "NAISSANCE" -> "naissance";
-                case "MARIAGE" -> "mariage";
-                case "DIVORCE" -> "divorce";
-                case "RECONNAISSANCE" -> "reconnaissance";
-                default -> "décès";
-            };
+            return Textes.t("acte.minuscule." + typeActe);
         }
 
         public boolean estCertificat() { return modele != null && modele.startsWith("CERTIFICAT_"); }
@@ -79,15 +75,12 @@ public final class Vues {
         public int rangFamille() { return FAMILLES.indexOf(famille()); }
 
         public String etiquette() {
-            if ("JUGEMENT_SUPPLETIF".equals(origine)) return "Jugement supplétif";
-            if ("TRANSCRIPTION".equals(origine)) return "Transcription";
-            if (modele == null) return copieIntegrale ? "Copie intégrale" : "Extrait";
+            if ("JUGEMENT_SUPPLETIF".equals(origine)) return Textes.t("etiquette.JUGEMENT_SUPPLETIF");
+            if ("TRANSCRIPTION".equals(origine)) return Textes.t("etiquette.TRANSCRIPTION");
+            if (modele == null) return Textes.t(copieIntegrale ? "etiquette.COPIE_INTEGRALE" : "etiquette.EXTRAIT");
             return switch (modele) {
-                case "COPIE_INTEGRALE" -> "Copie intégrale";
-                case "EXTRAIT_SANS_FILIATION" -> "Extrait sans filiation";
-                case "LIVRET_FAMILLE" -> "Duplicata";
-                case "EXTRAIT" -> "Extrait";
-                default -> "Certificat";
+                case "COPIE_INTEGRALE", "EXTRAIT_SANS_FILIATION", "LIVRET_FAMILLE", "EXTRAIT" -> Textes.t("etiquette." + modele);
+                default -> Textes.t("etiquette.CERTIFICAT");
             };
         }
 
@@ -208,16 +201,10 @@ public final class Vues {
 
         public boolean documentDisponible() { return "SIGNEE".equals(statut) || "LIVREE".equals(statut); }
 
-        public String libelleFormat() { return numerique() ? "Numérique (PDF téléchargeable)" : "Papier (livraison ou retrait)"; }
+        public String libelleFormat() { return Textes.t("format." + format); }
 
         public String libelleLien() {
-            return switch (lien) {
-                case "MOI_MEME" -> "Moi-même";
-                case "ENFANT" -> "Mon enfant";
-                case "PARENT" -> "Mon père ou ma mère";
-                case "CONJOINT" -> "Mon conjoint";
-                default -> "Autre (mandataire)";
-            };
+            return Textes.t("lien." + lien);
         }
 
         /** Classe Bootstrap du badge de statut. */
@@ -297,23 +284,16 @@ public final class Vues {
         /** Profession et domicile réunis pour l'affichage (« commerçant, domicilié à Thiès »). */
         public static String situation(String profession, String domicile) {
             String p = profession == null ? "" : profession.trim(), d = domicile == null ? "" : domicile.trim();
-            if (p.isEmpty()) return d.isEmpty() ? null : "domicilié(e) à " + d;
-            return d.isEmpty() ? p : p + ", domicilié(e) à " + d;
+            if (p.isEmpty()) return d.isEmpty() ? null : Textes.t("situation.domicilie", d);
+            return d.isEmpty() ? p : Textes.t("situation.profession_domicilie", p, d);
         }
 
         public String libelleOrigine() {
-            return "JUGEMENT_SUPPLETIF".equals(origine) ? "Jugement supplétif"
-                    : "TRANSCRIPTION".equals(origine) ? "Transcription d'un acte étranger" : null;
+            return "JUGEMENT_SUPPLETIF".equals(origine) || "TRANSCRIPTION".equals(origine) ? Textes.t("origine." + origine) : null;
         }
 
         public String libelleType() {
-            return switch (typeActe) {
-                case "NAISSANCE" -> "Naissance";
-                case "MARIAGE" -> "Mariage";
-                case "DIVORCE" -> "Divorce";
-                case "RECONNAISSANCE" -> "Reconnaissance";
-                default -> "Décès";
-            };
+            return Textes.t("acte." + typeActe);
         }
     }
 

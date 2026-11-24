@@ -93,6 +93,9 @@ class DemandeApiTest {
         assertThat(JsonPath.<List<Object>>read(catalogue, "$[?(@.code == 'COPIE_NAISSANCE')].copieDeId")).containsExactly(original);
         assertThat(JsonPath.<List<Object>>read(catalogue, "$[?(@.code == 'ACTE_NAISSANCE')].estOriginal")).containsExactly(true);
         assertThat(JsonPath.<List<Object>>read(catalogue, "$[?(@.code == 'EXTRAIT_NAISSANCE')].dureeValiditeJours")).containsExactly(90);
+        // un document administratif vaut 3 mois ; le livret de famille n'expire pas
+        assertThat(JsonPath.<List<Object>>read(catalogue, "$[?(@.modele != 'LIVRET_FAMILLE')].dureeValiditeJours")).containsOnly(90);
+        assertThat(JsonPath.<List<Object>>read(catalogue, "$[?(@.code == 'LIVRET_FAMILLE')].dureeValiditeJours")).containsOnly((Object) null);
         assertThat(JsonPath.<List<Object>>read(catalogue, "$[?(@.code == 'CERTIFICAT_CELIBAT')].libelleNature")).containsExactly("Célibat");
         assertThat(JsonPath.<List<Object>>read(catalogue, "$[?(@.code == 'CERTIFICAT_COUTUME')].exigeActe")).containsExactly(false);
         Integer domicile = JsonPath.<List<Integer>>read(catalogue, "$[?(@.code == 'CERTIFICAT_DOMICILE_ELECTIONS')].id").get(0);

@@ -1,5 +1,7 @@
 package sn.etatcivil.portail.web;
 
+import sn.etatcivil.portail.i18n.Textes;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -67,7 +69,7 @@ class AdminController {
     String modifier(@PathVariable Long id, @RequestParam int tarif, @RequestParam int delaiJours,
                     @RequestParam(defaultValue = "false") boolean actif, RedirectAttributes flash) {
         api.modifierDocument(id, tarif, delaiJours, actif);
-        flash.addFlashAttribute("succes", "Document mis à jour");
+        flash.addFlashAttribute("succes", Textes.t("message.document_mis_a_jour"));
         return "redirect:/admin/documents";
     }
 }

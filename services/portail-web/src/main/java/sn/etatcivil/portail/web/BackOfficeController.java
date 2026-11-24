@@ -1,5 +1,7 @@
 package sn.etatcivil.portail.web;
 
+import sn.etatcivil.portail.i18n.Textes;
+
 import org.springframework.format.annotation.DateTimeFormat;
 import java.time.LocalDate;
 
@@ -53,20 +55,18 @@ class BackOfficeController {
 
     @GetMapping("/delegue")
     String delegue(@ModelAttribute("filtre") Api.FiltreDemandes f, @RequestParam(defaultValue = "0") int page, Model model) {
-        return file(model, "Demandes à examiner", "Vérifiez la cohérence de chaque demande avant de l'ouvrir au paiement.",
+        return file(model, "file.delegue.titre", "file.delegue.aide",
                 List.of("SOUMISE"), f, page, List.of("SOUMISE", "A_PAYER", "SIGNEE", "LIVREE", "REJETEE"));
     }
 
     @GetMapping("/delegue/livraisons")
     String livraisons(@ModelAttribute("filtre") Api.FiltreDemandes f, @RequestParam(defaultValue = "0") int page, Model model) {
-        return file(model, "Documents signés", "Les documents papier sont à imprimer puis à expédier (ou à remettre à la "
-                + "mission diplomatique indiquée).", List.of("SIGNEE"), f, page, List.of("SIGNEE", "LIVREE"));
+        return file(model, "file.livraisons.titre", "file.livraisons.aide", List.of("SIGNEE"), f, page, List.of("SIGNEE", "LIVREE"));
     }
 
     @GetMapping("/registre")
     String registre(@ModelAttribute("filtre") Api.FiltreDemandes f, @RequestParam(defaultValue = "0") int page, Model model) {
-        return file(model, "Actes non retrouvés", "Retrouvez l'acte dans les registres papier, transcrivez-le puis relancez la "
-                + "recherche ou rattachez-le par son numéro. Une validation d'acte relance aussi automatiquement les demandes.",
+        return file(model, "file.registre.titre", "file.registre.aide",
                 List.of("ACTE_INTROUVABLE", "PAYEE"), f, page, List.of("PAYEE", "ACTE_INTROUVABLE", "ACTE_TROUVE"));
     }
 
@@ -87,7 +87,7 @@ class BackOfficeController {
     @GetMapping("/back-office/demandes")
     String toutes(@RequestParam(required = false) String statut, @ModelAttribute("filtre") Api.FiltreDemandes f,
                   @RequestParam(defaultValue = "0") int page, Model model) {
-        model.addAttribute("titre", "Toutes les demandes");
+        model.addAttribute("titre", Textes.t("message.toutes_les_demandes"));
         model.addAttribute("page", api.demandes(statut == null || statut.isBlank() ? null : List.of(statut), f, page));
         model.addAttribute("tousStatuts", true);
         model.addAttribute("statuts", STATUTS);
@@ -128,21 +128,21 @@ class BackOfficeController {
     @PostMapping("/delegue/demandes/{id}/validation")
     String valider(@PathVariable UUID id, @RequestParam(defaultValue = "false") boolean identiteVerifiee, RedirectAttributes flash) {
         api.action(id, "validation", Map.of("identiteVerifiee", String.valueOf(identiteVerifiee)));
-        flash.addFlashAttribute("succes", "Demande validée : le demandeur est invité à payer en ligne.");
+        flash.addFlashAttribute("succes", Textes.t("message.demande_validee_le_demandeur_est_invite"));
         return "redirect:/delegue";
     }
 
     @PostMapping("/delegue/demandes/{id}/livraison")
     String livrer(@PathVariable UUID id, RedirectAttributes flash) {
         api.action(id, "livraison", null);
-        flash.addFlashAttribute("succes", "Document marqué comme expédié.");
+        flash.addFlashAttribute("succes", Textes.t("message.document_marque_comme_expedie"));
         return "redirect:/delegue/livraisons";
     }
 
     @PostMapping("/back-office/demandes/{id}/rejet")
     String rejeter(@PathVariable UUID id, @RequestParam String motif, RedirectAttributes flash) {
         api.action(id, "rejet", Map.of("motif", motif));
-        flash.addFlashAttribute("succes", "Demande rejetée, le demandeur en est informé.");
+        flash.addFlashAttribute("succes", Textes.t("message.demande_rejetee_le_demandeur_en_est"));
         return "redirect:/back-office/demandes/" + id;
     }
 
@@ -150,9 +150,9 @@ class BackOfficeController {
     String relancer(@PathVariable UUID id, RedirectAttributes flash) {
         Vues.Demande d = api.actionAvecResultat(id, "recherche", null);
         if ("ACTE_TROUVE".equals(d.statut())) {
-            flash.addFlashAttribute("succes", "Acte " + d.numeroActe() + " retrouvé : la demande part en signature.");
+            flash.addFlashAttribute("succes", Textes.t("message.acte_retrouve_la_demande_part_en", d.numeroActe()));
         } else {
-            flash.addFlashAttribute("erreur", d.noteRecherche());
+            flash.addFlashAttribute("erreur", Textes.t("message.texte", d.noteRecherche()));
         }
         return "redirect:/back-office/demandes/" + id;
     }
@@ -160,34 +160,34 @@ class BackOfficeController {
     @PostMapping("/registre/demandes/{id}/rattachement")
     String rattacher(@PathVariable UUID id, @RequestParam String numeroActe, RedirectAttributes flash) {
         api.actionAvecResultat(id, "rattachement", Map.of("numeroActe", numeroActe));
-        flash.addFlashAttribute("succes", "Acte rattaché : la demande part en signature.");
+        flash.addFlashAttribute("succes", Textes.t("message.acte_rattache_la_demande_part_en"));
         return "redirect:/back-office/demandes/" + id;
     }
 
     @PostMapping("/officier/demandes/{id}/signature")
     String signer(@PathVariable UUID id, RedirectAttributes flash) {
         Vues.Demande d = api.actionAvecResultat(id, "signature", null);
-        flash.addFlashAttribute("succes", "Document signé. Code de vérification : " + d.codeVerification());
+        flash.addFlashAttribute("succes", Textes.t("message.document_signe_code_de_verification", d.codeVerification()));
         return "redirect:/officier";
     }
 
     @PostMapping("/officier/demandes/{id}/contestation")
     String contester(@PathVariable UUID id, @RequestParam String raison, RedirectAttributes flash) {
         api.action(id, "contestation", Map.of("raison", raison));
-        flash.addFlashAttribute("succes", "La demande est renvoyée à l'agent du registre.");
+        flash.addFlashAttribute("succes", Textes.t("message.la_demande_est_renvoyee_a_l"));
         return "redirect:/officier";
     }
 
     @PostMapping("/officier/actes/{id}/validation")
     String validerActe(@PathVariable UUID id, RedirectAttributes flash) {
         Vues.Acte a = api.validerActe(id);
-        flash.addFlashAttribute("succes", "Acte " + a.numeroActe() + " validé dans le registre national.");
+        flash.addFlashAttribute("succes", Textes.t("message.acte_valide_dans_le_registre_national", a.numeroActe()));
         return "redirect:/officier";
     }
 
     private String file(Model model, String titre, String aide, List<String> statuts, Api.FiltreDemandes f, int page,
                         List<String> compteurs) {
-        model.addAttribute("titre", titre);
+        model.addAttribute("titre", Textes.t("message.texte_2", titre));
         model.addAttribute("aide", aide);
         model.addAttribute("page", api.demandes(statuts, f, page));
         compteurs(model, f, compteurs);

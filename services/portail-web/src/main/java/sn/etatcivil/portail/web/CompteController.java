@@ -1,5 +1,7 @@
 package sn.etatcivil.portail.web;
 
+import sn.etatcivil.portail.i18n.Textes;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -57,14 +59,13 @@ class CompteController {
             api.preferencesNotifications(p.notifications());
         } catch (ApiException e) {
             if (e.indisponible()) {
-                flash.addFlashAttribute("erreur", "Profil enregistré, mais la préférence de notification n'a pas pu être "
-                        + "transmise : réessayez dans quelques minutes.");
+                flash.addFlashAttribute("erreur", Textes.t("message.profil_enregistre_mais_la_preference_de"));
                 return "redirect:/compte";
             }
             throw e;
         }
         langues.setLocale(requete, reponse, Locale.forLanguageTag(p.langue()));
-        flash.addFlashAttribute("succes", "Vos informations sont enregistrées. Votre nom à jour s'affichera à votre prochaine connexion.");
+        flash.addFlashAttribute("succes", Textes.t("message.vos_informations_sont_enregistrees_votre_nom"));
         return "redirect:/compte";
     }
 

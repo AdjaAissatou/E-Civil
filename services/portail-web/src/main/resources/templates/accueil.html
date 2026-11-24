@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
-      th:replace="~{fragments/layout :: page('Accueil', ~{::main})}">
+      th:replace="~{fragments/layout :: page(#{accueil.accueil}, ~{::main})}">
 <body>
 <main>
     <!-- ============================================================ Bandeau -->
@@ -8,21 +8,21 @@
         <div class="container">
             <div class="row align-items-center g-5">
                 <div class="col-lg-6">
-                    <span class="hero-etiquette entree"><span class="point"><i class="bi bi-stars"></i></span>Le service public de l'état civil, en ligne</span>
-                    <h1 class="entree" style="--delai: 80ms">Vos actes d'état civil, <span class="italique-or d-block">sans faire la queue.</span></h1>
-                    <p class="lead entree" style="--delai: 160ms">Demandez un extrait ou une copie d'acte de naissance, de mariage, de divorce ou de décès.
-                        Payez depuis votre téléphone et recevez un document signé, vérifiable par QR code.</p>
+                    <span class="hero-etiquette entree"><span class="point"><i class="bi bi-stars"></i></span><th:block th:text="#{accueil.le_service_public_de_l_etat}">Le service public de l'état civil, en ligne</th:block></span>
+                    <h1 class="entree" style="--delai: 80ms"><th:block th:text="#{accueil.vos_actes_d_etat_civil}">Vos actes d'état civil,</th:block> <span class="italique-or d-block"><th:block th:text="#{accueil.sans_faire_la_queue}">sans faire la queue.</th:block></span></h1>
+                    <p class="lead entree" style="--delai: 160ms"><th:block th:text="#{accueil.demandez_un_extrait_ou_une_copie}">Demandez un extrait ou une copie d'acte de naissance, de mariage, de divorce ou de décès.
+                        Payez depuis votre téléphone et recevez un document signé, vérifiable par QR code.</th:block></p>
                     <div class="d-flex flex-wrap gap-3 mt-4 entree" style="--delai: 240ms">
                         <a sec:authorize="isAnonymous()" th:href="@{/inscription}" class="btn btn-or btn-lg">
-                            Faire ma demande <i class="bi bi-arrow-right ms-1"></i></a>
+                            <th:block th:text="#{accueil.faire_ma_demande}">Faire ma demande</th:block> <i class="bi bi-arrow-right ms-1"></i></a>
                         <a sec:authorize="isAuthenticated()" th:href="@{/espace}" class="btn btn-or btn-lg">
-                            Mon espace <i class="bi bi-arrow-right ms-1"></i></a>
-                        <a th:href="@{/documents}" class="btn btn-verre btn-lg">Voir les documents</a>
+                            <th:block th:text="#{accueil.mon_espace}">Mon espace</th:block> <i class="bi bi-arrow-right ms-1"></i></a>
+                        <a th:href="@{/documents}" class="btn btn-verre btn-lg"><th:block th:text="#{accueil.voir_les_documents}">Voir les documents</th:block></a>
                     </div>
                     <div class="hero-preuves entree" style="--delai: 320ms">
-                        <span><i class="bi bi-phone"></i>Wave, Orange Money, carte</span>
-                        <span><i class="bi bi-qr-code-scan"></i>Authenticité vérifiable</span>
-                        <span><i class="bi bi-globe-europe-africa"></i>Ouvert à la diaspora</span>
+                        <span><i class="bi bi-phone"></i><th:block th:text="#{accueil.wave_orange_money_carte}">Wave, Orange Money, carte</th:block></span>
+                        <span><i class="bi bi-qr-code-scan"></i><th:block th:text="#{accueil.authenticite_verifiable}">Authenticité vérifiable</th:block></span>
+                        <span><i class="bi bi-globe-europe-africa"></i><th:block th:text="#{accueil.ouvert_a_la_diaspora}">Ouvert à la diaspora</th:block></span>
                     </div>
                 </div>
 
@@ -31,31 +31,31 @@
                     <div class="vitrine entree" style="--delai: 200ms">
                         <figure class="vitrine-photo">
                             <img th:src="@{/images/mairie-hall-portrait.webp}" width="760" height="950"
-                                 alt="Une usagère fait sa démarche au guichet numérique de la mairie de Dakar">
+                                 alt="Une usagère fait sa démarche au guichet numérique de la mairie de Dakar" th:alt="#{accueil.une_usagere_fait_sa_demarche_au}">
                         </figure>
                         <div class="maquette-acte" aria-hidden="true">
-                            <div class="maquette-sceau"><div><i class="bi bi-patch-check-fill"></i>SIGNÉ</div></div>
+                            <div class="maquette-sceau"><div><i class="bi bi-patch-check-fill"></i><th:block th:text="#{accueil.signe}">SIGNÉ</th:block></div></div>
                             <div class="maquette-entete">
-                                <div class="rep">RÉPUBLIQUE DU SÉNÉGAL</div>
-                                <div class="devise">Un Peuple – Un But – Une Foi</div>
+                                <div class="rep"><th:block th:text="#{accueil.republique_du_senegal}">RÉPUBLIQUE DU SÉNÉGAL</th:block></div>
+                                <div class="devise"><th:block th:text="#{accueil.un_peuple_un_but_une_foi}">Un Peuple – Un But – Une Foi</th:block></div>
                             </div>
-                            <div class="maquette-titre">Extrait d'acte de naissance</div>
-                            <div class="maquette-num">Acte n° N-1998-000042 · Dakar Plateau</div>
-                            <div class="maquette-ligne"><span>Nom</span><span>DIALLO</span></div>
-                            <div class="maquette-ligne"><span>Prénoms</span><span>Fatou Bintou</span></div>
-                            <div class="maquette-ligne"><span>Née le</span><span>14 mars 1998</span></div>
+                            <div class="maquette-titre"><th:block th:text="#{accueil.extrait_d_acte_de_naissance}">Extrait d'acte de naissance</th:block></div>
+                            <div class="maquette-num"><th:block th:text="#{accueil.acte_n_n_1998_000042_dakar}">Acte n° N-1998-000042 · Dakar Plateau</th:block></div>
+                            <div class="maquette-ligne"><span><th:block th:text="#{accueil.nom}">Nom</th:block></span><span>DIALLO</span></div>
+                            <div class="maquette-ligne"><span><th:block th:text="#{accueil.prenoms}">Prénoms</th:block></span><span><th:block th:text="#{accueil.fatou_bintou}">Fatou Bintou</th:block></span></div>
+                            <div class="maquette-ligne"><span><th:block th:text="#{accueil.nee_le}">Née le</th:block></span><span><th:block th:text="#{accueil.14_mars_1998}">14 mars 1998</th:block></span></div>
                             <div class="maquette-pied">
-                                <div class="maquette-signature"><strong>L'Officier</strong>Code ABCDE-23456</div>
+                                <div class="maquette-signature"><strong><th:block th:text="#{accueil.l_officier}">L'Officier</th:block></strong><th:block th:text="#{accueil.code_abcde_23456}">Code ABCDE-23456</th:block></div>
                                 <div class="maquette-qr"><img th:src="@{/images/qr-illustration.svg}" alt=""></div>
                             </div>
                         </div>
                         <div class="bulle bulle-paiement" aria-hidden="true">
                             <span class="icone"><i class="bi bi-check2-circle"></i></span>
-                            <span><strong>Paiement confirmé</strong><small>1 000 FCFA · Wave</small></span>
+                            <span><strong><th:block th:text="#{accueil.paiement_confirme}">Paiement confirmé</th:block></strong><small><th:block th:text="#{accueil.1_000_fcfa_wave}">1 000 FCFA · Wave</th:block></small></span>
                         </div>
                         <div class="bulle bulle-verif" aria-hidden="true">
                             <span class="icone"><i class="bi bi-shield-check"></i></span>
-                            <span><strong>Document authentique</strong><small>Vérifié par QR code</small></span>
+                            <span><strong><th:block th:text="#{accueil.document_authentique}">Document authentique</th:block></strong><small><th:block th:text="#{accueil.verifie_par_qr_code}">Vérifié par QR code</th:block></small></span>
                         </div>
                     </div>
                 </div>
@@ -66,12 +66,12 @@
     <!-- ============================================================ Moyens de paiement -->
     <section class="bande-paiement">
         <div class="container d-flex flex-column flex-md-row align-items-center justify-content-between gap-3">
-            <span class="libelle">Payez comme vous voulez</span>
+            <span class="libelle"><th:block th:text="#{accueil.payez_comme_vous_voulez}">Payez comme vous voulez</th:block></span>
             <div class="d-flex flex-wrap justify-content-center gap-2">
                 <span class="moyen"><span class="puce" style="background:#1dc3f0"></span>Wave</span>
-                <span class="moyen"><span class="puce" style="background:#ff7900"></span>Orange Money</span>
-                <span class="moyen"><span class="puce" style="background:#d6262f"></span>Free Money</span>
-                <span class="moyen"><i class="bi bi-credit-card-2-front"></i>Carte bancaire</span>
+                <span class="moyen"><span class="puce" style="background:#ff7900"></span><th:block th:text="#{accueil.orange_money}">Orange Money</th:block></span>
+                <span class="moyen"><span class="puce" style="background:#d6262f"></span><th:block th:text="#{accueil.free_money}">Free Money</th:block></span>
+                <span class="moyen"><i class="bi bi-credit-card-2-front"></i><th:block th:text="#{accueil.carte_bancaire}">Carte bancaire</th:block></span>
             </div>
         </div>
     </section>
@@ -80,56 +80,56 @@
     <section id="services" class="section">
         <div class="container">
             <div class="section-titre reveler">
-                <span class="surtitre">Nos documents</span>
-                <h2>Chaque moment de la vie a son acte</h2>
-                <p>Extraits et copies intégrales, délivrés à partir du registre national et signés par un officier de l'état civil.</p>
+                <span class="surtitre"><th:block th:text="#{accueil.nos_documents}">Nos documents</th:block></span>
+                <h2><th:block th:text="#{accueil.chaque_moment_de_la_vie_a}">Chaque moment de la vie a son acte</th:block></h2>
+                <p><th:block th:text="#{accueil.extraits_et_copies_integrales_delivres_a}">Extraits et copies intégrales, délivrés à partir du registre national et signés par un officier de l'état civil.</th:block></p>
             </div>
             <div class="row g-4">
                 <div class="col-sm-6 col-lg-3 reveler" style="--delai: 0ms">
                     <article class="carte-service accent-naissance">
                         <div class="pictogramme"><img th:src="@{/images/birth.png}" alt=""></div>
-                        <h3>Naissance</h3>
-                        <p>Pour une inscription, un passeport, une carte d'identité ou un dossier administratif.</p>
+                        <h3><th:block th:text="#{accueil.naissance}">Naissance</th:block></h3>
+                        <p><th:block th:text="#{accueil.pour_une_inscription_un_passeport_une}">Pour une inscription, un passeport, une carte d'identité ou un dossier administratif.</th:block></p>
                         <div class="d-flex align-items-end justify-content-between">
-                            <div class="prix" th:if="${aPartirDe['NAISSANCE']}"><span class="depuis">dès</span>
+                            <div class="prix" th:if="${aPartirDe['NAISSANCE']}"><span class="depuis"><th:block th:text="#{accueil.des}">dès</th:block></span>
                                 <span class="montant" th:text="${#numbers.formatInteger(aPartirDe['NAISSANCE'], 1, 'WHITESPACE')}">1 000</span><span class="devise">FCFA</span></div>
-                            <a th:href="@{/documents}" class="lien-fleche">Choisir <i class="bi bi-arrow-right"></i></a>
+                            <a th:href="@{/documents}" class="lien-fleche"><th:block th:text="#{accueil.choisir}">Choisir</th:block> <i class="bi bi-arrow-right"></i></a>
                         </div>
                     </article>
                 </div>
                 <div class="col-sm-6 col-lg-3 reveler" style="--delai: 90ms">
                     <article class="carte-service accent-mariage">
                         <div class="pictogramme"><img th:src="@{/images/marriage.png}" alt=""></div>
-                        <h3>Mariage</h3>
-                        <p>L'acte qui atteste votre union et l'identité des époux, avec ses mentions.</p>
+                        <h3><th:block th:text="#{accueil.mariage}">Mariage</th:block></h3>
+                        <p><th:block th:text="#{accueil.l_acte_qui_atteste_votre_union}">L'acte qui atteste votre union et l'identité des époux, avec ses mentions.</th:block></p>
                         <div class="d-flex align-items-end justify-content-between">
-                            <div class="prix" th:if="${aPartirDe['MARIAGE']}"><span class="depuis">dès</span>
+                            <div class="prix" th:if="${aPartirDe['MARIAGE']}"><span class="depuis"><th:block th:text="#{accueil.des}">dès</th:block></span>
                                 <span class="montant" th:text="${#numbers.formatInteger(aPartirDe['MARIAGE'], 1, 'WHITESPACE')}">1 500</span><span class="devise">FCFA</span></div>
-                            <a th:href="@{/documents}" class="lien-fleche">Choisir <i class="bi bi-arrow-right"></i></a>
+                            <a th:href="@{/documents}" class="lien-fleche"><th:block th:text="#{accueil.choisir}">Choisir</th:block> <i class="bi bi-arrow-right"></i></a>
                         </div>
                     </article>
                 </div>
                 <div class="col-sm-6 col-lg-3 reveler" style="--delai: 180ms">
                     <article class="carte-service accent-divorce">
                         <div class="pictogramme"><i class="bi bi-file-earmark-break" style="font-size: 1.9rem; color: var(--ciel)"></i></div>
-                        <h3>Divorce</h3>
-                        <p>L'extrait qui atteste la dissolution du mariage, pour vos démarches.</p>
+                        <h3><th:block th:text="#{accueil.divorce}">Divorce</th:block></h3>
+                        <p><th:block th:text="#{accueil.l_extrait_qui_atteste_la_dissolution}">L'extrait qui atteste la dissolution du mariage, pour vos démarches.</th:block></p>
                         <div class="d-flex align-items-end justify-content-between">
-                            <div class="prix" th:if="${aPartirDe['DIVORCE']}"><span class="depuis">dès</span>
+                            <div class="prix" th:if="${aPartirDe['DIVORCE']}"><span class="depuis"><th:block th:text="#{accueil.des}">dès</th:block></span>
                                 <span class="montant" th:text="${#numbers.formatInteger(aPartirDe['DIVORCE'], 1, 'WHITESPACE')}">1 500</span><span class="devise">FCFA</span></div>
-                            <a th:href="@{/documents}" class="lien-fleche">Choisir <i class="bi bi-arrow-right"></i></a>
+                            <a th:href="@{/documents}" class="lien-fleche"><th:block th:text="#{accueil.choisir}">Choisir</th:block> <i class="bi bi-arrow-right"></i></a>
                         </div>
                     </article>
                 </div>
                 <div class="col-sm-6 col-lg-3 reveler" style="--delai: 270ms">
                     <article class="carte-service accent-deces">
                         <div class="pictogramme"><img th:src="@{/images/death.png}" alt=""></div>
-                        <h3>Décès</h3>
-                        <p>Pour une succession, une pension ou les formalités auprès des administrations.</p>
+                        <h3><th:block th:text="#{accueil.deces}">Décès</th:block></h3>
+                        <p><th:block th:text="#{accueil.pour_une_succession_une_pension_ou}">Pour une succession, une pension ou les formalités auprès des administrations.</th:block></p>
                         <div class="d-flex align-items-end justify-content-between">
-                            <div class="prix" th:if="${aPartirDe['DECES']}"><span class="depuis">dès</span>
+                            <div class="prix" th:if="${aPartirDe['DECES']}"><span class="depuis"><th:block th:text="#{accueil.des}">dès</th:block></span>
                                 <span class="montant" th:text="${#numbers.formatInteger(aPartirDe['DECES'], 1, 'WHITESPACE')}">1 000</span><span class="devise">FCFA</span></div>
-                            <a th:href="@{/documents}" class="lien-fleche">Choisir <i class="bi bi-arrow-right"></i></a>
+                            <a th:href="@{/documents}" class="lien-fleche"><th:block th:text="#{accueil.choisir}">Choisir</th:block> <i class="bi bi-arrow-right"></i></a>
                         </div>
                     </article>
                 </div>
@@ -141,30 +141,30 @@
     <section id="parcours" class="section" style="background: var(--sable)">
         <div class="container">
             <div class="section-titre reveler">
-                <span class="surtitre">Comment ça marche</span>
-                <h2>Quatre étapes, zéro déplacement</h2>
-                <p>Vous suivez chaque étape depuis votre espace, et un email vous prévient à chaque avancée.</p>
+                <span class="surtitre"><th:block th:text="#{accueil.comment_ca_marche}">Comment ça marche</th:block></span>
+                <h2><th:block th:text="#{accueil.quatre_etapes_zero_deplacement}">Quatre étapes, zéro déplacement</th:block></h2>
+                <p><th:block th:text="#{accueil.vous_suivez_chaque_etape_depuis_votre}">Vous suivez chaque étape depuis votre espace, et un email vous prévient à chaque avancée.</th:block></p>
             </div>
             <div class="parcours">
                 <div class="parcours-etape reveler" style="--delai: 0ms">
                     <div class="parcours-num">1</div>
-                    <h3>Je fais ma demande</h3>
-                    <p>Je choisis le document et j'indique la personne concernée.</p>
+                    <h3><th:block th:text="#{accueil.je_fais_ma_demande}">Je fais ma demande</th:block></h3>
+                    <p><th:block th:text="#{accueil.je_choisis_le_document_et_j}">Je choisis le document et j'indique la personne concernée.</th:block></p>
                 </div>
                 <div class="parcours-etape reveler" style="--delai: 120ms">
                     <div class="parcours-num">2</div>
-                    <h3>Un délégué la vérifie</h3>
-                    <p>La demande est examinée par l'état civil avant tout paiement.</p>
+                    <h3><th:block th:text="#{accueil.un_delegue_la_verifie}">Un délégué la vérifie</th:block></h3>
+                    <p><th:block th:text="#{accueil.la_demande_est_examinee_par_l}">La demande est examinée par l'état civil avant tout paiement.</th:block></p>
                 </div>
                 <div class="parcours-etape reveler" style="--delai: 240ms">
                     <div class="parcours-num">3</div>
-                    <h3>Je paie en ligne</h3>
-                    <p>Wave, Orange Money, Free Money ou carte : l'acte est aussitôt recherché.</p>
+                    <h3><th:block th:text="#{accueil.je_paie_en_ligne}">Je paie en ligne</th:block></h3>
+                    <p><th:block th:text="#{accueil.wave_orange_money_free_money_ou}">Wave, Orange Money, Free Money ou carte : l'acte est aussitôt recherché.</th:block></p>
                 </div>
                 <div class="parcours-etape reveler" style="--delai: 360ms">
                     <div class="parcours-num">4</div>
-                    <h3>Je reçois mon acte</h3>
-                    <p>Signé par l'officier : je le télécharge en PDF ou je le reçois par courrier.</p>
+                    <h3><th:block th:text="#{accueil.je_recois_mon_acte}">Je reçois mon acte</th:block></h3>
+                    <p><th:block th:text="#{accueil.signe_par_l_officier_je_le}">Signé par l'officier : je le télécharge en PDF ou je le reçois par courrier.</th:block></p>
                 </div>
             </div>
         </div>
@@ -177,22 +177,22 @@
                 <div class="col-lg-6 reveler">
                     <div class="photo-cadre">
                         <img th:src="@{/images/guichet-etat-civil.webp}" width="1200" height="800"
-                             alt="Une agente de l'état civil traite une demande à son poste, devant le guichet">
+                             alt="Une agente de l'état civil traite une demande à son poste, devant le guichet" th:alt="#{accueil.une_agente_de_l_etat_civil}">
                         <div class="photo-carte">
                             <span class="icone"><i class="bi bi-person-badge"></i></span>
-                            <div><strong>Traitée par l'état civil</strong><small>Délégué, agent du registre, officier</small></div>
+                            <div><strong><th:block th:text="#{accueil.traitee_par_l_etat_civil}">Traitée par l'état civil</th:block></strong><small><th:block th:text="#{accueil.delegue_agent_du_registre_officier}">Délégué, agent du registre, officier</th:block></small></div>
                         </div>
                     </div>
                 </div>
                 <div class="col-lg-6">
-                    <span class="surtitre reveler">Un vrai service public</span>
-                    <h2 class="mt-3 mb-3 reveler" style="font-size: clamp(2rem, 3.4vw, 2.7rem)">Derrière chaque demande, des agents de l'état civil</h2>
-                    <p class="mb-4 reveler">E-Civil ne remplace pas la mairie : il vous évite simplement de vous y rendre.
-                        Votre demande suit le même chemin qu'au guichet, en toute transparence.</p>
+                    <span class="surtitre reveler"><th:block th:text="#{accueil.un_vrai_service_public}">Un vrai service public</th:block></span>
+                    <h2 class="mt-3 mb-3 reveler" style="font-size: clamp(2rem, 3.4vw, 2.7rem)"><th:block th:text="#{accueil.derriere_chaque_demande_des_agents_de}">Derrière chaque demande, des agents de l'état civil</th:block></h2>
+                    <p class="mb-4 reveler"><th:block th:text="#{accueil.e_civil_ne_remplace_pas_la}">E-Civil ne remplace pas la mairie : il vous évite simplement de vous y rendre.
+                        Votre demande suit le même chemin qu'au guichet, en toute transparence.</th:block></p>
                     <ul class="liste-etapes list-unstyled">
-                        <li class="reveler" style="--delai: 0ms"><span class="pastille-num">1</span><div><strong>Le délégué</strong> vérifie la cohérence de votre demande.</div></li>
-                        <li class="reveler" style="--delai: 100ms"><span class="pastille-num">2</span><div><strong>L'agent du registre</strong> retrouve l'acte, et le transcrit depuis les registres papier si besoin.</div></li>
-                        <li class="reveler" style="--delai: 200ms"><span class="pastille-num">3</span><div><strong>L'officier de l'état civil</strong> contrôle l'acte et signe votre document.</div></li>
+                        <li class="reveler" style="--delai: 0ms"><span class="pastille-num">1</span><div><strong><th:block th:text="#{accueil.le_delegue}">Le délégué</th:block></strong> <th:block th:text="#{accueil.verifie_la_coherence_de_votre_demande}">vérifie la cohérence de votre demande.</th:block></div></li>
+                        <li class="reveler" style="--delai: 100ms"><span class="pastille-num">2</span><div><strong><th:block th:text="#{accueil.l_agent_du_registre}">L'agent du registre</th:block></strong> <th:block th:text="#{accueil.retrouve_l_acte_et_le_transcrit}">retrouve l'acte, et le transcrit depuis les registres papier si besoin.</th:block></div></li>
+                        <li class="reveler" style="--delai: 200ms"><span class="pastille-num">3</span><div><strong><th:block th:text="#{accueil.l_officier_de_l_etat_civil}">L'officier de l'état civil</th:block></strong> <th:block th:text="#{accueil.controle_l_acte_et_signe_votre}">contrôle l'acte et signe votre document.</th:block></div></li>
                     </ul>
                 </div>
             </div>
@@ -205,29 +205,29 @@
             <div class="bloc-sombre p-4 p-md-5 reveler">
                 <div class="row g-5 align-items-center position-relative">
                     <div class="col-lg-6">
-                        <span class="surtitre">Confiance</span>
-                        <h2 class="mt-3 mb-3" style="font-size: clamp(1.9rem, 3.2vw, 2.6rem)">Un document qui se vérifie en un instant</h2>
-                        <p class="mb-4">Chaque acte délivré porte un code unique et un QR code. Une administration, un employeur ou
-                            une ambassade peut contrôler son authenticité, sans vous appeler.</p>
+                        <span class="surtitre"><th:block th:text="#{accueil.confiance}">Confiance</th:block></span>
+                        <h2 class="mt-3 mb-3" style="font-size: clamp(1.9rem, 3.2vw, 2.6rem)"><th:block th:text="#{accueil.un_document_qui_se_verifie_en}">Un document qui se vérifie en un instant</th:block></h2>
+                        <p class="mb-4"><th:block th:text="#{accueil.chaque_acte_delivre_porte_un_code}">Chaque acte délivré porte un code unique et un QR code. Une administration, un employeur ou
+                            une ambassade peut contrôler son authenticité, sans vous appeler.</th:block></p>
                         <div class="atout"><span class="icone"><i class="bi bi-fingerprint"></i></span>
-                            <div><h3>Empreinte numérique</h3><p>Le contenu signé est scellé : la moindre modification serait détectée.</p></div></div>
+                            <div><h3><th:block th:text="#{accueil.empreinte_numerique}">Empreinte numérique</th:block></h3><p><th:block th:text="#{accueil.le_contenu_signe_est_scelle_la}">Le contenu signé est scellé : la moindre modification serait détectée.</th:block></p></div></div>
                         <div class="atout"><span class="icone"><i class="bi bi-lock"></i></span>
-                            <div><h3>Données protégées</h3><p>Connexion sécurisée, et chacun n'accède qu'à ses propres demandes.</p></div></div>
+                            <div><h3><th:block th:text="#{accueil.donnees_protegees}">Données protégées</th:block></h3><p><th:block th:text="#{accueil.connexion_securisee_et_chacun_n_accede}">Connexion sécurisée, et chacun n'accède qu'à ses propres demandes.</th:block></p></div></div>
                         <div class="atout"><span class="icone"><i class="bi bi-bell"></i></span>
-                            <div><h3>Toujours informé</h3><p>Un email à chaque étape, du dépôt à la délivrance.</p></div></div>
+                            <div><h3><th:block th:text="#{accueil.toujours_informe}">Toujours informé</th:block></h3><p><th:block th:text="#{accueil.un_email_a_chaque_etape_du}">Un email à chaque étape, du dépôt à la délivrance.</th:block></p></div></div>
                     </div>
                     <div class="col-lg-5 offset-lg-1">
                         <div class="verif-demo">
                             <div class="d-flex align-items-center gap-3 mb-3">
                                 <div class="maquette-qr flex-shrink-0"><img th:src="@{/images/qr-illustration.svg}" alt=""></div>
-                                <div><strong class="text-white d-block">Vérifier un document</strong>
-                                    <small style="color: rgba(255,255,255,.65)">Scannez le QR code ou saisissez le code</small></div>
+                                <div><strong class="text-white d-block"><th:block th:text="#{accueil.verifier_un_document}">Vérifier un document</th:block></strong>
+                                    <small style="color: rgba(255,255,255,.65)"><th:block th:text="#{accueil.scannez_le_qr_code_ou_saisissez}">Scannez le QR code ou saisissez le code</th:block></small></div>
                             </div>
                             <form class="champ" th:action="@{/verification}" method="get">
-                                <input class="code form-control" name="code" placeholder="ABCDE-23456" maxlength="11" aria-label="Code de vérification">
-                                <button class="btn btn-or" type="submit">Vérifier</button>
+                                <input class="code form-control" name="code" placeholder="ABCDE-23456" maxlength="11" aria-label="Code de vérification" th:aria-label="#{accueil.code_de_verification}">
+                                <button class="btn btn-or" type="submit"><th:block th:text="#{accueil.verifier}">Vérifier</th:block></button>
                             </form>
-                            <div class="resultat"><i class="bi bi-patch-check-fill"></i>Document authentique, délivré par E-Civil</div>
+                            <div class="resultat"><i class="bi bi-patch-check-fill"></i><th:block th:text="#{accueil.document_authentique_delivre_par_e_civil}">Document authentique, délivré par E-Civil</th:block></div>
                         </div>
                     </div>
                 </div>
@@ -239,33 +239,33 @@
     <section id="faq" class="section pt-4">
         <div class="container" style="max-width: 860px">
             <div class="section-titre reveler">
-                <span class="surtitre">Questions fréquentes</span>
-                <h2>Tout ce qu'il faut savoir</h2>
+                <span class="surtitre"><th:block th:text="#{accueil.questions_frequentes}">Questions fréquentes</th:block></span>
+                <h2><th:block th:text="#{accueil.tout_ce_qu_il_faut_savoir}">Tout ce qu'il faut savoir</th:block></h2>
             </div>
             <div class="accordion reveler" id="faqAccordion">
                 <div class="accordion-item">
                     <h3 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#q1">
-                        Puis-je demander l'acte d'un proche ?</button></h3>
+                        <th:block th:text="#{accueil.puis_je_demander_l_acte_d}">Puis-je demander l'acte d'un proche ?</th:block></button></h3>
                     <div id="q1" class="accordion-collapse collapse" data-bs-parent="#faqAccordion"><div class="accordion-body">
-                        Oui : indiquez votre lien avec la personne (enfant, parent, conjoint, mandataire). Le délégué vérifie la légitimité de la demande avant le paiement.</div></div>
+                        <th:block th:text="#{accueil.oui_indiquez_votre_lien_avec_la}">Oui : indiquez votre lien avec la personne (enfant, parent, conjoint, mandataire). Le délégué vérifie la légitimité de la demande avant le paiement.</th:block></div></div>
                 </div>
                 <div class="accordion-item">
                     <h3 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#q2">
-                        Quand dois-je payer ?</button></h3>
+                        <th:block th:text="#{accueil.quand_dois_je_payer}">Quand dois-je payer ?</th:block></button></h3>
                     <div id="q2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion"><div class="accordion-body">
-                        Seulement après la validation de votre demande par un délégué. Vous recevez alors un email et le bouton « Payer en ligne » apparaît dans votre espace.</div></div>
+                        <th:block th:text="#{accueil.seulement_apres_la_validation_de_votre}">Seulement après la validation de votre demande par un délégué. Vous recevez alors un email et le bouton « Payer en ligne » apparaît dans votre espace.</th:block></div></div>
                 </div>
                 <div class="accordion-item">
                     <h3 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#q3">
-                        Et si mon acte n'est pas encore numérisé ?</button></h3>
+                        <th:block th:text="#{accueil.et_si_mon_acte_n_est}">Et si mon acte n'est pas encore numérisé ?</th:block></button></h3>
                     <div id="q3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion"><div class="accordion-body">
-                        Un agent du registre le retrouve dans les registres papier et le transcrit. Dès qu'un officier le valide, votre demande reprend automatiquement son cours.</div></div>
+                        <th:block th:text="#{accueil.un_agent_du_registre_le_retrouve}">Un agent du registre le retrouve dans les registres papier et le transcrit. Dès qu'un officier le valide, votre demande reprend automatiquement son cours.</th:block></div></div>
                 </div>
                 <div class="accordion-item">
                     <h3 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#q4">
-                        Comment une administration vérifie-t-elle mon document ?</button></h3>
+                        <th:block th:text="#{accueil.comment_une_administration_verifie_t_elle}">Comment une administration vérifie-t-elle mon document ?</th:block></button></h3>
                     <div id="q4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion"><div class="accordion-body">
-                        En scannant son QR code ou en saisissant son code sur la page <a th:href="@{/verification}">Vérifier un document</a>. Elle voit alors le contenu authentique de l'acte.</div></div>
+                        <th:block th:text="#{accueil.en_scannant_son_qr_code_ou}">En scannant son QR code ou en saisissant son code sur la page</th:block> <a th:href="@{/verification}"><th:block th:text="#{accueil.verifier_un_document}">Vérifier un document</th:block></a><th:block th:text="#{accueil.elle_voit_alors_le_contenu_authentique}">. Elle voit alors le contenu authentique de l'acte.</th:block></div></div>
                 </div>
             </div>
         </div>
@@ -277,12 +277,12 @@
             <div class="cta reveler">
                 <div class="row align-items-center g-4">
                     <div class="col-lg-8">
-                        <h2 class="mb-2">Prêt à obtenir votre acte ?</h2>
-                        <p class="mb-0">Créez votre compte en deux minutes, et suivez votre demande jusqu'à la délivrance.</p>
+                        <h2 class="mb-2"><th:block th:text="#{accueil.pret_a_obtenir_votre_acte}">Prêt à obtenir votre acte ?</th:block></h2>
+                        <p class="mb-0"><th:block th:text="#{accueil.creez_votre_compte_en_deux_minutes}">Créez votre compte en deux minutes, et suivez votre demande jusqu'à la délivrance.</th:block></p>
                     </div>
                     <div class="col-lg-4 text-lg-end">
-                        <a sec:authorize="isAnonymous()" th:href="@{/inscription}" class="btn btn-primary btn-lg">Créer mon compte <i class="bi bi-arrow-right ms-1"></i></a>
-                        <a sec:authorize="isAuthenticated()" th:href="@{/documents}" class="btn btn-primary btn-lg">Faire une demande <i class="bi bi-arrow-right ms-1"></i></a>
+                        <a sec:authorize="isAnonymous()" th:href="@{/inscription}" class="btn btn-primary btn-lg"><th:block th:text="#{accueil.creer_mon_compte}">Créer mon compte</th:block> <i class="bi bi-arrow-right ms-1"></i></a>
+                        <a sec:authorize="isAuthenticated()" th:href="@{/documents}" class="btn btn-primary btn-lg"><th:block th:text="#{accueil.faire_une_demande}">Faire une demande</th:block> <i class="bi bi-arrow-right ms-1"></i></a>
                     </div>
                 </div>
             </div>

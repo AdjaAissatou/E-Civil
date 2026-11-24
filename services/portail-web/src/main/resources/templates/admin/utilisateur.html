@@ -2,7 +2,7 @@
 <html lang="fr" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: page(${fiche.utilisateur.nomComplet}, ~{::main})}">
 <body>
 <main class="container py-4" th:with="u=${fiche.utilisateur}">
-    <a class="small text-decoration-none" th:href="@{/admin/utilisateurs}"><i class="bi bi-arrow-left me-1"></i>Utilisateurs</a>
+    <a class="small text-decoration-none" th:href="@{/admin/utilisateurs}"><i class="bi bi-arrow-left me-1"></i><th:block th:text="#{admin.onglets.utilisateurs}">Utilisateurs</th:block></a>
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-2 mb-4">
         <div>
             <h1 class="h3 mb-1" th:text="${u.nomComplet}"></h1>
@@ -10,33 +10,33 @@
                 <span th:text="${u.email}"></span> · compte créé le <span th:text="${@dates.jour(u.dateCreation)}"></span>
             </div>
         </div>
-        <span th:if="${u.actif}" class="pastille pastille-success pastille-lg">Compte actif</span>
-        <span th:unless="${u.actif}" class="pastille pastille-danger pastille-lg">Compte désactivé</span>
+        <span th:if="${u.actif}" class="pastille pastille-success pastille-lg"><th:block th:text="#{admin.utilisateur.compte_actif}">Compte actif</th:block></span>
+        <span th:unless="${u.actif}" class="pastille pastille-danger pastille-lg"><th:block th:text="#{admin.utilisateur.compte_desactive}">Compte désactivé</th:block></span>
     </div>
 
     <div class="row g-4">
         <div class="col-lg-7">
             <form class="card mb-4" th:action="@{/admin/utilisateurs/{id}/profils(id=${u.id})}" method="post"><div class="card-body">
-                <h2 class="h6 text-brun">Profils</h2>
-                <p class="small text-muted">Cochez les profils de la personne. Ses droits seront mis à jour à sa prochaine connexion.</p>
+                <h2 class="h6 text-brun"><th:block th:text="#{admin.onglets.profils}">Profils</th:block></h2>
+                <p class="small text-muted"><th:block th:text="#{admin.utilisateur.cochez_les_profils_de_la_personne}">Cochez les profils de la personne. Ses droits seront mis à jour à sa prochaine connexion.</th:block></p>
                 <div class="form-check mb-2" th:each="p : ${profils}">
                     <input class="form-check-input" type="checkbox" name="profil" th:value="${p.id}" th:id="'p-' + ${p.id}"
                            th:checked="${u.dansProfil(p.id)}">
                     <label class="form-check-label" th:for="'p-' + ${p.id}">
                         <span class="fw-semibold" th:text="${p.nom}"></span>
-                        <span th:if="${p.parDefaut}" class="etiquette ms-1">par défaut</span>
+                        <span th:if="${p.parDefaut}" class="etiquette ms-1"><th:block th:text="#{admin.nouvel-utilisateur.par_defaut}">par défaut</th:block></span>
                         <span class="d-block small text-muted" th:text="${p.description}"></span>
                     </label>
                 </div>
-                <button class="btn btn-primary btn-sm mt-2" type="submit">Enregistrer les profils</button>
+                <button class="btn btn-primary btn-sm mt-2" type="submit"><th:block th:text="#{admin.utilisateur.enregistrer_les_profils}">Enregistrer les profils</th:block></button>
             </div></form>
 
             <div class="card mb-4"><div class="card-body">
-                <h2 class="h6 text-brun">Permissions effectives</h2>
-                <p class="small text-muted mb-2">Ce que la personne peut faire, par ses profils
-                    <span th:if="${!fiche.roles.isEmpty()}">(rôles :
+                <h2 class="h6 text-brun"><th:block th:text="#{admin.utilisateur.permissions_effectives}">Permissions effectives</th:block></h2>
+                <p class="small text-muted mb-2"><th:block th:text="#{admin.utilisateur.ce_que_la_personne_peut_faire}">Ce que la personne peut faire, par ses profils</th:block>
+                    <span th:if="${!fiche.roles.isEmpty()}"><th:block th:text="#{admin.utilisateur.roles}">(rôles :</th:block>
                         <span th:each="r, i : ${fiche.roles}"><a th:href="@{/admin/roles/{c}(c=${r.code})}" th:text="${r.libelle}"></a><span th:unless="${i.last}">, </span></span>)</span>.</p>
-                <p th:if="${fiche.permissions.isEmpty()}" class="text-muted mb-0">Aucune permission : ce compte ne peut rien faire sur la plateforme.</p>
+                <p th:if="${fiche.permissions.isEmpty()}" class="text-muted mb-0"><th:block th:text="#{admin.utilisateur.aucune_permission_ce_compte_ne_peut}">Aucune permission : ce compte ne peut rien faire sur la plateforme.</th:block></p>
                 <div th:each="f : ${permissionsParFamille}" class="mb-2">
                     <div class="small fw-semibold text-uppercase text-muted mt-2" th:text="${f.key}"></div>
                     <ul class="list-unstyled mb-0">
@@ -51,30 +51,30 @@
 
         <div class="col-lg-5">
             <div class="card mb-4"><div class="card-body">
-                <h2 class="h6 text-brun">Accès au compte</h2>
+                <h2 class="h6 text-brun"><th:block th:text="#{admin.utilisateur.acces_au_compte}">Accès au compte</th:block></h2>
                 <form th:action="@{/admin/utilisateurs/{id}/activation(id=${u.id})}" method="post" class="mb-3">
                     <input type="hidden" name="actif" th:value="${!u.actif}">
-                    <p class="small text-muted mb-2" th:if="${u.actif}">Un compte désactivé ne peut plus se connecter ; ses demandes et son historique sont conservés.</p>
+                    <p class="small text-muted mb-2" th:if="${u.actif}"><th:block th:text="#{admin.utilisateur.un_compte_desactive_ne_peut_plus}">Un compte désactivé ne peut plus se connecter ; ses demandes et son historique sont conservés.</th:block></p>
                     <button th:if="${u.actif}" class="btn btn-outline-danger btn-sm" type="submit"
-                            data-confirmation="Désactiver ce compte ? La personne sera déconnectée.">
-                        <i class="bi bi-slash-circle me-1"></i>Désactiver le compte</button>
+                            data-confirmation="Désactiver ce compte ? La personne sera déconnectée." th:data-confirmation="#{admin.utilisateur.desactiver_ce_compte_la_personne_sera}">
+                        <i class="bi bi-slash-circle me-1"></i><th:block th:text="#{admin.utilisateur.desactiver_le_compte}">Désactiver le compte</th:block></button>
                     <button th:unless="${u.actif}" class="btn btn-outline-success btn-sm" type="submit">
-                        <i class="bi bi-check-circle me-1"></i>Réactiver le compte</button>
+                        <i class="bi bi-check-circle me-1"></i><th:block th:text="#{admin.utilisateur.reactiver_le_compte}">Réactiver le compte</th:block></button>
                 </form>
                 <hr>
                 <form th:action="@{/admin/utilisateurs/{id}/mot-de-passe(id=${u.id})}" method="post">
-                    <label class="form-label small" for="motDePasse">Nouveau mot de passe provisoire</label>
+                    <label class="form-label small" for="motDePasse"><th:block th:text="#{admin.utilisateur.nouveau_mot_de_passe_provisoire}">Nouveau mot de passe provisoire</th:block></label>
                     <div class="input-group input-group-sm">
                         <input class="form-control" id="motDePasse" name="motDePasse" type="text" required minlength="8" maxlength="64" autocomplete="off">
-                        <button class="btn btn-outline-primary" type="submit">Réinitialiser</button>
+                        <button class="btn btn-outline-primary" type="submit"><th:block th:text="#{admin.utilisateur.reinitialiser}">Réinitialiser</th:block></button>
                     </div>
-                    <div class="form-text">La personne devra le changer à sa prochaine connexion.</div>
+                    <div class="form-text"><th:block th:text="#{admin.utilisateur.la_personne_devra_le_changer_a}">La personne devra le changer à sa prochaine connexion.</th:block></div>
                 </form>
             </div></div>
 
             <div class="card"><div class="card-body">
-                <h2 class="h6 text-brun">Historique</h2>
-                <p th:if="${fiche.historique.isEmpty()}" class="small text-muted mb-0">Aucune opération d'administration sur ce compte.</p>
+                <h2 class="h6 text-brun"><th:block th:text="#{admin.utilisateur.historique}">Historique</th:block></h2>
+                <p th:if="${fiche.historique.isEmpty()}" class="small text-muted mb-0"><th:block th:text="#{admin.utilisateur.aucune_operation_d_administration_sur_ce}">Aucune opération d'administration sur ce compte.</th:block></p>
                 <ul class="list-unstyled mb-0">
                     <li th:each="o : ${fiche.historique}" class="py-2 border-bottom">
                         <div class="d-flex justify-content-between gap-2">
@@ -82,7 +82,7 @@
                             <span class="small text-muted text-nowrap" th:text="${@dates.heure(o.date)}"></span>
                         </div>
                         <div class="small text-muted" style="white-space: pre-line" th:text="${o.detail}"></div>
-                        <div class="small" th:text="'par ' + ${o.auteur}"></div>
+                        <div class="small" th:text="#{admin.accueil.par} + ${o.auteur}"></div>
                     </li>
                 </ul>
             </div></div>
