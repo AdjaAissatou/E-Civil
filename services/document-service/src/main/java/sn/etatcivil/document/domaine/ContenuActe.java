@@ -14,7 +14,26 @@ public record ContenuActe(
         String nomConjoint, String prenomConjoint, LocalDate dateNaissanceConjoint, String lieuNaissanceConjoint,
         String heureDeces, String causeDeces, String temoin1, String temoin2,
         String mentionsMarginales, String observations,
-        String origine, String referenceOrigine) {
+        String origine, String referenceOrigine,
+        String profession, String domicile, String professionPere, String domicilePere,
+        String professionMere, String domicileMere, String professionConjoint, String domicileConjoint,
+        String medecin) {
+
+    /** Acte sans les énonciations de professions, domiciles et médecin (actes figés avant leur introduction). */
+    public ContenuActe(String typeActe, String numeroActe, int annee, String statut,
+                       String centre, String commune, String volume, String folio,
+                       LocalDate dateEvenement, String lieuEvenement,
+                       String nom, String prenom, String sexe, LocalDate dateNaissance, String lieuNaissance,
+                       String nomPere, String prenomPere, String nomMere, String prenomMere,
+                       String nomConjoint, String prenomConjoint, LocalDate dateNaissanceConjoint, String lieuNaissanceConjoint,
+                       String heureDeces, String causeDeces, String temoin1, String temoin2,
+                       String mentionsMarginales, String observations, String origine, String referenceOrigine) {
+        this(typeActe, numeroActe, annee, statut, centre, commune, volume, folio, dateEvenement, lieuEvenement, nom,
+                prenom, sexe, dateNaissance, lieuNaissance, nomPere, prenomPere, nomMere, prenomMere, nomConjoint,
+                prenomConjoint, dateNaissanceConjoint, lieuNaissanceConjoint, heureDeces, causeDeces, temoin1, temoin2,
+                mentionsMarginales, observations, origine, referenceOrigine, null, null, null, null, null, null, null,
+                null, null);
+    }
 
     public boolean estValide() { return "VALIDE".equals(statut); }
 
@@ -33,7 +52,11 @@ public record ContenuActe(
                         prenomMere, nomConjoint, prenomConjoint, dateNaissanceConjoint, lieuNaissanceConjoint, heureDeces,
                         causeDeces, temoin1, temoin2, mentionsMarginales, observations)
                 .map(v -> Objects.toString(v, "")).toList());
-        return origine == null && referenceOrigine == null ? base
+        String avecOrigine = origine == null && referenceOrigine == null ? base
                 : base + "|" + Objects.toString(origine, "") + "|" + Objects.toString(referenceOrigine, "");
+        // les énonciations ne comptent que si elles existent : l'empreinte des documents antérieurs ne change pas
+        var details = Stream.of(profession, domicile, professionPere, domicilePere, professionMere, domicileMere,
+                professionConjoint, domicileConjoint, medecin).map(v -> Objects.toString(v, "")).toList();
+        return details.stream().allMatch(String::isEmpty) ? avecOrigine : avecOrigine + "|" + String.join("|", details);
     }
 }

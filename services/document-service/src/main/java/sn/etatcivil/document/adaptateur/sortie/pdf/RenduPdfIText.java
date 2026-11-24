@@ -58,20 +58,30 @@ class RenduPdfIText implements RenduPdf {
         ByteArrayOutputStream sortie = new ByteArrayOutputStream();
         try (PdfDocument pdf = new PdfDocument(new PdfWriter(sortie));
              Document page = new Document(pdf, PageSize.A4)) {
-            pdf.getDocumentInfo().setTitle(doc.libelleDocument() + " " + a.numeroActe());
+            pdf.getDocumentInfo().setTitle(doc.libelleDocument() + (a != null ? " " + a.numeroActe() : " " + doc.reference()));
             page.setMargins(40, 50, 40, 50);
             entete(page, a);
 
             page.add(new Paragraph(doc.libelleDocument().toUpperCase(Locale.FRENCH)).setBold().setFontSize(15)
                     .setTextAlignment(TextAlignment.CENTER).setFontColor(VERT_NUIT));
-            if (c.estCertificat()) {
+            if (c.etabliSurComparution()) {
+                comparution(page, c);
+            } else if ("CERTIFICAT_ACTE".equals(c.modele())) {
+                certificatActe(page, a, c);
+            } else if (c.estExtraitDeMention()) {
+                extraitMention(page, a, c);
+            } else if (c.estCertificat()) {
                 certificat(page, a, c);
             } else if (c.estLivret()) {
-                livret(page, a, c);
+                livret(page, a, c, doc.libelleDocument());
             } else {
                 acte(page, a, c);
             }
 
+            if (c.valableJusquAu() != null) {
+                page.add(new Paragraph("Document valable jusqu'au " + date(c.valableJusquAu()) + ".")
+                        .setFontSize(10).setBold().setFontColor(OR).setMarginTop(8));
+            }
             page.add(signature(pdf, doc));
             page.add(new Paragraph("Document délivré au titre de la demande " + doc.reference()
                     + ". Son authenticité se vérifie sur " + urlPublique + "/verification"
@@ -82,6 +92,17 @@ class RenduPdfIText implements RenduPdf {
     }
 
     private static void entete(Document page, ContenuActe a) {
+        if (a == null) {
+            page.add(new Paragraph("RÉPUBLIQUE DU SÉNÉGAL").setBold().setFontSize(13)
+                    .setTextAlignment(TextAlignment.CENTER).setFontColor(VERT_NUIT).setMarginBottom(0));
+            page.add(new Paragraph("Un Peuple – Un But – Une Foi").setItalic().setFontSize(9)
+                    .setTextAlignment(TextAlignment.CENTER).setMarginTop(0));
+            page.add(new Paragraph("ÉTAT CIVIL").setFontSize(10).setTextAlignment(TextAlignment.CENTER).setFontColor(VERT));
+            SolidLine trait = new SolidLine(1.5f);
+            trait.setColor(OR);
+            page.add(new LineSeparator(trait).setMarginBottom(12));
+            return;
+        }
         page.add(new Paragraph("RÉPUBLIQUE DU SÉNÉGAL").setBold().setFontSize(13)
                 .setTextAlignment(TextAlignment.CENTER).setFontColor(VERT_NUIT).setMarginBottom(0));
         page.add(new Paragraph("Un Peuple – Un But – Une Foi").setItalic().setFontSize(9)
@@ -96,7 +117,7 @@ class RenduPdfIText implements RenduPdf {
 
     /** Extrait (avec ou sans filiation) ou copie intégrale d'un acte. */
     private static void acte(Document page, ContenuActe a, Complements c) {
-        boolean integrale = Complements.COPIE_INTEGRALE.equals(c.modele());
+        boolean integrale = Complements.COPIE_INTEGRALE.equals(c.modele()) || c.estActeOriginal();
         boolean filiation = !"EXTRAIT_SANS_FILIATION".equals(c.modele());
         page.add(new Paragraph("Acte n° " + a.numeroActe() + "  •  Année " + a.annee()
                 + registrePapier(a)).setFontSize(10).setTextAlignment(TextAlignment.CENTER).setMarginBottom(14));
@@ -125,6 +146,10 @@ class RenduPdfIText implements RenduPdf {
         ligne(t, "Né(e) le", naissance(a.dateNaissance(), a.lieuNaissance()));
         ligne(t, "Fils / fille de", filiation(a));
         ligne(t, "Acte de naissance", "n° " + a.numeroActe() + " — " + a.centre());
+        if (c.declaration() != null && "CERTIFICAT_DOMICILE".equals(c.modele())) {
+            ligne(t, "Profession", c.declaration().profession());
+            ligne(t, "Domicile déclaré", c.declaration().residence());
+        }
         page.add(t);
         page.add(encadre(c.constat()));
         if (c.motif() != null) {
@@ -135,9 +160,10 @@ class RenduPdfIText implements RenduPdf {
     }
 
     /** Duplicata de livret de famille : l'acte de mariage puis les naissances des enfants du couple. */
-    private static void livret(Document page, ContenuActe a, Complements c) {
+    private static void livret(Document page, ContenuActe a, Complements c, String libelle) {
         boolean titulaireEpouse = "F".equals(a.sexe());
-        page.add(new Paragraph("Duplicata établi d'après les actes inscrits au registre national")
+        boolean duplicata = libelle.toLowerCase(Locale.FRENCH).contains("duplicata");
+        page.add(new Paragraph((duplicata ? "Duplicata établi" : "Établi") + " d'après les actes inscrits au registre national")
                 .setFontSize(10).setTextAlignment(TextAlignment.CENTER).setMarginBottom(6));
         page.add(titre("Mariage"));
         Table t = tableau();
@@ -219,9 +245,69 @@ class RenduPdfIText implements RenduPdf {
             }
         }
         if (integrale) {
+            ligne(t, "Profession, domicile", situation(a.profession(), a.domicile()));
+            ligne(t, "Père : profession, domicile", situation(a.professionPere(), a.domicilePere()));
+            ligne(t, "Mère : profession, domicile", situation(a.professionMere(), a.domicileMere()));
+            ligne(t, "Conjoint : profession, domicile", situation(a.professionConjoint(), a.domicileConjoint()));
+            ligne(t, "Médecin", a.medecin());
             ligne(t, "Premier témoin", a.temoin1());
             ligne(t, "Second témoin", a.temoin2());
         }
+    }
+
+    private static String situation(String profession, String domicile) {
+        if (profession == null && domicile == null) return null;
+        if (profession == null) return "domicilié(e) à " + domicile;
+        return domicile == null ? profession : profession + ", domicilié(e) à " + domicile;
+    }
+
+    /** Certificat de naissance, de mariage, de décès ou de reconnaissance : l'événement tel que l'acte l'atteste. */
+    private static void certificatActe(Document page, ContenuActe a, Complements c) {
+        page.add(new Paragraph("L'officier de l'état civil soussigné certifie, au vu du registre national des actes, que :")
+                .setFontSize(11).setMarginTop(10).setMarginBottom(8));
+        Table t = tableau();
+        remplir(t, a, false, true);
+        ligne(t, "Acte", "n° " + a.numeroActe() + " — " + a.centre());
+        page.add(t);
+        page.add(encadre(c.constat()));
+        finCertificat(page, c);
+    }
+
+    /** Extrait d'une mention marginale : l'acte et la mention portée en marge. */
+    private static void extraitMention(Document page, ContenuActe a, Complements c) {
+        page.add(new Paragraph("Acte n° " + a.numeroActe() + "  •  Année " + a.annee() + registrePapier(a))
+                .setFontSize(10).setTextAlignment(TextAlignment.CENTER).setMarginBottom(14));
+        Table t = tableau();
+        remplir(t, a, false, true);
+        page.add(t);
+        page.add(encadre(c.constat()));
+        finCertificat(page, c);
+    }
+
+    /** Certificat de non-appartenance ou de coutume : établi sur la comparution et la déclaration de la personne. */
+    private static void comparution(Document page, Complements c) {
+        var d = c.declaration();
+        page.add(new Paragraph("L'officier de l'état civil soussigné certifie qu'a comparu devant lui :")
+                .setFontSize(11).setMarginTop(10).setMarginBottom(8));
+        Table t = tableau();
+        ligne(t, "Nom", majuscules(d.nom()));
+        ligne(t, "Prénom(s)", d.prenom());
+        ligne(t, "Sexe", sexe(d.sexe()));
+        ligne(t, "Né(e) le", naissance(d.dateNaissance(), d.lieuNaissance()));
+        ligne(t, "Fils / fille de", filiation(d.prenomPere(), d.nomPere(), d.prenomMere(), d.nomMere()));
+        ligne(t, "Profession, domicile", situation(d.profession(), d.residence()));
+        ligne(t, "Témoins", d.temoin1() == null ? null : d.temoin1() + (d.temoin2() != null ? ", " + d.temoin2() : ""));
+        page.add(t);
+        page.add(encadre(c.constat()));
+        finCertificat(page, c);
+    }
+
+    private static void finCertificat(Document page, Complements c) {
+        if (c.motif() != null) {
+            page.add(new Paragraph("Délivré pour : " + c.motif()).setFontSize(11).setMarginTop(4));
+        }
+        page.add(new Paragraph("En foi de quoi le présent document est délivré pour servir et valoir ce que de droit.")
+                .setItalic().setFontSize(10).setMarginTop(6));
     }
 
     private Div signature(PdfDocument pdf, DocumentDelivre doc) {
@@ -290,8 +376,12 @@ class RenduPdfIText implements RenduPdf {
     }
 
     private static String filiation(ContenuActe a) {
-        String pere = personne(a.prenomPere(), a.nomPere());
-        String mere = personne(a.prenomMere(), a.nomMere());
+        return filiation(a.prenomPere(), a.nomPere(), a.prenomMere(), a.nomMere());
+    }
+
+    private static String filiation(String prenomPere, String nomPere, String prenomMere, String nomMere) {
+        String pere = personne(prenomPere, nomPere);
+        String mere = personne(prenomMere, nomMere);
         if (pere == null) return mere;
         return mere == null ? pere : pere + " et de " + mere;
     }

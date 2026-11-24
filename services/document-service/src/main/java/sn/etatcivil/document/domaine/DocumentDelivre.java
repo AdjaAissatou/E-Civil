@@ -52,12 +52,19 @@ public class DocumentDelivre {
     public static DocumentDelivre delivrer(UUID demandeId, String reference, String demandeurId, String libelleDocument,
                                            String format, ContenuActe contenu, Complements complements, String signataire,
                                            String code, Instant maintenant) {
-        if (!contenu.estValide()) throw new RegleMetierException("L'acte " + contenu.numeroActe() + " n'est pas validé : il ne peut pas être délivré");
+        if (complements.etabliSurComparution()) {
+            if (contenu != null) throw new RegleMetierException("Ce certificat s'établit sur comparution, sans acte");
+            if (complements.declaration() == null) throw new RegleMetierException("La déclaration de la personne est obligatoire");
+        } else {
+            if (contenu == null) throw new RegleMetierException("L'acte du registre est obligatoire pour ce document");
+            if (!contenu.estValide()) throw new RegleMetierException("L'acte " + contenu.numeroActe() + " n'est pas validé : il ne peut pas être délivré");
+        }
         if (signataire == null || signataire.isBlank()) throw new RegleMetierException("Le signataire est obligatoire");
-        if (complements.estCertificat() && (complements.constat() == null || complements.constat().isBlank())) {
+        if ((complements.estCertificat() || complements.estExtraitDeMention())
+                && (complements.constat() == null || complements.constat().isBlank())) {
             throw new RegleMetierException("Un certificat ne peut être délivré sans le constat fait dans le registre");
         }
-        if (complements.estCertificat() && !"NAISSANCE".equals(contenu.typeActe())) {
+        if (complements.estCertificatDePersonne() && !"NAISSANCE".equals(contenu.typeActe())) {
             throw new RegleMetierException("Un certificat s'établit à partir de l'acte de naissance");
         }
         if (complements.estLivret() && !"MARIAGE".equals(contenu.typeActe())) {
@@ -95,7 +102,7 @@ public class DocumentDelivre {
     private static String calculerEmpreinte(String reference, String libelle, boolean integrale, ContenuActe contenu,
                                             Complements complements, String signataire, Instant date, String code) {
         String texte = String.join("\n", reference, libelle, String.valueOf(integrale), signataire, date.toString(), code,
-                contenu.texteCanonique());
+                contenu == null ? "" : contenu.texteCanonique());
         if (complements != null) texte = texte + "\n" + complements.texteCanonique();
         try {
             return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(texte.getBytes(StandardCharsets.UTF_8)));

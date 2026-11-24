@@ -12,4 +12,7 @@ public interface RegistreActes {
 
     /** Naissances inscrites des enfants du couple de cet acte de mariage. */
     List<Complements.Enfant> enfants(ContenuActe mariage);
+
+    /** Texte des mentions de ce type (DIVORCE, LEGITIMATION…) portées en marge de l'acte. */
+    List<String> mentions(UUID acteId, String type);
 }

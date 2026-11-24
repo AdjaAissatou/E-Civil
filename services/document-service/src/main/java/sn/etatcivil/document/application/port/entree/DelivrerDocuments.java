@@ -13,7 +13,16 @@ public interface DelivrerDocuments {
      * @param constat constat fait dans le registre, obligatoire pour un certificat
      */
     record DocumentADelivrer(UUID demandeId, String reference, String demandeurId, String libelleDocument,
-                             String modele, UUID acteId, String format, String signataire, String motif, String constat) {}
+                             String modele, UUID acteId, String format, String signataire, String motif, String constat,
+                             sn.etatcivil.document.domaine.Declaration declaration, Integer dureeValiditeJours,
+                             String typeMention) {
+
+        public DocumentADelivrer(UUID demandeId, String reference, String demandeurId, String libelleDocument,
+                                 String modele, UUID acteId, String format, String signataire, String motif, String constat) {
+            this(demandeId, reference, demandeurId, libelleDocument, modele, acteId, format, signataire, motif, constat,
+                    null, null, null);
+        }
+    }
 
     /** Idempotent : un second appel pour la même demande renvoie le document déjà délivré. */
     DocumentDelivre delivrer(DocumentADelivrer commande);
