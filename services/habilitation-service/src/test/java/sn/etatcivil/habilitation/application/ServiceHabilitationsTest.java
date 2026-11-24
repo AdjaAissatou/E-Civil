@@ -143,12 +143,12 @@ class ServiceHabilitationsTest {
     void laMatriceNeModifieQueLesRolesChanges() {
         Map<String, Set<String>> matrice = new HashMap<>();
         annuaire.roles.values().forEach(r -> matrice.put(r.code(), r.permissions()));
-        matrice.put("DELEGUE", Set.of(DEMANDES_CONSULTER, DEMANDES_VALIDER, DOCUMENTS_LIVRER, DEMANDES_SUPERVISER));
+        matrice.put("DELEGUE", Set.of(DEMANDES_CONSULTER, DEMANDES_VALIDER, DEMANDES_SUPERVISER));
         int avant = journal.size();
         service.modifierMatrice(matrice, auteur);
         assertThat(journal).hasSize(avant + 1);
         assertThat(journal).last().extracting(Operation::detail).asString()
-                .contains("+ DEMANDES_SUPERVISER").contains("− STATISTIQUES_CONSULTER");
+                .contains("+ DEMANDES_SUPERVISER").contains("− DOCUMENTS_LIVRER");
         matrice.put("ADMIN", Set.of(DEMANDES_CONSULTER));
         assertThatThrownBy(() -> service.modifierMatrice(matrice, auteur)).hasMessageContaining("administrat");
         assertThat(annuaire.roles.get("ADMIN").permissions()).containsAll(ADMINISTRATION);

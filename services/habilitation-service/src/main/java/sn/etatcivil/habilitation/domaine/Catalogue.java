@@ -90,14 +90,14 @@ public final class Catalogue {
             new RoleDeBase("CITOYEN", "Citoyen", "Personne qui demande des documents pour elle-même ou ses proches.",
                     Set.of(DEMANDES_DEPOSER)),
             new RoleDeBase("DELEGUE", "Délégué", "Examine les demandes déposées et expédie les documents papier.",
-                    Set.of(DEMANDES_CONSULTER, DEMANDES_VALIDER, DOCUMENTS_LIVRER, STATISTIQUES_CONSULTER)),
+                    Set.of(DEMANDES_CONSULTER, DEMANDES_VALIDER, DOCUMENTS_LIVRER)),
             new RoleDeBase("AGENT_REGISTRE", "Agent du registre",
                     "Transcrit les actes des registres papier et traite les actes non retrouvés.",
-                    Set.of(DEMANDES_CONSULTER, REGISTRE_CONSULTER, REGISTRE_SAISIR, DEMANDES_RECHERCHER, STATISTIQUES_CONSULTER)),
+                    Set.of(DEMANDES_CONSULTER, REGISTRE_CONSULTER, REGISTRE_SAISIR, DEMANDES_RECHERCHER)),
             new RoleDeBase("OFFICIER", "Officier de l'état civil",
                     "Valide les actes transcrits, contrôle et signe les documents.",
                     Set.of(DEMANDES_CONSULTER, REGISTRE_CONSULTER, REGISTRE_SAISIR, REGISTRE_VALIDER, DEMANDES_RECHERCHER,
-                            DOCUMENTS_SIGNER, STATISTIQUES_CONSULTER)),
+                            DOCUMENTS_SIGNER)),
             new RoleDeBase("ADMIN", "Administrateur", "Administre la plateforme : catalogue, comptes, habilitations.",
                     CODES_PERMISSIONS.stream().filter(c -> !c.equals(DEMANDES_DEPOSER)).collect(Collectors.toUnmodifiableSet())));
 

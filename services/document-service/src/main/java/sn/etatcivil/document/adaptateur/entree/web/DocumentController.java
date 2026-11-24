@@ -12,6 +12,7 @@ import sn.etatcivil.document.application.port.entree.DelivrerDocuments;
 import sn.etatcivil.document.domaine.Complements;
 import sn.etatcivil.document.domaine.ContenuActe;
 import sn.etatcivil.document.domaine.DocumentDelivre;
+import sn.etatcivil.socle.securite.Permissions;
 import sn.etatcivil.socle.securite.UtilisateurJwt;
 
 import java.time.Instant;
@@ -21,7 +22,6 @@ import java.util.UUID;
 @RestController
 class DocumentController {
 
-    private static final Set<String> AGENTS = Set.of("DELEGUE", "AGENT_REGISTRE", "OFFICIER", "ADMIN");
 
     private final DelivrerDocuments documents;
 
@@ -46,7 +46,7 @@ class DocumentController {
 
     /** Appelé par demande-service (jeton de service) lorsque l'officier signe. */
     @PostMapping("/api/documents")
-    @PreAuthorize("hasRole('SERVICE')")
+    @PreAuthorize(Permissions.A_SERVICE)
     Delivrance delivrer(@Valid @RequestBody Commande c) {
         DocumentDelivre d = documents.delivrer(new DelivrerDocuments.DocumentADelivrer(c.demandeId(), c.reference(),
                 c.demandeurId(), c.libelleDocument(), c.modele(), c.acteId(), c.format(), c.signataire(), c.motif(),
@@ -56,7 +56,8 @@ class DocumentController {
 
     @GetMapping("/api/documents/demandes/{demandeId}/pdf")
     ResponseEntity<byte[]> pdf(@PathVariable UUID demandeId, @AuthenticationPrincipal Jwt jwt) {
-        boolean agent = UtilisateurJwt.depuis(jwt).roles().stream().anyMatch(AGENTS::contains);
+        // un agent qui consulte toutes les demandes peut ouvrir le document (impression d'un document papier)
+        boolean agent = UtilisateurJwt.depuis(jwt).a(Permissions.DEMANDES_CONSULTER);
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_PDF)
                 .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.inline().filename("acte.pdf").build().toString())

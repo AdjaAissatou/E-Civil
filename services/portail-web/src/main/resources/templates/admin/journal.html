@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: page('Journal', ~{::main})}">
+<body>
+<main class="container py-4">
+    <span class="surtitre">Administration</span>
+    <h1 class="h3">Journal des opérations</h1>
+    <nav th:replace="~{admin/_onglets :: onglets('journal')}"></nav>
+
+    <p class="text-muted">Toute modification des comptes, profils, rôles et permissions y est inscrite, avec son auteur.
+        Le journal ne peut être ni modifié ni effacé.</p>
+
+    <form class="row g-2 mb-3" method="get" role="search">
+        <div class="col-md-6"><input class="form-control" name="recherche" th:value="${recherche}"
+                                     placeholder="Compte, profil, rôle ou auteur" aria-label="Rechercher dans le journal"></div>
+        <div class="col-md-2"><button class="btn btn-primary w-100" type="submit"><i class="bi bi-search me-1"></i>Rechercher</button></div>
+        <div class="col-md-2" th:if="${recherche != null and !#strings.isEmpty(recherche)}">
+            <a class="btn btn-contour w-100" th:href="@{/admin/journal}">Effacer</a></div>
+    </form>
+
+    <div class="card">
+        <div th:replace="~{admin/_onglets :: operations(${operations.contenu}, 'Aucune opération ne correspond.')}"></div>
+    </div>
+    <div th:replace="~{fragments/pagination :: pages(${operations})}"></div>
+</main>
+</body>
+</html>

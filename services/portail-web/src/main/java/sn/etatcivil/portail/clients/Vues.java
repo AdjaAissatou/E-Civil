@@ -188,4 +188,51 @@ public final class Vues {
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record Verification(String libelleDocument, Acte acte, Complements complements, String signataire,
                                Instant dateSignature, String codeVerification, String empreinte) {}
+
+    // ---------------------------------------------------------------- habilitations
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record ProfilResume(String id, String nom) {}
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record Compte(String id, String email, String prenom, String nom, String nomComplet, boolean actif,
+                         Instant dateCreation, List<ProfilResume> profils) {
+        public boolean dansProfil(String profilId) {
+            return profils != null && profils.stream().anyMatch(p -> p.id().equals(profilId));
+        }
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record Permission(String code, String libelle, String description, String avantage, String interdiction,
+                             String famille) {}
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record Role(String code, String libelle, String description, java.util.Set<String> permissions, boolean deBase,
+                       List<ProfilResume> profils) {
+        public boolean accorde(String permission) { return permissions != null && permissions.contains(permission); }
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record Profil(String id, String nom, String description, java.util.Set<String> roles, boolean parDefaut,
+                         int nombreMembres, List<Compte> membres) {
+        public boolean comporte(String role) { return roles != null && roles.contains(role); }
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record Operation(Instant date, String auteur, String type, String libelleType, String cible, String detail) {
+        /** Teinte de la pastille dans le journal. */
+        public String teinte() {
+            if (type == null) return "secondary";
+            if (type.endsWith("SUPPRIME") || type.equals("UTILISATEUR_DESACTIVE")) return "danger";
+            if (type.endsWith("CREE") || type.equals("UTILISATEUR_ACTIVE")) return "success";
+            if (type.equals("INITIALISATION")) return "dark";
+            return "info";
+        }
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record FicheCompte(Compte utilisateur, List<Role> roles, List<Permission> permissions, List<Operation> historique) {}
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record Synthese(long utilisateurs, int profils, int roles, int permissions, List<Operation> dernieresOperations) {}
 }

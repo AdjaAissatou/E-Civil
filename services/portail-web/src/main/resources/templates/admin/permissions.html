@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: page('Permissions', ~{::main})}">
+<body>
+<main class="container-fluid px-lg-5 py-4">
+    <span class="surtitre">Administration</span>
+    <h1 class="h3">Permissions</h1>
+    <nav th:replace="~{admin/_onglets :: onglets('permissions')}"></nav>
+
+    <p class="text-muted">Chaque permission est vérifiée par les services sur l'action correspondante. Cochez, pour chaque
+        rôle, les permissions qu'il accorde. La plateforme refuse toute modification qui la laisserait sans administrateur.</p>
+
+    <form th:action="@{/admin/permissions/matrice}" method="post">
+        <div class="card"><div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 matrice">
+                <thead>
+                <tr>
+                    <th style="min-width: 300px">Permission</th>
+                    <th th:each="r : ${roles}" class="text-center small" style="min-width: 90px">
+                        <a th:href="@{/admin/roles/{c}(c=${r.code})}" th:text="${r.libelle}"></a>
+                    </th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody th:each="f : ${permissionsParFamille}">
+                <tr class="table-light"><th th:colspan="${roles.size() + 2}" class="small text-uppercase text-muted" th:text="${f.key}"></th></tr>
+                <tr th:each="p : ${f.value}">
+                    <td>
+                        <div class="fw-semibold" th:text="${p.libelle}"></div>
+                        <code class="small" th:text="${p.code}"></code>
+                        <div class="small text-muted" th:text="${p.description}"></div>
+                    </td>
+                    <td th:each="r : ${roles}" class="text-center">
+                        <input class="form-check-input" type="checkbox" name="case" th:value="${r.code} + ':' + ${p.code}"
+                               th:checked="${r.accorde(p.code)}" th:title="${r.libelle} + ' — ' + ${p.libelle}"
+                               th:aria-label="${r.libelle} + ' — ' + ${p.libelle}">
+                    </td>
+                    <td class="text-end"><a class="btn btn-link btn-sm" th:href="@{/admin/permissions/{c}(c=${p.code})}"
+                                            title="Modifier les textes"><i class="bi bi-pencil"></i></a></td>
+                </tr>
+                </tbody>
+            </table>
+        </div></div>
+        <div class="text-end mt-3">
+            <a class="btn btn-contour" th:href="@{/admin/permissions}">Annuler</a>
+            <button class="btn btn-primary" type="submit"><i class="bi bi-check2 me-1"></i>Enregistrer la matrice</button>
+        </div>
+    </form>
+</main>
+</body>
+</html>

@@ -1,34 +1,77 @@
 <!DOCTYPE html>
-<html lang="fr" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: page('Administration', ~{::main})}">
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{fragments/layout :: page('Administration', ~{::main})}">
 <body>
 <main class="container py-4">
-    <h1 class="h3">Tableau de bord</h1>
+    <div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-3">
+        <div>
+            <span class="surtitre">Administration</span>
+            <h1 class="h3 mb-0">Tableau de bord</h1>
+        </div>
+        <div class="d-flex gap-2" sec:authorize="hasRole('UTILISATEURS_GERER')">
+            <a class="btn btn-primary btn-sm" th:href="@{/admin/utilisateurs/nouveau}"><i class="bi bi-person-plus me-1"></i>Nouvel agent</a>
+        </div>
+    </div>
+    <nav th:replace="~{admin/_onglets :: onglets('accueil')}"></nav>
+
     <div class="row g-3 mb-4">
-        <div class="col-6 col-md-4"><div class="card"><div class="card-body">
-            <div class="text-muted small">Demandes</div><div class="chiffre" th:text="${total}">0</div></div></div></div>
-        <div class="col-6 col-md-4"><div class="card"><div class="card-body">
+        <div class="col-6 col-lg-3" th:if="${total != null}"><div class="card h-100"><div class="card-body">
+            <div class="text-muted small">Demandes</div><div class="chiffre" th:text="${total}">0</div>
+            <a class="small" sec:authorize="hasRole('DEMANDES_CONSULTER')" th:href="@{/back-office/demandes}">Toutes les demandes</a>
+        </div></div></div>
+        <div class="col-6 col-lg-3" th:if="${registre != null or registreIndisponible == true}"><div class="card h-100"><div class="card-body">
             <div class="text-muted small">Actes au registre national</div>
             <div class="chiffre" th:text="${registre} ? ${registre.total} : '—'">0</div>
             <div class="small text-muted" th:if="${registre}" th:text="${registre.valides} + ' validés, ' + ${registre.saisis} + ' à valider'"></div>
             <div class="small text-danger" th:if="${registreIndisponible}">registre injoignable</div>
         </div></div></div>
-        <div class="col-12 col-md-4"><div class="card h-100"><div class="card-body">
-            <div class="text-muted small mb-2">Comptes et rôles</div>
-            <p class="small mb-2">Les citoyens s'inscrivent eux-mêmes. Les comptes agents et leurs rôles se gèrent dans Keycloak.</p>
-            <a class="btn btn-outline-primary btn-sm" th:href="${consoleKeycloak}" target="_blank" rel="noopener">Ouvrir la console Keycloak</a>
+        <div class="col-6 col-lg-3" th:if="${synthese}"><div class="card h-100"><div class="card-body">
+            <div class="text-muted small">Comptes</div><div class="chiffre" th:text="${synthese.utilisateurs}">0</div>
+            <a class="small" sec:authorize="hasRole('UTILISATEURS_GERER')" th:href="@{/admin/utilisateurs}">Gérer les utilisateurs</a>
+        </div></div></div>
+        <div class="col-6 col-lg-3" th:if="${synthese}"><div class="card h-100"><div class="card-body">
+            <div class="text-muted small">Habilitations</div>
+            <div class="d-flex gap-3 align-items-baseline">
+                <div><span class="chiffre" th:text="${synthese.profils}">0</span> <span class="small text-muted">profils</span></div>
+                <div><span class="chiffre" th:text="${synthese.roles}">0</span> <span class="small text-muted">rôles</span></div>
+            </div>
+            <div class="small text-muted" th:text="${synthese.permissions} + ' permissions vérifiées par les services'"></div>
         </div></div></div>
     </div>
-    <div class="card"><div class="card-body">
-        <h2 class="h6 text-brun">Demandes par statut</h2>
-        <table class="table mb-0">
-            <tbody>
-            <tr th:each="e : ${parStatut}">
-                <td><span th:replace="~{fragments/statut :: badge(${e.key}, ${e.value.key})}"></span></td>
-                <td class="text-end fw-semibold"><a th:href="@{/back-office/demandes(statut=${e.key})}" th:text="${e.value.value}"></a></td>
-            </tr>
-            </tbody>
-        </table>
-    </div></div>
+
+    <div class="alert alert-warning" th:if="${habilitationsIndisponibles}">
+        <i class="bi bi-exclamation-triangle me-2"></i>Le service des habilitations ne répond pas : comptes, profils et rôles
+        sont momentanément indisponibles.</div>
+    <div class="alert alert-warning" th:if="${demandesIndisponibles}">
+        <i class="bi bi-exclamation-triangle me-2"></i>Le service des demandes ne répond pas : statistiques indisponibles.</div>
+
+    <div class="row g-3">
+        <div class="col-lg-5" th:if="${parStatut}">
+            <div class="card h-100"><div class="card-body">
+                <h2 class="h6 text-brun">Demandes par statut</h2>
+                <table class="table mb-0">
+                    <tbody>
+                    <tr th:each="e : ${parStatut}">
+                        <td><span th:replace="~{fragments/statut :: badge(${e.key}, ${e.value.key})}"></span></td>
+                        <td class="text-end fw-semibold">
+                            <a sec:authorize="hasRole('DEMANDES_CONSULTER')" th:href="@{/back-office/demandes(statut=${e.key})}" th:text="${e.value.value}"></a>
+                            <span sec:authorize="!hasRole('DEMANDES_CONSULTER')" th:text="${e.value.value}"></span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div></div>
+        </div>
+        <div th:class="${parStatut} ? 'col-lg-7' : 'col-12'" th:if="${synthese}">
+            <div class="card h-100"><div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h2 class="h6 text-brun mb-0">Activité récente de l'administration</h2>
+                    <a class="small" sec:authorize="hasRole('JOURNAL_CONSULTER')" th:href="@{/admin/journal}">Tout le journal</a>
+                </div>
+                <div th:replace="~{admin/_onglets :: operations(${synthese.dernieresOperations}, 'Aucune opération enregistrée pour le moment.')}"></div>
+            </div></div>
+        </div>
+    </div>
 </main>
 </body>
 </html>

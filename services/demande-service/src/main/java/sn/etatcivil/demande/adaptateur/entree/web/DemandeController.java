@@ -7,6 +7,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
+import sn.etatcivil.socle.securite.Permissions;
 import sn.etatcivil.demande.application.port.entree.*;
 import sn.etatcivil.demande.domaine.StatutDemande;
 
@@ -16,8 +17,10 @@ import java.util.*;
 @RequestMapping("/api/demandes")
 class DemandeController {
 
-    private static final String AGENTS = "hasAnyRole('DELEGUE','AGENT_REGISTRE','OFFICIER','ADMIN')";
-    private static final String REGISTRE = "hasAnyRole('AGENT_REGISTRE','OFFICIER','ADMIN')";
+    private static final String AGENTS = Permissions.A_DEMANDES_CONSULTER;
+    /** Rejeter : avant paiement, quand l'acte manque, ou à toute étape ; le domaine précise selon le statut. */
+    private static final String REJET = "hasAnyRole('DEMANDES_VALIDER','DEMANDES_RECHERCHER','DEMANDES_SUPERVISER')";
+    private static final String REGISTRE = Permissions.A_DEMANDES_RECHERCHER;
 
     private final GererMesDemandes citoyen;
     private final ConsulterDemandes consultation;
@@ -43,26 +46,26 @@ class DemandeController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasRole('CITOYEN')")
+    @PreAuthorize(Permissions.A_DEMANDES_DEPOSER)
     DemandeReponse deposer(@Valid @RequestBody DepotRequete requete, @AuthenticationPrincipal Jwt jwt) {
         return DemandeReponse.de(citoyen.deposer(requete.versCommande(), Identite.demandeur(jwt)), true);
     }
 
     @GetMapping("/mes-demandes")
-    @PreAuthorize("hasRole('CITOYEN')")
+    @PreAuthorize(Permissions.A_DEMANDES_DEPOSER)
     List<DemandeReponse> mesDemandes(@AuthenticationPrincipal Jwt jwt) {
         return citoyen.mesDemandes(jwt.getSubject()).stream().map(d -> DemandeReponse.de(d, false)).toList();
     }
 
     @PostMapping("/{id}/annulation")
-    @PreAuthorize("hasRole('CITOYEN')")
+    @PreAuthorize(Permissions.A_DEMANDES_DEPOSER)
     void annuler(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt) {
         citoyen.annuler(id, jwt.getSubject());
     }
 
     @GetMapping("/{id}")
     DemandeReponse consulter(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt) {
-        return DemandeReponse.de(consultation.consulter(id, jwt.getSubject(), Identite.role(jwt).estAgent()), true);
+        return DemandeReponse.de(consultation.consulter(id, jwt.getSubject(), Identite.consulteToutes(jwt)), true);
     }
 
     // ---------------------------------------------------------------- agents
@@ -79,25 +82,25 @@ class DemandeController {
     }
 
     @GetMapping("/statistiques")
-    @PreAuthorize(AGENTS)
+    @PreAuthorize("hasAnyRole('DEMANDES_CONSULTER','STATISTIQUES_CONSULTER')")
     Map<StatutDemande, Long> statistiques() {
         return consultation.nombreParStatut();
     }
 
     @PostMapping("/{id}/validation")
-    @PreAuthorize("hasAnyRole('DELEGUE','ADMIN')")
+    @PreAuthorize(Permissions.A_DEMANDES_VALIDER)
     void valider(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt) {
         instruction.valider(id, Identite.acteur(jwt));
     }
 
     @PostMapping("/{id}/rejet")
-    @PreAuthorize(AGENTS)
+    @PreAuthorize(REJET)
     void rejeter(@PathVariable UUID id, @Valid @RequestBody Motif corps, @AuthenticationPrincipal Jwt jwt) {
         instruction.rejeter(id, corps.motif(), Identite.acteur(jwt));
     }
 
     @PostMapping("/{id}/livraison")
-    @PreAuthorize("hasAnyRole('DELEGUE','ADMIN')")
+    @PreAuthorize(Permissions.A_DOCUMENTS_LIVRER)
     void livrer(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt) {
         instruction.marquerLivree(id, Identite.acteur(jwt));
     }
@@ -115,13 +118,13 @@ class DemandeController {
     }
 
     @PostMapping("/{id}/contestation")
-    @PreAuthorize("hasAnyRole('OFFICIER','ADMIN')")
+    @PreAuthorize(Permissions.A_DOCUMENTS_SIGNER)
     void contester(@PathVariable UUID id, @Valid @RequestBody Raison corps, @AuthenticationPrincipal Jwt jwt) {
         recherche.contester(id, corps.raison(), Identite.acteur(jwt));
     }
 
     @PostMapping("/{id}/signature")
-    @PreAuthorize("hasAnyRole('OFFICIER','ADMIN')")
+    @PreAuthorize(Permissions.A_DOCUMENTS_SIGNER)
     DemandeReponse signer(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt) {
         return DemandeReponse.de(signature.signer(id, Identite.acteur(jwt)), true);
     }

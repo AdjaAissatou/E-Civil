@@ -34,7 +34,7 @@
     <div class="d-flex gap-2">
         <a class="btn btn-outline-primary" th:href="@{/registre/actes/{id}/modifier(id=${a.id})}"
            th:text="${a.estValide()} ? 'Ajouter une mention marginale' : 'Corriger la saisie'"></a>
-        <form sec:authorize="hasAnyRole('OFFICIER','ADMIN')" th:unless="${a.estValide()}"
+        <form sec:authorize="hasRole('REGISTRE_VALIDER')" th:unless="${a.estValide()}"
               th:action="@{/officier/actes/{id}/validation(id=${a.id})}" method="post">
             <button class="btn btn-success" type="submit">Valider cet acte</button>
         </form>

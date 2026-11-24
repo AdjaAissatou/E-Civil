@@ -33,8 +33,8 @@ class DocumentApiTest {
     @MockBean RegistreActes registre;
 
     static RequestPostProcessor qui(String id, String role) {
-        return jwt().jwt(j -> j.subject(id).claim("realm_access", Map.of("roles", List.of(role))))
-                .authorities(new SimpleGrantedAuthority("ROLE_" + role));
+        return jwt().jwt(j -> j.subject(id).claim("realm_access", Map.of("roles", sn.etatcivil.socle.tests.JetonsDeTest.roles(role))))
+                .authorities(sn.etatcivil.socle.tests.JetonsDeTest.roles(role).stream().<org.springframework.security.core.GrantedAuthority>map(r -> new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_" + r)).toList());
     }
 
     @Test

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page(${role} ? ${role.libelle} : 'Nouveau rôle', ~{::main})}">
+<body>
+<main class="container py-4">
+    <a class="small text-decoration-none" th:href="@{/admin/roles}"><i class="bi bi-arrow-left me-1"></i>Rôles</a>
+    <div class="d-flex flex-wrap align-items-center gap-2 mt-2 mb-4">
+        <h1 class="h3 mb-0" th:text="${role} ? ${role.libelle} : 'Nouveau rôle'"></h1>
+        <code th:if="${role}" th:text="${role.code}"></code>
+        <span th:if="${role != null and role.deBase}" class="etiquette">rôle de base</span>
+    </div>
+
+    <div class="row g-4">
+        <form class="col-lg-8" method="post" th:action="${role} ? @{/admin/roles/{c}(c=${role.code})} : @{/admin/roles}">
+            <div class="card mb-3"><div class="card-body row g-3">
+                <div class="col-md-5" th:unless="${role}"><label class="form-label" for="code">Code</label>
+                    <input class="form-control text-uppercase" id="code" name="code" required maxlength="40" pattern="[A-Za-z][A-Za-z0-9_ \-]{2,39}"
+                           placeholder="ex. AGENT_ACCUEIL">
+                    <div class="form-text">Majuscules, chiffres et « _ ». Il ne pourra plus changer.</div></div>
+                <div th:class="${role} ? 'col-12' : 'col-md-7'"><label class="form-label" for="libelle">Libellé</label>
+                    <input class="form-control" id="libelle" name="libelle" required maxlength="80" th:value="${role?.libelle}"></div>
+                <div class="col-12"><label class="form-label" for="description">Description</label>
+                    <textarea class="form-control" id="description" name="description" rows="2" maxlength="300"
+                              th:text="${role?.description}"></textarea></div>
+            </div></div>
+            <div class="card mb-3"><div class="card-body">
+                <h2 class="h6 text-brun">Permissions accordées</h2>
+                <div th:replace="~{admin/_permissions :: cases(${permissionsParFamille}, ${role?.permissions})}"></div>
+            </div></div>
+            <div class="text-end">
+                <a class="btn btn-contour" th:href="@{/admin/roles}">Annuler</a>
+                <button class="btn btn-primary" type="submit" th:text="${role} ? 'Enregistrer' : 'Créer le rôle'"></button>
+            </div>
+        </form>
+
+        <div class="col-lg-4" th:if="${role}">
+            <div class="card mb-3"><div class="card-body">
+                <h2 class="h6 text-brun">Profils qui l'attribuent</h2>
+                <p th:if="${role.profils.isEmpty()}" class="small text-muted mb-0">Aucun : ce rôle n'est attribué à personne.</p>
+                <a th:each="p : ${role.profils}" class="d-block py-1" th:href="@{/admin/profils/{id}(id=${p.id})}" th:text="${p.nom}"></a>
+            </div></div>
+            <form class="card" th:unless="${role.deBase}" th:action="@{/admin/roles/{c}/suppression(c=${role.code})}" method="post"><div class="card-body">
+                <h2 class="h6 text-danger">Supprimer le rôle</h2>
+                <p class="small text-muted">Possible seulement lorsqu'aucun profil ne l'utilise.</p>
+                <button class="btn btn-outline-danger btn-sm" type="submit" th:disabled="${!role.profils.isEmpty()}"
+                        data-confirmation="Supprimer définitivement ce rôle ?">Supprimer</button>
+            </div></form>
+        </div>
+    </div>
+</main>
+</body>
+</html>

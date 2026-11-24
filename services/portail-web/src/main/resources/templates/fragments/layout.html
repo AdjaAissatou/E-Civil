@@ -31,31 +31,37 @@
             <ul class="navbar-nav mx-auto gap-lg-1">
                 <li class="nav-item"><a class="nav-link" th:href="@{/documents}">Documents</a></li>
                 <li class="nav-item"><a class="nav-link" th:href="@{/verification}">Vérifier un document</a></li>
-                <li class="nav-item" sec:authorize="isAnonymous() or (hasRole('CITOYEN') and !hasAnyRole('DELEGUE','AGENT_REGISTRE','OFFICIER','ADMIN'))"><a class="nav-link" th:href="@{/#parcours}">Comment ça marche</a></li>
-                <li class="nav-item" sec:authorize="hasRole('CITOYEN') and !hasAnyRole('DELEGUE','AGENT_REGISTRE','OFFICIER','ADMIN')"><a class="nav-link" th:href="@{/demandes}">Mes demandes</a></li>
+                <li class="nav-item" sec:authorize="isAnonymous() or (hasRole('DEMANDES_DEPOSER') and !hasAnyRole('DEMANDES_CONSULTER','REGISTRE_CONSULTER'))"><a class="nav-link" th:href="@{/#parcours}">Comment ça marche</a></li>
+                <li class="nav-item" sec:authorize="hasRole('DEMANDES_DEPOSER')"><a class="nav-link" th:href="@{/demandes}">Mes demandes</a></li>
 
-                <li class="nav-item dropdown" sec:authorize="hasAnyRole('DELEGUE','AGENT_REGISTRE','OFFICIER','ADMIN')">
+                <li class="nav-item dropdown" sec:authorize="hasAnyRole('DEMANDES_CONSULTER','REGISTRE_CONSULTER','DEMANDES_VALIDER','DOCUMENTS_SIGNER')">
                     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="bi bi-grid-1x2 me-1"></i>Espace agent</a>
                     <ul class="dropdown-menu">
-                        <li sec:authorize="hasAnyRole('DELEGUE','ADMIN')"><h6 class="dropdown-header">Instruction</h6></li>
-                        <li sec:authorize="hasAnyRole('DELEGUE','ADMIN')"><a class="dropdown-item" th:href="@{/delegue}"><i class="bi bi-inbox me-2"></i>Demandes à examiner</a></li>
-                        <li sec:authorize="hasAnyRole('DELEGUE','ADMIN')"><a class="dropdown-item" th:href="@{/delegue/livraisons}"><i class="bi bi-truck me-2"></i>Documents signés</a></li>
-                        <li sec:authorize="hasAnyRole('AGENT_REGISTRE','OFFICIER','ADMIN')"><h6 class="dropdown-header">Registre national</h6></li>
-                        <li sec:authorize="hasAnyRole('AGENT_REGISTRE','OFFICIER','ADMIN')"><a class="dropdown-item" th:href="@{/registre}"><i class="bi bi-search me-2"></i>Actes non retrouvés</a></li>
-                        <li sec:authorize="hasAnyRole('AGENT_REGISTRE','OFFICIER','ADMIN')"><a class="dropdown-item" th:href="@{/registre/actes}"><i class="bi bi-journal-text me-2"></i>Registre des actes</a></li>
-                        <li sec:authorize="hasAnyRole('OFFICIER','ADMIN')"><h6 class="dropdown-header">Officier</h6></li>
-                        <li sec:authorize="hasAnyRole('OFFICIER','ADMIN')"><a class="dropdown-item" th:href="@{/officier}"><i class="bi bi-pen me-2"></i>Signature et validation</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" th:href="@{/back-office/demandes}"><i class="bi bi-list-ul me-2"></i>Toutes les demandes</a></li>
+                        <li sec:authorize="hasAnyRole('DEMANDES_VALIDER','DOCUMENTS_LIVRER')"><h6 class="dropdown-header">Instruction</h6></li>
+                        <li sec:authorize="hasRole('DEMANDES_VALIDER')"><a class="dropdown-item" th:href="@{/delegue}"><i class="bi bi-inbox me-2"></i>Demandes à examiner</a></li>
+                        <li sec:authorize="hasRole('DOCUMENTS_LIVRER')"><a class="dropdown-item" th:href="@{/delegue/livraisons}"><i class="bi bi-truck me-2"></i>Documents signés</a></li>
+                        <li sec:authorize="hasAnyRole('DEMANDES_RECHERCHER','REGISTRE_CONSULTER')"><h6 class="dropdown-header">Registre national</h6></li>
+                        <li sec:authorize="hasRole('DEMANDES_RECHERCHER')"><a class="dropdown-item" th:href="@{/registre}"><i class="bi bi-search me-2"></i>Actes non retrouvés</a></li>
+                        <li sec:authorize="hasRole('REGISTRE_CONSULTER')"><a class="dropdown-item" th:href="@{/registre/actes}"><i class="bi bi-journal-text me-2"></i>Registre des actes</a></li>
+                        <li sec:authorize="hasAnyRole('DOCUMENTS_SIGNER','REGISTRE_VALIDER')"><h6 class="dropdown-header">Officier</h6></li>
+                        <li sec:authorize="hasAnyRole('DOCUMENTS_SIGNER','REGISTRE_VALIDER')"><a class="dropdown-item" th:href="@{/officier}"><i class="bi bi-pen me-2"></i>Signature et validation</a></li>
+                        <li sec:authorize="hasRole('DEMANDES_CONSULTER')"><hr class="dropdown-divider"></li>
+                        <li sec:authorize="hasRole('DEMANDES_CONSULTER')"><a class="dropdown-item" th:href="@{/back-office/demandes}"><i class="bi bi-list-ul me-2"></i>Toutes les demandes</a></li>
                     </ul>
                 </li>
-                <li class="nav-item dropdown" sec:authorize="hasRole('ADMIN')">
+                <li class="nav-item dropdown" sec:authorize="hasAnyRole('STATISTIQUES_CONSULTER','UTILISATEURS_GERER','HABILITATIONS_GERER','CATALOGUE_GERER','JOURNAL_CONSULTER')">
                     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Administration</a>
                     <ul class="dropdown-menu">
                         <li><a class="dropdown-item" th:href="@{/admin}"><i class="bi bi-speedometer2 me-2"></i>Tableau de bord</a></li>
-                        <li><a class="dropdown-item" th:href="@{/admin/documents}"><i class="bi bi-tags me-2"></i>Documents et tarifs</a></li>
-                        <li><a class="dropdown-item" th:href="@{/admin/comptes}" target="_blank" rel="noopener"><i class="bi bi-people me-2"></i>Comptes et rôles</a></li>
+                        <li sec:authorize="hasAnyRole('UTILISATEURS_GERER','HABILITATIONS_GERER')"><h6 class="dropdown-header">Habilitations</h6></li>
+                        <li sec:authorize="hasRole('UTILISATEURS_GERER')"><a class="dropdown-item" th:href="@{/admin/utilisateurs}"><i class="bi bi-people me-2"></i>Utilisateurs</a></li>
+                        <li sec:authorize="hasRole('HABILITATIONS_GERER')"><a class="dropdown-item" th:href="@{/admin/profils}"><i class="bi bi-person-badge me-2"></i>Profils</a></li>
+                        <li sec:authorize="hasRole('HABILITATIONS_GERER')"><a class="dropdown-item" th:href="@{/admin/roles}"><i class="bi bi-diagram-3 me-2"></i>Rôles</a></li>
+                        <li sec:authorize="hasRole('HABILITATIONS_GERER')"><a class="dropdown-item" th:href="@{/admin/permissions}"><i class="bi bi-ui-checks-grid me-2"></i>Permissions</a></li>
+                        <li sec:authorize="hasAnyRole('CATALOGUE_GERER','JOURNAL_CONSULTER')"><hr class="dropdown-divider"></li>
+                        <li sec:authorize="hasRole('CATALOGUE_GERER')"><a class="dropdown-item" th:href="@{/admin/documents}"><i class="bi bi-tags me-2"></i>Documents et tarifs</a></li>
+                        <li sec:authorize="hasRole('JOURNAL_CONSULTER')"><a class="dropdown-item" th:href="@{/admin/journal}"><i class="bi bi-clock-history me-2"></i>Journal</a></li>
                     </ul>
                 </li>
             </ul>
@@ -75,7 +81,7 @@
                             <strong class="d-block" th:text="${moi.nomComplet}"></strong>
                             <span class="text-muted" th:text="${moi.libelleRole}"></span></span></li>
                         <li><hr class="dropdown-divider"></li>
-                        <li sec:authorize="hasRole('CITOYEN') and !hasAnyRole('DELEGUE','AGENT_REGISTRE','OFFICIER','ADMIN')"><a class="dropdown-item" th:href="@{/demandes}"><i class="bi bi-folder2-open me-2"></i>Mes demandes</a></li>
+                        <li sec:authorize="hasRole('DEMANDES_DEPOSER')"><a class="dropdown-item" th:href="@{/demandes}"><i class="bi bi-folder2-open me-2"></i>Mes demandes</a></li>
                         <li><a class="dropdown-item" th:href="@{/compte}" target="_blank" rel="noopener"><i class="bi bi-person-gear me-2"></i>Mon compte</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li>

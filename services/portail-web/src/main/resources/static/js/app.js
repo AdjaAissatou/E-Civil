@@ -65,3 +65,9 @@ document.documentElement.classList.add('js');
   choix.forEach(r => r.addEventListener('change', appliquer));
   appliquer();
 })();
+
+/* Confirmation des actions sensibles (désactiver un compte, supprimer un profil ou un rôle) */
+document.addEventListener('click', function (e) {
+  const b = e.target.closest('[data-confirmation]');
+  if (b && !window.confirm(b.dataset.confirmation)) e.preventDefault();
+});

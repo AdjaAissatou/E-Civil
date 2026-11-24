@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: page('Utilisateurs', ~{::main})}">
+<body>
+<main class="container py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-3">
+        <div>
+            <span class="surtitre">Administration</span>
+            <h1 class="h3 mb-0">Utilisateurs</h1>
+        </div>
+        <a class="btn btn-primary btn-sm" th:href="@{/admin/utilisateurs/nouveau}"><i class="bi bi-person-plus me-1"></i>Nouvel agent</a>
+    </div>
+    <nav th:replace="~{admin/_onglets :: onglets('utilisateurs')}"></nav>
+
+    <p class="text-muted">Les citoyens créent eux-mêmes leur compte et reçoivent le profil par défaut. Les agents sont créés
+        ici ; leurs droits viennent des profils qui leur sont attribués.</p>
+
+    <form class="row g-2 mb-3" method="get" role="search">
+        <div class="col-md-6"><input class="form-control" name="recherche" th:value="${recherche}"
+                                     placeholder="Nom, prénom ou adresse email" aria-label="Rechercher un compte"></div>
+        <div class="col-md-2"><button class="btn btn-primary w-100" type="submit"><i class="bi bi-search me-1"></i>Rechercher</button></div>
+        <div class="col-md-2" th:if="${recherche != null and !#strings.isEmpty(recherche)}">
+            <a class="btn btn-contour w-100" th:href="@{/admin/utilisateurs}">Effacer</a></div>
+    </form>
+
+    <div class="card"><div class="table-responsive">
+        <table class="table align-middle mb-0">
+            <thead><tr><th>Nom</th><th>Adresse email</th><th>Profils</th><th>Compte</th><th>Créé le</th><th></th></tr></thead>
+            <tbody>
+            <tr th:if="${comptes.vide}"><td colspan="6" class="text-center text-muted py-4">Aucun compte ne correspond.</td></tr>
+            <tr th:each="c : ${comptes.contenu}">
+                <td class="fw-semibold" th:text="${c.nomComplet}"></td>
+                <td th:text="${c.email}"></td>
+                <td>
+                    <span th:each="p : ${c.profils}" class="etiquette me-1" th:text="${p.nom}"></span>
+                    <span th:if="${c.profils == null or c.profils.isEmpty()}" class="small text-muted">aucun</span>
+                </td>
+                <td>
+                    <span th:if="${c.actif}" class="pastille pastille-success">Actif</span>
+                    <span th:unless="${c.actif}" class="pastille pastille-danger">Désactivé</span>
+                </td>
+                <td class="small" th:text="${@dates.jour(c.dateCreation)}"></td>
+                <td class="text-end"><a class="btn btn-outline-primary btn-sm" th:href="@{/admin/utilisateurs/{id}(id=${c.id})}">Fiche</a></td>
+            </tr>
+            </tbody>
+        </table>
+    </div></div>
+    <p class="small text-muted mt-2" th:text="${comptes.total} + ' compte(s)'"></p>
+    <div th:replace="~{fragments/pagination :: pages(${comptes})}"></div>
+</main>
+</body>
+</html>

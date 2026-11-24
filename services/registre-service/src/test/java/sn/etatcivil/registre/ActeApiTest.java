@@ -32,8 +32,8 @@ class ActeApiTest {
     static RequestPostProcessor role(String role) {
         return jwt().jwt(j -> j.subject("u-" + role).claim("email", role.toLowerCase() + "@ecivil.sn")
                         .claim("given_name", "Awa").claim("family_name", "Ndiaye")
-                        .claim("realm_access", Map.of("roles", List.of(role))))
-                .authorities(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_" + role));
+                        .claim("realm_access", Map.of("roles", sn.etatcivil.socle.tests.JetonsDeTest.roles(role))))
+                .authorities(sn.etatcivil.socle.tests.JetonsDeTest.roles(role).stream().<org.springframework.security.core.GrantedAuthority>map(r -> new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_" + r)).toList());
     }
 
     static final String NAISSANCE = """

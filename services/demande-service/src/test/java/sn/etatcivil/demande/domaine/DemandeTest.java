@@ -51,11 +51,11 @@ class DemandeTest {
     }
 
     @Test
-    void transitionsEtRolesControles() {
+    void transitionsEtHabilitationsControlees() {
         Demande d = demande();
         assertThatThrownBy(() -> d.signer("X", OFFICIER, MAINTENANT)).isInstanceOf(RegleMetierException.class);
-        assertThatThrownBy(() -> d.valider(AGENT, MAINTENANT)).hasMessageContaining("rôle");
-        assertThatThrownBy(() -> d.rejeter("non", AGENT, MAINTENANT)).hasMessageContaining("rôle");
+        assertThatThrownBy(() -> d.valider(AGENT, MAINTENANT)).hasMessageContaining("habilitations");
+        assertThatThrownBy(() -> d.rejeter("non", AGENT, MAINTENANT)).hasMessageContaining("habilitations");
         assertThat(d.enregistrerPaiement(1000, "trop tôt", MAINTENANT)).isFalse();
         d.valider(DELEGUE, MAINTENANT);
         assertThatThrownBy(() -> d.enregistrerPaiement(200, "PayDunya", MAINTENANT)).hasMessageContaining("Montant");

@@ -165,6 +165,141 @@ public class Api {
         }
     }
 
+    // ---------------------------------------------------------------- habilitations
+
+    private static final String HAB = "/api/habilitations";
+
+    public Synthese syntheseHabilitations() {
+        return appeler(() -> http.get().uri(HAB + "/synthese").retrieve().body(Synthese.class));
+    }
+
+    public Page<Operation> journal(String recherche, int page) {
+        return appeler(() -> http.get().uri(u -> {
+            if (recherche != null && !recherche.isBlank()) u.queryParam("recherche", recherche.trim());
+            return u.path(HAB + "/journal").queryParam("page", page).build();
+        }).retrieve().body(new ParameterizedTypeReference<Page<Operation>>() {}));
+    }
+
+    public Page<Compte> comptes(String recherche, int page) {
+        return appeler(() -> http.get().uri(u -> {
+            if (recherche != null && !recherche.isBlank()) u.queryParam("recherche", recherche.trim());
+            return u.path(HAB + "/utilisateurs").queryParam("page", page).build();
+        }).retrieve().body(new ParameterizedTypeReference<Page<Compte>>() {}));
+    }
+
+    public FicheCompte compte(String id) {
+        return appeler(() -> http.get().uri(HAB + "/utilisateurs/{id}", id).retrieve().body(FicheCompte.class));
+    }
+
+    public String creerCompte(String email, String prenom, String nom, Set<String> profils, String motDePasse) {
+        var corps = new HashMap<String, Object>();
+        corps.put("email", email);
+        corps.put("prenom", prenom);
+        corps.put("nom", nom);
+        corps.put("profils", profils);
+        corps.put("motDePasse", motDePasse);
+        Map<?, ?> r = appeler(() -> http.post().uri(HAB + "/utilisateurs").contentType(MediaType.APPLICATION_JSON)
+                .body(corps).retrieve().body(Map.class));
+        return (String) r.get("id");
+    }
+
+    public void activerCompte(String id, boolean actif) {
+        envoyer(() -> http.post().uri(HAB + "/utilisateurs/{id}/activation", id).contentType(MediaType.APPLICATION_JSON)
+                .body(Map.of("actif", actif)).retrieve().toBodilessEntity());
+    }
+
+    public void motDePasseProvisoire(String id, String motDePasse) {
+        envoyer(() -> http.post().uri(HAB + "/utilisateurs/{id}/mot-de-passe", id).contentType(MediaType.APPLICATION_JSON)
+                .body(Map.of("motDePasse", motDePasse == null ? "" : motDePasse)).retrieve().toBodilessEntity());
+    }
+
+    public void profilsDuCompte(String id, Set<String> profils) {
+        envoyer(() -> http.put().uri(HAB + "/utilisateurs/{id}/profils", id).contentType(MediaType.APPLICATION_JSON)
+                .body(Map.of("profils", profils)).retrieve().toBodilessEntity());
+    }
+
+    public List<Profil> profils() {
+        return get(HAB + "/profils", new ParameterizedTypeReference<>() {});
+    }
+
+    public Profil profil(String id) {
+        return appeler(() -> http.get().uri(HAB + "/profils/{id}", id).retrieve().body(Profil.class));
+    }
+
+    public String creerProfil(String nom, String description, Set<String> roles) {
+        Map<?, ?> r = appeler(() -> http.post().uri(HAB + "/profils").contentType(MediaType.APPLICATION_JSON)
+                .body(profilCorps(nom, description, roles)).retrieve().body(Map.class));
+        return (String) r.get("id");
+    }
+
+    public void modifierProfil(String id, String nom, String description, Set<String> roles) {
+        envoyer(() -> http.put().uri(HAB + "/profils/{id}", id).contentType(MediaType.APPLICATION_JSON)
+                .body(profilCorps(nom, description, roles)).retrieve().toBodilessEntity());
+    }
+
+    public void supprimerProfil(String id) {
+        envoyer(() -> http.delete().uri(HAB + "/profils/{id}", id).retrieve().toBodilessEntity());
+    }
+
+    public List<Role> roles() {
+        return get(HAB + "/roles", new ParameterizedTypeReference<>() {});
+    }
+
+    public Role role(String code) {
+        return appeler(() -> http.get().uri(HAB + "/roles/{code}", code).retrieve().body(Role.class));
+    }
+
+    public String creerRole(String code, String libelle, String description, Set<String> permissions) {
+        Map<?, ?> r = appeler(() -> http.post().uri(HAB + "/roles").contentType(MediaType.APPLICATION_JSON)
+                .body(roleCorps(code, libelle, description, permissions)).retrieve().body(Map.class));
+        return (String) r.get("id");
+    }
+
+    public void modifierRole(String code, String libelle, String description, Set<String> permissions) {
+        envoyer(() -> http.put().uri(HAB + "/roles/{code}", code).contentType(MediaType.APPLICATION_JSON)
+                .body(roleCorps(code, libelle, description, permissions)).retrieve().toBodilessEntity());
+    }
+
+    public void supprimerRole(String code) {
+        envoyer(() -> http.delete().uri(HAB + "/roles/{code}", code).retrieve().toBodilessEntity());
+    }
+
+    public void modifierMatrice(Map<String, Set<String>> permissionsParRole) {
+        envoyer(() -> http.put().uri(HAB + "/matrice").contentType(MediaType.APPLICATION_JSON).body(permissionsParRole)
+                .retrieve().toBodilessEntity());
+    }
+
+    public List<Permission> permissions() {
+        return get(HAB + "/permissions", new ParameterizedTypeReference<>() {});
+    }
+
+    public void modifierPermission(String code, String libelle, String description, String avantage, String interdiction) {
+        var corps = new HashMap<String, Object>();
+        corps.put("libelle", libelle);
+        corps.put("description", description);
+        corps.put("avantage", avantage);
+        corps.put("interdiction", interdiction);
+        envoyer(() -> http.put().uri(HAB + "/permissions/{code}", code).contentType(MediaType.APPLICATION_JSON)
+                .body(corps).retrieve().toBodilessEntity());
+    }
+
+    private static Map<String, Object> profilCorps(String nom, String description, Set<String> roles) {
+        var corps = new HashMap<String, Object>();
+        corps.put("nom", nom);
+        corps.put("description", description);
+        corps.put("roles", roles == null ? Set.of() : roles);
+        return corps;
+    }
+
+    private static Map<String, Object> roleCorps(String code, String libelle, String description, Set<String> permissions) {
+        var corps = new HashMap<String, Object>();
+        corps.put("code", code);
+        corps.put("libelle", libelle);
+        corps.put("description", description);
+        corps.put("permissions", permissions == null ? Set.of() : permissions);
+        return corps;
+    }
+
     // ---------------------------------------------------------------- interne
 
     private static URI filtres(UriBuilder u, String type, String statut, String nom, int page) {

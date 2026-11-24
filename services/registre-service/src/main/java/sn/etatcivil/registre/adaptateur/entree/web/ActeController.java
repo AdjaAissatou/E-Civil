@@ -12,6 +12,7 @@ import sn.etatcivil.registre.domaine.ResultatRecherche;
 import sn.etatcivil.registre.domaine.SituationCivile;
 import sn.etatcivil.registre.domaine.StatutActe;
 import sn.etatcivil.registre.domaine.TypeActe;
+import sn.etatcivil.socle.securite.Permissions;
 import sn.etatcivil.socle.securite.UtilisateurJwt;
 
 import java.util.List;
@@ -22,8 +23,8 @@ import java.util.UUID;
 @RequestMapping("/api/registre/actes")
 class ActeController {
 
-    private static final String AGENTS = "hasAnyRole('AGENT_REGISTRE','OFFICIER','ADMIN')";
-    private static final String AGENTS_OU_SERVICES = "hasAnyRole('AGENT_REGISTRE','OFFICIER','ADMIN','SERVICE')";
+    private static final String CONSULTER = Permissions.A_REGISTRE_CONSULTER;
+    private static final String CONSULTER_OU_SERVICES = "hasAnyRole('REGISTRE_CONSULTER','SERVICE')";
 
     private final TranscrireActe transcription;
     private final ConsulterActes consultation;
@@ -39,38 +40,38 @@ class ActeController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize(AGENTS)
+    @PreAuthorize(Permissions.A_REGISTRE_SAISIR)
     ActeReponse transcrire(@Valid @RequestBody ActeRequete requete, @AuthenticationPrincipal Jwt jwt) {
         UtilisateurJwt agent = UtilisateurJwt.depuis(jwt);
         return ActeReponse.de(transcription.transcrire(requete.versDomaine(), agent.nomComplet() + " <" + agent.email() + ">"));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize(AGENTS)
+    @PreAuthorize(Permissions.A_REGISTRE_SAISIR)
     ActeReponse corriger(@PathVariable UUID id, @Valid @RequestBody ActeRequete requete) {
         return ActeReponse.de(transcription.corriger(id, requete.versDomaine()));
     }
 
     @PostMapping("/{id}/validation")
-    @PreAuthorize("hasAnyRole('OFFICIER','ADMIN')")
+    @PreAuthorize(Permissions.A_REGISTRE_VALIDER)
     ActeReponse valider(@PathVariable UUID id) {
         return ActeReponse.de(transcription.valider(id));
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize(AGENTS_OU_SERVICES)
+    @PreAuthorize(CONSULTER_OU_SERVICES)
     ActeReponse obtenir(@PathVariable UUID id) {
         return ActeReponse.de(consultation.obtenir(id));
     }
 
     @GetMapping("/numero/{numero}")
-    @PreAuthorize(AGENTS_OU_SERVICES)
+    @PreAuthorize(CONSULTER_OU_SERVICES)
     ActeReponse parNumero(@PathVariable String numero) {
         return ActeReponse.de(consultation.parNumero(numero));
     }
 
     @GetMapping
-    @PreAuthorize(AGENTS)
+    @PreAuthorize(CONSULTER)
     PageReponse<ActeReponse> lister(@RequestParam(required = false) TypeActe type,
                                     @RequestParam(required = false) StatutActe statut,
                                     @RequestParam(required = false) String nom,
@@ -82,7 +83,7 @@ class ActeController {
     }
 
     @PostMapping("/recherche")
-    @PreAuthorize(AGENTS_OU_SERVICES)
+    @PreAuthorize(CONSULTER_OU_SERVICES)
     ResultatRechercheReponse rechercher(@Valid @RequestBody RechercheRequete requete) {
         ResultatRecherche r = consultation.rechercher(requete.versDomaine());
         return new ResultatRechercheReponse(r.resultat(), r.actes().stream().map(ActeReponse::de).toList());
@@ -101,7 +102,7 @@ class ActeController {
     public record ParentsRequete(@Valid PersonneRequete pere, @Valid PersonneRequete mere) {}
 
     @PostMapping("/situation")
-    @PreAuthorize(AGENTS_OU_SERVICES)
+    @PreAuthorize(CONSULTER_OU_SERVICES)
     SituationReponse situation(@Valid @RequestBody PersonneRequete personne) {
         SituationCivile s = consultation.situation(personne.versDomaine());
         return new SituationReponse(
@@ -111,7 +112,7 @@ class ActeController {
     }
 
     @PostMapping("/enfants")
-    @PreAuthorize(AGENTS_OU_SERVICES)
+    @PreAuthorize(CONSULTER_OU_SERVICES)
     List<ActeReponse> enfants(@Valid @RequestBody ParentsRequete parents) {
         if (parents.pere() == null || parents.mere() == null) {
             throw new sn.etatcivil.registre.domaine.RegleMetierException("Le père et la mère sont obligatoires");
@@ -121,7 +122,7 @@ class ActeController {
     }
 
     @GetMapping("/statistiques")
-    @PreAuthorize(AGENTS)
+    @PreAuthorize("hasAnyRole('REGISTRE_CONSULTER','STATISTIQUES_CONSULTER')")
     Statistiques statistiques() {
         return consultation.statistiques();
     }

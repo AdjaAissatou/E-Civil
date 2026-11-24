@@ -55,12 +55,6 @@ class GestionErreursWeb {
     }
 
     static String accueil(Utilisateur u) {
-        return switch (u.role()) {
-            case "ADMIN" -> "/admin";
-            case "OFFICIER" -> "/officier";
-            case "AGENT_REGISTRE" -> "/registre";
-            case "DELEGUE" -> "/delegue";
-            default -> "/demandes";
-        };
+        return u.accueil();
     }
 }

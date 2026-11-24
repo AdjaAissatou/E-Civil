@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: page('Rôles', ~{::main})}">
+<body>
+<main class="container py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-3">
+        <div>
+            <span class="surtitre">Administration</span>
+            <h1 class="h3 mb-0">Rôles</h1>
+        </div>
+        <a class="btn btn-primary btn-sm" th:href="@{/admin/roles/nouveau}"><i class="bi bi-plus-lg me-1"></i>Nouveau rôle</a>
+    </div>
+    <nav th:replace="~{admin/_onglets :: onglets('roles')}"></nav>
+
+    <p class="text-muted">Un rôle est une fonction (délégué, officier…) qui accorde un ensemble de permissions. Les rôles
+        s'attribuent par les profils. Les rôles de base peuvent être modifiés mais pas supprimés.</p>
+
+    <div class="card"><div class="table-responsive">
+        <table class="table align-middle mb-0">
+            <thead><tr><th>Rôle</th><th>Permissions accordées</th><th>Utilisé par les profils</th><th></th></tr></thead>
+            <tbody>
+            <tr th:each="r : ${roles}">
+                <td>
+                    <div class="fw-semibold" th:text="${r.libelle}"></div>
+                    <code class="small" th:text="${r.code}"></code>
+                    <span th:if="${r.deBase}" class="etiquette ms-1">de base</span>
+                </td>
+                <td style="max-width: 460px">
+                    <span th:each="c : ${r.permissions}" class="etiquette me-1 d-inline-block mb-1"
+                          th:text="${permissions[c] != null} ? ${permissions[c].libelle} : ${c}"></span>
+                </td>
+                <td>
+                    <a th:each="p : ${r.profils}" class="d-block small" th:href="@{/admin/profils/{id}(id=${p.id})}" th:text="${p.nom}"></a>
+                    <span th:if="${r.profils.isEmpty()}" class="small text-muted">aucun</span>
+                </td>
+                <td class="text-end"><a class="btn btn-outline-primary btn-sm" th:href="@{/admin/roles/{c}(c=${r.code})}">Modifier</a></td>
+            </tr>
+            </tbody>
+        </table>
+    </div></div>
+</main>
+</body>
+</html>

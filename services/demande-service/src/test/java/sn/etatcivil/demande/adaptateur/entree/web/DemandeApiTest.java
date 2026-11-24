@@ -37,8 +37,8 @@ class DemandeApiTest {
 
     static RequestPostProcessor utilisateur(String id, String role) {
         return jwt().jwt(j -> j.subject(id).claim("email", id + "@example.sn").claim("given_name", "Prénom")
-                        .claim("family_name", id).claim("realm_access", Map.of("roles", List.of(role))))
-                .authorities(new SimpleGrantedAuthority("ROLE_" + role));
+                        .claim("family_name", id).claim("realm_access", Map.of("roles", sn.etatcivil.socle.tests.JetonsDeTest.roles(role))))
+                .authorities(sn.etatcivil.socle.tests.JetonsDeTest.roles(role).stream().<org.springframework.security.core.GrantedAuthority>map(r -> new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_" + r)).toList());
     }
 
     static final RequestPostProcessor FATOU = utilisateur("fatou", "CITOYEN");

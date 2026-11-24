@@ -6,16 +6,25 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-/** Utilisateur connecté, tel que l'affichent les pages (identité Keycloak). */
-public record Utilisateur(String id, String email, String prenom, String nom, String role, List<String> roles) {
+/**
+ * Utilisateur connecté, tel que l'affichent les pages. Ses droits sont les permissions que Keycloak inscrit
+ * dans son jeton (obtenues par ses profils et ses rôles).
+ */
+public record Utilisateur(String id, String email, String prenom, String nom, List<String> roles) {
 
-    private static final List<String> PRIORITE = List.of("ADMIN", "OFFICIER", "AGENT_REGISTRE", "DELEGUE", "CITOYEN");
+    /** Fonctions de base, de la plus large à la plus restreinte, pour l'affichage. */
+    private static final Map<String, String> FONCTIONS = new java.util.LinkedHashMap<>();
+    static {
+        FONCTIONS.put("ADMIN", "Administrateur");
+        FONCTIONS.put("OFFICIER", "Officier de l'état civil");
+        FONCTIONS.put("AGENT_REGISTRE", "Agent du registre");
+        FONCTIONS.put("DELEGUE", "Délégué");
+        FONCTIONS.put("CITOYEN", "Citoyen");
+    }
 
     public static Utilisateur depuis(OidcUser u) {
-        List<String> roles = roles(u.getClaims());
-        String role = PRIORITE.stream().filter(roles::contains).findFirst().orElse("CITOYEN");
         return new Utilisateur(u.getSubject(), u.getEmail(), u.getGivenName() == null ? "" : u.getGivenName(),
-                u.getFamilyName() == null ? "" : u.getFamilyName(), role, roles);
+                u.getFamilyName() == null ? "" : u.getFamilyName(), roles(u.getClaims()));
     }
 
     @SuppressWarnings("unchecked")
@@ -26,20 +35,33 @@ public record Utilisateur(String id, String email, String prenom, String nom, St
         return List.of();
     }
 
+    public boolean peut(String permission) {
+        return roles.contains(permission);
+    }
+
     public String nomComplet() {
         String n = (prenom + " " + nom).trim();
         return n.isEmpty() ? email : n;
     }
 
-    public boolean estAgent() { return !"CITOYEN".equals(role); }
+    /** Agent : quelqu'un qui consulte les demandes des autres ou le registre. */
+    public boolean estAgent() {
+        return peut("DEMANDES_CONSULTER") || peut("REGISTRE_CONSULTER");
+    }
 
     public String libelleRole() {
-        return switch (role) {
-            case "ADMIN" -> "Administrateur";
-            case "OFFICIER" -> "Officier de l'état civil";
-            case "AGENT_REGISTRE" -> "Agent du registre";
-            case "DELEGUE" -> "Délégué";
-            default -> "Citoyen";
-        };
+        for (var f : FONCTIONS.entrySet()) if (roles.contains(f.getKey())) return f.getValue();
+        return estAgent() ? "Agent" : "Citoyen";
+    }
+
+    /** Page d'arrivée après la connexion, selon ce que la personne peut faire. */
+    public String accueil() {
+        if (peut("UTILISATEURS_GERER") || peut("HABILITATIONS_GERER")) return "/admin";
+        if (peut("DOCUMENTS_SIGNER") || peut("REGISTRE_VALIDER")) return "/officier";
+        if (peut("REGISTRE_SAISIR") || peut("DEMANDES_RECHERCHER")) return "/registre";
+        if (peut("DEMANDES_VALIDER") || peut("DOCUMENTS_LIVRER")) return "/delegue";
+        if (peut("DEMANDES_CONSULTER")) return "/back-office/demandes";
+        if (peut("STATISTIQUES_CONSULTER") || peut("CATALOGUE_GERER") || peut("JOURNAL_CONSULTER")) return "/admin";
+        return "/demandes";
     }
 }

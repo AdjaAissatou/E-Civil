@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: page('Nouvel agent', ~{::main})}">
+<body>
+<main class="container py-4">
+    <a class="small text-decoration-none" th:href="@{/admin/utilisateurs}"><i class="bi bi-arrow-left me-1"></i>Utilisateurs</a>
+    <h1 class="h3 mt-2">Nouvel agent</h1>
+    <p class="text-muted">Le compte est créé avec un mot de passe provisoire, que la personne devra remplacer à sa première connexion.</p>
+
+    <form th:action="@{/admin/utilisateurs}" method="post" class="row g-4">
+        <div class="col-lg-5">
+            <div class="card"><div class="card-body">
+                <h2 class="h6 text-brun">Identité</h2>
+                <div class="mb-3"><label class="form-label" for="prenom">Prénom</label>
+                    <input class="form-control" id="prenom" name="prenom" required maxlength="100" th:value="${param.prenom}"></div>
+                <div class="mb-3"><label class="form-label" for="nom">Nom</label>
+                    <input class="form-control" id="nom" name="nom" required maxlength="100" th:value="${param.nom}"></div>
+                <div class="mb-3"><label class="form-label" for="email">Adresse email</label>
+                    <input class="form-control" id="email" name="email" type="email" required th:value="${param.email}">
+                    <div class="form-text">Elle sert d'identifiant de connexion.</div></div>
+                <div class="mb-1"><label class="form-label" for="motDePasse">Mot de passe provisoire</label>
+                    <input class="form-control" id="motDePasse" name="motDePasse" type="text" required minlength="8" maxlength="64"
+                           autocomplete="off">
+                    <div class="form-text">8 caractères au moins. Transmettez-le à la personne par un canal sûr.</div></div>
+            </div></div>
+        </div>
+        <div class="col-lg-7">
+            <div class="card"><div class="card-body">
+                <h2 class="h6 text-brun">Profils</h2>
+                <p class="small text-muted">Les droits de l'agent sont ceux des rôles de ses profils.</p>
+                <div class="form-check mb-2" th:each="p : ${profils}">
+                    <input class="form-check-input" type="checkbox" name="profil" th:value="${p.id}" th:id="'p-' + ${p.id}">
+                    <label class="form-check-label" th:for="'p-' + ${p.id}">
+                        <span class="fw-semibold" th:text="${p.nom}"></span>
+                        <span th:if="${p.parDefaut}" class="etiquette ms-1">par défaut</span>
+                        <span class="d-block small text-muted" th:text="${p.description}"></span>
+                    </label>
+                </div>
+            </div></div>
+            <div class="text-end mt-3">
+                <a class="btn btn-contour" th:href="@{/admin/utilisateurs}">Annuler</a>
+                <button class="btn btn-primary" type="submit"><i class="bi bi-person-check me-1"></i>Créer le compte</button>
+            </div>
+        </div>
+    </form>
+</main>
+</body>
+</html>

@@ -104,7 +104,7 @@ public class Demande {
                 motif.estAutre() ? precision : motif.libelle(), lien, format,
                 papier ? adresse.trim() : null, papier ? ville.trim() : null, p, maintenant, SOUMISE,
                 null, null, null, null, null, null, null, maintenant, null, List.of());
-        d.tracer(null, SOUMISE, new Acteur(demandeur.id(), demandeur.nomComplet(), Role.CITOYEN), null, maintenant);
+        d.tracer(null, SOUMISE, Acteur.citoyen(demandeur), null, maintenant);
         return d;
     }
 
@@ -112,7 +112,7 @@ public class Demande {
 
     public void annuler(String demandeurId, Instant maintenant) {
         if (!demandeur.id().equals(demandeurId)) throw new DemandeIntrouvableException();
-        changer(ANNULEE, new Acteur(demandeur.id(), demandeur.nomComplet(), Role.CITOYEN), null, maintenant);
+        changer(ANNULEE, Acteur.citoyen(demandeur), null, maintenant);
     }
 
     public boolean visiblePar(String utilisateurId, boolean estAgent) {
@@ -122,27 +122,27 @@ public class Demande {
     // ---------------------------------------------------------------- délégué
 
     public void valider(Acteur delegue, Instant maintenant) {
-        exigerRole(delegue, Role.DELEGUE, Role.ADMIN);
+        exiger(delegue, Habilitation.DEMANDES_VALIDER);
         changer(A_PAYER, delegue, null, maintenant);
     }
 
-    /** Le délégué rejette avant paiement ; l'agent du registre ou l'officier quand l'acte n'existe pas. */
+    /**
+     * Rejet avant paiement (validation des demandes), quand l'acte n'existe pas (recherche des actes), ou à toute
+     * étape (supervision).
+     */
     public void rejeter(String motif, Acteur agent, Instant maintenant) {
         String m = PersonneConcernee.t(motif);
         if (m == null) throw new RegleMetierException("Indiquez le motif du rejet");
-        boolean autorise = switch (agent.role()) {
-            case DELEGUE -> statut == SOUMISE || statut == A_PAYER;
-            case AGENT_REGISTRE, OFFICIER -> statut == ACTE_INTROUVABLE;
-            case ADMIN -> true;
-            case CITOYEN -> false;
-        };
-        if (!autorise) throw new RegleMetierException("Votre rôle ne permet pas de rejeter cette demande à ce stade");
+        boolean autorise = agent.peut(Habilitation.DEMANDES_SUPERVISER)
+                || (agent.peut(Habilitation.DEMANDES_VALIDER) && (statut == SOUMISE || statut == A_PAYER))
+                || (agent.peut(Habilitation.DEMANDES_RECHERCHER) && statut == ACTE_INTROUVABLE);
+        if (!autorise) throw new RegleMetierException("Vos habilitations ne permettent pas de rejeter cette demande à ce stade");
         motifRejet = m;
         changer(REJETEE, agent, m, maintenant);
     }
 
     public void marquerLivree(Acteur delegue, Instant maintenant) {
-        exigerRole(delegue, Role.DELEGUE, Role.ADMIN);
+        exiger(delegue, Habilitation.DOCUMENTS_LIVRER);
         if (format != FormatDocument.PHYSIQUE) {
             throw new RegleMetierException("Un document numérique est délivré par téléchargement");
         }
@@ -193,7 +193,7 @@ public class Demande {
     // ---------------------------------------------------------------- officier
 
     public void contesterActe(String raison, Acteur officier, Instant maintenant) {
-        exigerRole(officier, Role.OFFICIER, Role.ADMIN);
+        exiger(officier, Habilitation.DOCUMENTS_SIGNER);
         String r = PersonneConcernee.t(raison);
         if (r == null) throw new RegleMetierException("Expliquez pourquoi l'acte ne convient pas");
         if (statut != ACTE_TROUVE) throw new RegleMetierException("Aucun acte n'est rattaché à cette demande");
@@ -204,7 +204,7 @@ public class Demande {
     }
 
     public void verifierSignable(Acteur officier) {
-        exigerRole(officier, Role.OFFICIER, Role.ADMIN);
+        exiger(officier, Habilitation.DOCUMENTS_SIGNER);
         if (statut != ACTE_TROUVE) throw new RegleMetierException("Cette demande n'est pas prête à être signée");
     }
 
@@ -218,9 +218,8 @@ public class Demande {
 
     // ---------------------------------------------------------------- interne
 
-    private void exigerRole(Acteur acteur, Role... roles) {
-        for (Role r : roles) if (acteur.role() == r) return;
-        throw new RegleMetierException("Votre rôle ne permet pas cette action");
+    private static void exiger(Acteur acteur, Habilitation habilitation) {
+        if (!acteur.peut(habilitation)) throw new RegleMetierException("Vos habilitations ne permettent pas cette action");
     }
 
     private void changer(StatutDemande nouveau, Acteur auteur, String commentaire, Instant maintenant) {

@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Min;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import sn.etatcivil.demande.application.port.entree.GererCatalogue;
+import sn.etatcivil.socle.securite.Permissions;
 import sn.etatcivil.demande.domaine.ModeleDocument;
 import sn.etatcivil.demande.domaine.Motif;
 import sn.etatcivil.demande.domaine.OrigineActe;
@@ -45,7 +46,7 @@ class CatalogueController {
     }
 
     @GetMapping("/documents/tous")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize(Permissions.A_CATALOGUE_GERER)
     List<DocumentReponse> tous() {
         return catalogue.documents(false).stream().map(DocumentReponse::de).toList();
     }
@@ -56,7 +57,7 @@ class CatalogueController {
     }
 
     @PutMapping("/documents/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize(Permissions.A_CATALOGUE_GERER)
     DocumentReponse modifier(@PathVariable Long id, @Valid @RequestBody Modification m) {
         return DocumentReponse.de(catalogue.modifier(id, m.tarif(), m.delaiJours(), m.actif()));
     }

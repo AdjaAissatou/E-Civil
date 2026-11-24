@@ -29,11 +29,14 @@ class PortailTest {
     @Autowired MockMvc mvc;
     @MockBean Api api;
 
+    /** Connexion avec un rôle de base : le jeton porte le rôle et ses permissions, comme ceux de Keycloak. */
     static org.springframework.test.web.servlet.request.RequestPostProcessor utilisateur(String role) {
+        List<String> roles = sn.etatcivil.socle.tests.JetonsDeTest.roles(role);
         OidcIdToken jeton = new OidcIdToken("jeton", Instant.now(), Instant.now().plusSeconds(300),
                 Map.of("sub", "u-" + role, "email", role.toLowerCase() + "@example.sn", "given_name", "Awa",
-                        "family_name", "Ndiaye", "realm_access", Map.of("roles", List.of(role))));
-        return oidcLogin().oidcUser(new DefaultOidcUser(List.of(new SimpleGrantedAuthority("ROLE_" + role)), jeton));
+                        "family_name", "Ndiaye", "realm_access", Map.of("roles", roles)));
+        return oidcLogin().oidcUser(new DefaultOidcUser(roles.stream()
+                .<org.springframework.security.core.GrantedAuthority>map(r -> new SimpleGrantedAuthority("ROLE_" + r)).toList(), jeton));
     }
 
     @Test
@@ -135,5 +138,73 @@ class PortailTest {
                 "Mariama Ndiaye", t, "ABCDE-23456", "abc")));
         mvc.perform(get("/verification/ABCDE-23456")).andExpect(status().isOk())
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("Awa Mbaye (N-2002-000001)")));
+    }
+
+    @Test
+    void administrationDesHabilitations() throws Exception {
+        Instant t = Instant.now();
+        var permissions = List.of(
+                new Vues.Permission("DEMANDES_DEPOSER", "Déposer des demandes", "desc", "avantage", "interdiction", "Citoyen"),
+                new Vues.Permission("UTILISATEURS_GERER", "Gérer les utilisateurs", "desc", null, null, "Administration"));
+        var profilResume = new Vues.ProfilResume("g1", "Administrateur");
+        var roles = List.of(
+                new Vues.Role("ADMIN", "Administrateur", null, java.util.Set.of("UTILISATEURS_GERER"), true, List.of(profilResume)),
+                new Vues.Role("CITOYEN", "Citoyen", null, java.util.Set.of("DEMANDES_DEPOSER"), true, List.of()));
+        var compte = new Vues.Compte("u1", "awa@ecivil.sn", "Awa", "Ndiaye", "Awa Ndiaye", true, t, List.of(profilResume));
+        var operation = new Vues.Operation(t, "Adja Dione <admin@ecivil.sn>", "PROFILS_MODIFIES", "Profils du compte modifiés",
+                "awa@ecivil.sn", "+ Administrateur");
+        when(api.syntheseHabilitations()).thenReturn(new Vues.Synthese(12, 6, 5, 15, List.of(operation)));
+        when(api.statistiquesDemandes()).thenReturn(Map.of("SOUMISE", 3L));
+        when(api.permissions()).thenReturn(permissions);
+        when(api.roles()).thenReturn(roles);
+        when(api.role("ADMIN")).thenReturn(roles.get(0));
+        var profil = new Vues.Profil("g1", "Administrateur", "Administration de la plateforme", java.util.Set.of("ADMIN"), false, 1,
+                List.of(compte));
+        when(api.profils()).thenReturn(List.of(profil));
+        when(api.profil("g1")).thenReturn(profil);
+        when(api.comptes(null, 0)).thenReturn(new Vues.Page<>(List.of(compte), 0, 20, 1, 1));
+        when(api.compte("u1")).thenReturn(new Vues.FicheCompte(compte, List.of(roles.get(0)), List.of(permissions.get(1)),
+                List.of(operation)));
+        when(api.journal(null, 0)).thenReturn(new Vues.Page<>(List.of(operation), 0, 30, 1, 1));
+
+        var contient = (java.util.function.Function<String, org.springframework.test.web.servlet.ResultMatcher>)
+                x -> content().string(org.hamcrest.Matchers.containsString(x));
+        mvc.perform(get("/admin").with(utilisateur("ADMIN"))).andExpect(status().isOk())
+                .andExpect(contient.apply("Activité récente")).andExpect(contient.apply("Profils du compte modifiés"));
+        mvc.perform(get("/admin/utilisateurs").with(utilisateur("ADMIN"))).andExpect(status().isOk())
+                .andExpect(contient.apply("awa@ecivil.sn"));
+        mvc.perform(get("/admin/utilisateurs/nouveau").with(utilisateur("ADMIN"))).andExpect(status().isOk());
+        mvc.perform(get("/admin/utilisateurs/u1").with(utilisateur("ADMIN"))).andExpect(status().isOk())
+                .andExpect(contient.apply("Gérer les utilisateurs")).andExpect(contient.apply("checked"));
+        mvc.perform(get("/admin/profils").with(utilisateur("ADMIN"))).andExpect(status().isOk());
+        mvc.perform(get("/admin/profils/g1").with(utilisateur("ADMIN"))).andExpect(status().isOk())
+                .andExpect(contient.apply("Awa Ndiaye"));
+        mvc.perform(get("/admin/profils/nouveau").with(utilisateur("ADMIN"))).andExpect(status().isOk());
+        mvc.perform(get("/admin/roles").with(utilisateur("ADMIN"))).andExpect(status().isOk());
+        mvc.perform(get("/admin/roles/ADMIN").with(utilisateur("ADMIN"))).andExpect(status().isOk());
+        mvc.perform(get("/admin/roles/nouveau").with(utilisateur("ADMIN"))).andExpect(status().isOk());
+        mvc.perform(get("/admin/permissions").with(utilisateur("ADMIN"))).andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.matchesRegex(
+                        "(?s).*value=\"ADMIN:UTILISATEURS_GERER\"[^>]*checked.*")))
+                .andExpect(content().string(org.hamcrest.Matchers.matchesRegex(
+                        "(?s).*value=\"ADMIN:DEMANDES_DEPOSER\"[^>]*aria-label=\"[^\"]*\">.*")));
+        mvc.perform(get("/admin/permissions/DEMANDES_DEPOSER").with(utilisateur("ADMIN"))).andExpect(status().isOk());
+        mvc.perform(get("/admin/journal").with(utilisateur("ADMIN"))).andExpect(status().isOk());
+        mvc.perform(get("/admin/documents").with(utilisateur("ADMIN"))).andExpect(status().isOk());
+
+        // la matrice envoie, pour chaque rôle, les permissions cochées (un rôle tout décoché part vide)
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/admin/permissions/matrice")
+                        .param("case", "ADMIN:UTILISATEURS_GERER", "ADMIN:DEMANDES_DEPOSER")
+                        .with(utilisateur("ADMIN")).with(org.springframework.security.test.web.servlet.request
+                                .SecurityMockMvcRequestPostProcessors.csrf()))
+                .andExpect(redirectedUrl("/admin/permissions"));
+        org.mockito.Mockito.verify(api).modifierMatrice(Map.of(
+                "ADMIN", java.util.Set.of("UTILISATEURS_GERER", "DEMANDES_DEPOSER"), "CITOYEN", java.util.Set.of()));
+
+        // chaque espace exige sa permission
+        mvc.perform(get("/admin/utilisateurs").with(utilisateur("OFFICIER"))).andExpect(status().isForbidden());
+        mvc.perform(get("/admin/roles").with(utilisateur("DELEGUE"))).andExpect(status().isForbidden());
+        mvc.perform(get("/admin/journal").with(utilisateur("CITOYEN"))).andExpect(status().isForbidden());
+        mvc.perform(get("/espace").with(utilisateur("ADMIN"))).andExpect(redirectedUrl("/admin"));
     }
 }

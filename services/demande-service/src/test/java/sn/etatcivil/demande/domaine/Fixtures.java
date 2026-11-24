@@ -9,9 +9,12 @@ public final class Fixtures {
 
     public static final Instant MAINTENANT = Instant.parse("2026-11-08T10:00:00Z");
     public static final Demandeur FATOU = new Demandeur("u-fatou", "fatou@example.sn", "Fatou", "Diallo");
-    public static final Acteur DELEGUE = new Acteur("u-del", "Awa Ndiaye", Role.DELEGUE);
-    public static final Acteur AGENT = new Acteur("u-reg", "Ibrahima Fall", Role.AGENT_REGISTRE);
-    public static final Acteur OFFICIER = new Acteur("u-off", "Mariama Sow", Role.OFFICIER);
+    public static final Acteur DELEGUE = new Acteur("u-del", "Awa Ndiaye", "Délégué",
+            java.util.Set.of(Habilitation.DEMANDES_CONSULTER, Habilitation.DEMANDES_VALIDER, Habilitation.DOCUMENTS_LIVRER));
+    public static final Acteur AGENT = new Acteur("u-reg", "Ibrahima Fall", "Agent du registre",
+            java.util.Set.of(Habilitation.DEMANDES_CONSULTER, Habilitation.DEMANDES_RECHERCHER));
+    public static final Acteur OFFICIER = new Acteur("u-off", "Mariama Sow", "Officier de l'état civil",
+            java.util.Set.of(Habilitation.DEMANDES_CONSULTER, Habilitation.DEMANDES_RECHERCHER, Habilitation.DOCUMENTS_SIGNER));
 
     public static TypeDocument extraitNaissance() {
         return document(ModeleDocument.EXTRAIT, "Extrait d'acte de naissance");
