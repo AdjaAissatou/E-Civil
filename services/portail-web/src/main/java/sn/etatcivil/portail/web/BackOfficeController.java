@@ -56,18 +56,18 @@ class BackOfficeController {
     }
 
     @GetMapping("/delegue")
-    String delegue(@ModelAttribute("filtre") Api.FiltreDemandes f, @RequestParam(defaultValue = "0") int page, Model model) {
+    String delegue(@ModelAttribute("filtre") Api.FiltreDemandes f, @RequestParam(required = false) String statut, @RequestParam(defaultValue = "0") int page, Model model) {
         return file(model, "file.delegue.titre", "file.delegue.aide",
-                List.of("SOUMISE"), f, page, List.of("SOUMISE", "A_PAYER", "SIGNEE", "LIVREE", "REJETEE"));
+                statut, List.of("SOUMISE"), f, page, List.of("SOUMISE", "A_PAYER", "SIGNEE", "LIVREE", "REJETEE"));
     }
 
     @GetMapping("/delegue/livraisons")
-    String livraisons(@ModelAttribute("filtre") Api.FiltreDemandes f, @RequestParam(defaultValue = "0") int page, Model model) {
-        return file(model, "file.livraisons.titre", "file.livraisons.aide", List.of("SIGNEE"), f, page, List.of("SIGNEE", "LIVREE"));
+    String livraisons(@ModelAttribute("filtre") Api.FiltreDemandes f, @RequestParam(required = false) String statut, @RequestParam(defaultValue = "0") int page, Model model) {
+        return file(model, "file.livraisons.titre", "file.livraisons.aide", statut, List.of("SIGNEE"), f, page, List.of("SIGNEE", "LIVREE"));
     }
 
     @GetMapping("/registre")
-    String registre(@ModelAttribute("filtre") Api.FiltreDemandes f, @RequestParam(defaultValue = "0") int page, Model model) {
+    String registre(@ModelAttribute("filtre") Api.FiltreDemandes f, @RequestParam(required = false) String statut, @RequestParam(defaultValue = "0") int page, Model model) {
         try {
             model.addAttribute("statsRenseignement", api.statistiquesRenseignement());
             Map<UUID, Vues.ResumeRenseignement> dossiers = new java.util.HashMap<>();
@@ -77,7 +77,7 @@ class BackOfficeController {
             // résumés secondaires : la file reste affichée
         }
         return file(model, "file.registre.titre", "file.registre.aide",
-                List.of("ACTE_INTROUVABLE", "PAYEE"), f, page, List.of("PAYEE", "ACTE_INTROUVABLE", "ACTE_TROUVE"));
+                statut, List.of("ACTE_INTROUVABLE", "PAYEE"), f, page, List.of("PAYEE", "ACTE_INTROUVABLE", "ACTE_TROUVE"));
     }
 
     @GetMapping("/officier")
@@ -100,6 +100,7 @@ class BackOfficeController {
         model.addAttribute("titre", Textes.t("message.toutes_les_demandes"));
         model.addAttribute("page", api.demandes(statut == null || statut.isBlank() ? null : List.of(statut), f, page));
         model.addAttribute("tousStatuts", true);
+        model.addAttribute("compteursCliquables", true);
         model.addAttribute("statuts", STATUTS);
         model.addAttribute("statut", statut);
         compteurs(model, f, List.copyOf(STATUTS.keySet()));
@@ -198,11 +199,18 @@ class BackOfficeController {
         return "redirect:/officier";
     }
 
-    private String file(Model model, String titre, String aide, List<String> statuts, Api.FiltreDemandes f, int page,
-                        List<String> compteurs) {
-        model.addAttribute("titre", Textes.t("message.texte_2", titre));
-        model.addAttribute("aide", aide);
-        model.addAttribute("page", api.demandes(statuts, f, page));
+    /**
+     * File d'un espace : par défaut les demandes à traiter ; un clic sur un compteur affiche celles de ce statut
+     * (demandes validées, signées, rejetées…).
+     */
+    private String file(Model model, String titre, String aide, String statut, List<String> statuts, Api.FiltreDemandes f,
+                        int page, List<String> compteurs) {
+        boolean choisi = statut != null && compteurs.contains(statut);
+        model.addAttribute("titre", Textes.t(titre));
+        model.addAttribute("aide", Textes.t(aide));
+        model.addAttribute("statut", choisi ? statut : null);
+        model.addAttribute("compteursCliquables", true);
+        model.addAttribute("page", api.demandes(choisi ? List.of(statut) : statuts, f, page));
         compteurs(model, f, compteurs);
         model.addAttribute("documents", documentsDuCatalogue());
         return "agent/demandes";

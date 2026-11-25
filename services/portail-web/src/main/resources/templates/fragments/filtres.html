@@ -1,7 +1,17 @@
 <!-- Compteurs par statut et filtres des files des agents (document, format, période, référence) -->
 <div xmlns:th="http://www.thymeleaf.org" th:fragment="compteurs(compteurs)" class="row g-2 mb-3" th:if="${compteurs != null and !compteurs.isEmpty()}">
     <div class="col-6 col-md" th:each="c : ${compteurs}">
-        <div class="card h-100"><div class="card-body py-2">
+        <!-- un clic affiche les demandes de ce statut ; un second clic revient à la file -->
+        <a th:if="${compteursCliquables == true}" class="card h-100 text-decoration-none compteur"
+           th:classappend="${c.key == statut} ? 'border-primary shadow-sm' : ''" th:aria-current="${c.key == statut} ? 'true' : null"
+           th:href="@{''(statut=${c.key == statut ? null : c.key}, typeDocument=${filtre?.typeDocument}, format=${filtre?.format},
+                         du=${filtre?.du}, au=${filtre?.au}, reference=${filtre?.reference})}">
+            <div class="card-body py-2">
+                <div class="small text-muted" th:text="${#messages.msg('statut.' + c.key)}"></div>
+                <div class="fs-4 fw-semibold text-body" th:text="${c.value.value}">0</div>
+            </div>
+        </a>
+        <div th:unless="${compteursCliquables == true}" class="card h-100"><div class="card-body py-2">
             <div class="small text-muted" th:text="${#messages.msg('statut.' + c.key)}"></div>
             <div class="fs-4 fw-semibold" th:text="${c.value.value}">0</div>
         </div></div>
@@ -9,6 +19,7 @@
 </div>
 
 <form xmlns:th="http://www.thymeleaf.org" th:fragment="formulaire(filtre, documents, avecStatut)" class="row g-2 mb-3 align-items-end" method="get">
+    <input type="hidden" name="statut" th:if="${!avecStatut and statut != null}" th:value="${statut}">
     <div class="col-md-2" th:if="${avecStatut}">
         <label class="form-label small" for="f-statut"><th:block th:text="#{agent.demande.statut}">Statut</th:block></label>
         <select class="form-select form-select-sm" id="f-statut" name="statut">
