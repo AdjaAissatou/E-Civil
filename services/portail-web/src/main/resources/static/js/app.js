@@ -114,7 +114,7 @@ document.addEventListener('click', function (e) {
 })();
 
 
-/* Vérification d'identité : pièce présentée, aperçus, selfie pris avec la caméra (ou à défaut un fichier) */
+/* Vérification d'identité : pièce présentée, aperçus, selfie pris uniquement avec la caméra */
 (function () {
   const selfie = document.getElementById('selfie');
   if (!selfie) return;
@@ -136,14 +136,16 @@ document.addEventListener('click', function (e) {
     const f = input.files && input.files[0];
     if (f) { img.src = URL.createObjectURL(f); img.classList.remove('d-none'); } else { img.classList.add('d-none'); }
   };
-  document.querySelectorAll('input[type="file"][name="recto"], input[type="file"][name="verso"], #selfie')
+  document.querySelectorAll('input[type="file"][name="recto"], input[type="file"][name="verso"]')
     .forEach(i => i.addEventListener('change', () => apercu(i)));
 
   const ouvrir = document.getElementById('ouvrir-camera');
   const capturer = document.getElementById('capturer');
   const video = document.getElementById('camera');
+  const sansCamera = document.getElementById('sans-camera');
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || typeof DataTransfer === 'undefined') return;
   ouvrir.classList.remove('d-none');
+  sansCamera.classList.add('d-none');
   let flux = null;
   ouvrir.addEventListener('click', async () => {
     try {
@@ -151,8 +153,8 @@ document.addEventListener('click', function (e) {
       video.srcObject = flux; video.classList.remove('d-none'); await video.play();
       capturer.classList.remove('d-none'); ouvrir.classList.add('d-none');
     } catch (e) {
-      ouvrir.textContent = 'Caméra indisponible : choisissez une photo ci-dessous';
-      ouvrir.disabled = true;
+      sansCamera.textContent = ouvrir.dataset.refusee;
+      sansCamera.classList.remove('d-none');
     }
   });
   capturer.addEventListener('click', () => {
@@ -166,7 +168,55 @@ document.addEventListener('click', function (e) {
       apercu(selfie);
       flux.getTracks().forEach(t => t.stop());
       video.classList.add('d-none'); capturer.classList.add('d-none');
-      ouvrir.classList.remove('d-none'); ouvrir.innerHTML = '<i class="bi bi-camera me-1"></i>Reprendre le selfie';
+      ouvrir.classList.remove('d-none'); ouvrir.innerHTML = '<i class="bi bi-camera me-1"></i>';
+      ouvrir.append(document.createTextNode(ouvrir.dataset.reprendre));
     }, 'image/jpeg', 0.9);
+  });
+})();
+
+/*
+ * Préremplissage selon « L'acte concerne » : l'identité du demandeur va là où elle figure sur l'acte.
+ * Moi-même : la personne concernée ; mon enfant : la mère ou le père ; mon conjoint : le conjoint.
+ * Seuls les champs remplis automatiquement et laissés tels quels sont vidés au changement.
+ */
+(function () {
+  const form = document.getElementById('form-demande');
+  const lien = document.getElementById('lien');
+  if (!form || !lien) return;
+  const d = form.dataset;
+  const moi = { prenom: d.moiPrenom, nom: d.moiNom, sexe: d.moiSexe, dateNaissance: d.moiDateNaissance,
+    lieuNaissance: d.moiLieuNaissance, profession: d.moiProfession, residence: d.moiResidence };
+  if (!moi.nom && !moi.prenom) return;
+
+  const correspondance = (l) => {
+    const c = {};
+    if (l === 'MOI_MEME') {
+      Object.assign(c, { prenom: moi.prenom, nom: moi.nom, sexe: moi.sexe, dateNaissance: moi.dateNaissance,
+        lieuNaissance: moi.lieuNaissance, profession: moi.profession, residence: moi.residence });
+    } else if (l === 'ENFANT') {
+      const parent = moi.sexe === 'M' ? 'Pere' : moi.sexe === 'F' ? 'Mere' : null;
+      if (parent) Object.assign(c, { ['prenom' + parent]: moi.prenom, ['nom' + parent]: moi.nom,
+        ['profession' + parent]: moi.profession, ['residence' + parent]: moi.residence });
+      if (moi.sexe === 'M') c.nom = moi.nom; // l'enfant porte le plus souvent le nom de son père
+    } else if (l === 'CONJOINT') {
+      Object.assign(c, { prenomConjoint: moi.prenom, nomConjoint: moi.nom, dateNaissanceConjoint: moi.dateNaissance,
+        lieuNaissanceConjoint: moi.lieuNaissance, professionConjoint: moi.profession, residenceConjoint: moi.residence });
+    }
+    return c;
+  };
+  const champ = (nom) => form.querySelector('[name="' + nom + '"]:not([type="hidden"])');
+  let automatiques = {};
+  // au chargement, les champs qui portent déjà la valeur attendue sont considérés comme préremplis
+  Object.entries(correspondance(lien.value)).forEach(([n, v]) => {
+    const c = champ(n);
+    if (c && v && c.value === v) automatiques[n] = v;
+  });
+  lien.addEventListener('change', () => {
+    Object.entries(automatiques).forEach(([n, v]) => { const c = champ(n); if (c && c.value === v) c.value = ''; });
+    automatiques = {};
+    Object.entries(correspondance(lien.value)).forEach(([n, v]) => {
+      const c = champ(n);
+      if (c && v && !c.value) { c.value = v; automatiques[n] = v; }
+    });
   });
 })();

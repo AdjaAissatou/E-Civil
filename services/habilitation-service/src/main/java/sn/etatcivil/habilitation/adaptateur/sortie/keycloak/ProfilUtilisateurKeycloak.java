@@ -38,7 +38,12 @@ final class ProfilUtilisateurKeycloak {
         a.add(attribut("localite", "Commune ou localité", false, true, Map.of(), Map.of("length", Map.of("max", 150))));
         a.add(attribut("nombreEnfants", "Nombre d'enfants", false, true, Map.of("inputType", "html5-number"),
                 Map.of("integer", Map.of("min", 0, "max", 50))));
-        a.add(attribut("numeroCni", "Numéro de carte d'identité", false, true, Map.of(), Map.of("length", Map.of("max", 30))));
+        a.add(attribut("numeroCni", "Numéro d'identification nationale (NIN)", false, true,
+                Map.of("inputHelperTextBefore", "13 chiffres, au dos de la carte d'identité : sexe (1 ou 2), centre, année, numéro d'ordre",
+                        "inputTypePlaceholder", "Ex. 2 018 2018 83088", "inputTypeMaxlength", "20"),
+                Map.of("length", Map.of("max", 20), "pattern", Map.of("pattern",
+                        sn.etatcivil.habilitation.domaine.NumeroIdentification.MOTIF_SAISIE,
+                        "error-message", sn.etatcivil.habilitation.domaine.NumeroIdentification.EXPLICATION))));
         a.add(attribut("typeUtilisateur", "Je réside", true, true, Map.of("inputType", "select-radiobuttons",
                         "inputOptionLabels", Map.of("RESIDENT", "au Sénégal", "DIASPORA", "à l'étranger (diaspora)")),
                 Map.of("options", Map.of("options", List.of("RESIDENT", "DIASPORA")))));

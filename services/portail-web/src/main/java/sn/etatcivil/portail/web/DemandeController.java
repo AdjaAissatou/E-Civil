@@ -128,6 +128,8 @@ class DemandeController {
         model.addAttribute("typesMentions", typesMentions(type));
         // retrait à une mission diplomatique : celles qui couvrent le pays de résidence d'abord
         Vues.ProfilPersonnel profil = profil();
+        // identité du demandeur, pour préremplir selon « L'acte concerne » (moi, mon enfant, mon conjoint…)
+        model.addAttribute("identite", profil);
         List<Vues.Mission> missions = new ArrayList<>(api.missions(null));
         if (profil != null && profil.diaspora() && profil.paysResidence() != null) {
             String pays = profil.paysResidence();
