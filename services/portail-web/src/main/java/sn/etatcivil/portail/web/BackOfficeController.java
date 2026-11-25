@@ -112,6 +112,7 @@ class BackOfficeController {
                  org.springframework.security.core.Authentication auth, Model model) {
         Vues.Demande d = api.demande(id);
         renseignement.completerFiche(d, annee, auth, model);
+        api.demandeur(d.demandeurId()).ifPresent(p -> model.addAttribute("demandeur", p));
         model.addAttribute("d", d);
         model.addAttribute("paiements", api.paiements(id));
         model.addAttribute("pieces", d.verificationIdentite() ? api.piecesIdentite(id) : List.of());

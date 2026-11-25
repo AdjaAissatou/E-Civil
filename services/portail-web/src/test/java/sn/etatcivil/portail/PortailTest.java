@@ -237,8 +237,13 @@ class PortailTest {
                 "u-AGENT_REGISTRE", "Awa Ndiaye", t, t, null, null, null, List.of(new Vues.Consultation(4L,
                 "Naissances 1987, Centre principal de Kaolack, exemplaire du centre", "REGISTRE_INDISPONIBLE",
                 "Registre manquant ou indisponible", null, "Détruit en 2009", "Awa Ndiaye (Agent du registre)", t)))));
+        when(api.demandeur("u-1")).thenReturn(java.util.Optional.of(new Vues.ProfilPersonnel("Awa", "Sy", "awa@example.sn",
+                "+221 77 000 00 00", "F", naissance, "Kaolack", "Commerçante", "Médina", "Kaolack", 2, "1018201883088",
+                "RESIDENT", null, true, "fr")));
         mvc.perform(get("/back-office/demandes/" + id).with(utilisateur("AGENT_REGISTRE")))
                 .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("1 018 2018 83088")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("ne correspond pas au sexe déclaré")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("Détruit en 2009")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("Naissances 1987, Centre principal de Kaolack, exemplaire du greffe")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("Retirer l&#39;urgence")))
