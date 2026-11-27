@@ -36,7 +36,11 @@ public record ProfilPersonnel(String prenom, String nom, String email, String te
         if (nombreEnfants != null && (nombreEnfants < 0 || nombreEnfants > 50)) {
             throw new RegleMetierException("Le nombre d'enfants doit être compris entre 0 et 50");
         }
-        numeroCni = Textes.facultatif(numeroCni, 30);
+        // un numéro au bon format est rangé sans séparateurs ; un ancien numéro mal saisi reste lisible
+        // (la vérification complète a lieu à la modification, voir verifierNumeroCni)
+        String cni = NumeroIdentification.nettoyer(Textes.facultatif(numeroCni, 30));
+        numeroCni = cni != null && NumeroIdentification.normaliser(cni, LocalDate.now().getYear()).isPresent() ? cni
+                : Textes.facultatif(numeroCni, 30);
         typeUtilisateur = typeUtilisateur == null || typeUtilisateur.isBlank() ? "RESIDENT" : typeUtilisateur.trim().toUpperCase(Locale.ROOT);
         if (!typeUtilisateur.equals("RESIDENT") && !typeUtilisateur.equals("DIASPORA")) {
             throw new RegleMetierException("Type d'utilisateur : résident ou diaspora");
@@ -47,5 +51,10 @@ public record ProfilPersonnel(String prenom, String nom, String email, String te
         }
         langue = langue == null || langue.isBlank() ? "fr" : langue.trim().toLowerCase(Locale.ROOT);
         if (!LANGUES.contains(langue)) throw new RegleMetierException("Langue proposée : français, wolof ou anglais");
+    }
+
+    /** Le NIN saisi respecte le format national et correspond au sexe déclaré. */
+    public void verifierNumeroCni(int anneeCourante) {
+        NumeroIdentification.verifier(numeroCni, sexe, anneeCourante);
     }
 }

@@ -237,8 +237,13 @@ class PortailTest {
                 "u-AGENT_REGISTRE", "Awa Ndiaye", t, t, null, null, null, List.of(new Vues.Consultation(4L,
                 "Naissances 1987, Centre principal de Kaolack, exemplaire du centre", "REGISTRE_INDISPONIBLE",
                 "Registre manquant ou indisponible", null, "Détruit en 2009", "Awa Ndiaye (Agent du registre)", t)))));
+        when(api.demandeur("u-1")).thenReturn(java.util.Optional.of(new Vues.ProfilPersonnel("Awa", "Sy", "awa@example.sn",
+                "+221 77 000 00 00", "F", naissance, "Kaolack", "Commerçante", "Médina", "Kaolack", 2, "1018201883088",
+                "RESIDENT", null, true, "fr")));
         mvc.perform(get("/back-office/demandes/" + id).with(utilisateur("AGENT_REGISTRE")))
                 .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("1 018 2018 83088")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("ne correspond pas au sexe déclaré")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("Détruit en 2009")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("Naissances 1987, Centre principal de Kaolack, exemplaire du greffe")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("Retirer l&#39;urgence")))
@@ -263,5 +268,26 @@ class PortailTest {
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("Exemplaire du greffe")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("Abîmé")));
         mvc.perform(get("/registre/centres").with(utilisateur("DELEGUE"))).andExpect(status().isForbidden());
+    }
+
+    @Test
+    void laFileDuDelegueAfficheSonTitreEtLesDemandesValidees() throws Exception {
+        var vide = new Vues.Page<Vues.Demande>(List.of(), 0, 20, 0, 0);
+        when(api.demandes(org.mockito.ArgumentMatchers.anyCollection(), org.mockito.ArgumentMatchers.any(Api.FiltreDemandes.class),
+                org.mockito.ArgumentMatchers.anyInt())).thenReturn(vide);
+        when(api.statistiquesDemandes(org.mockito.ArgumentMatchers.any(Api.FiltreDemandes.class)))
+                .thenReturn(Map.of("SOUMISE", 0L, "A_PAYER", 1L));
+        mvc.perform(get("/delegue").with(utilisateur("DELEGUE"))).andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Demandes à examiner")))
+                .andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("file.delegue"))))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("statut=A_PAYER")));
+        mvc.perform(get("/delegue").param("statut", "A_PAYER").with(utilisateur("DELEGUE"))).andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("revenir à la file")));
+        org.mockito.Mockito.verify(api).demandes(org.mockito.ArgumentMatchers.eq(List.of("A_PAYER")),
+                org.mockito.ArgumentMatchers.any(Api.FiltreDemandes.class), org.mockito.ArgumentMatchers.eq(0));
+        // un statut étranger à la file est ignoré
+        mvc.perform(get("/delegue").param("statut", "ACTE_TROUVE").with(utilisateur("DELEGUE"))).andExpect(status().isOk());
+        org.mockito.Mockito.verify(api, org.mockito.Mockito.never()).demandes(org.mockito.ArgumentMatchers.eq(List.of("ACTE_TROUVE")),
+                org.mockito.ArgumentMatchers.any(Api.FiltreDemandes.class), org.mockito.ArgumentMatchers.anyInt());
     }
 }

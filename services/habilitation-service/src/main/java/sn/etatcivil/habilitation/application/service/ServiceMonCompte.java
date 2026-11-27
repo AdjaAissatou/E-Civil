@@ -27,6 +27,7 @@ public class ServiceMonCompte implements GererMonCompte {
         ProfilPersonnel nouveau = new ProfilPersonnel(p.prenom(), p.nom(), actuel.email(), p.telephone(), p.sexe(),
                 p.dateNaissance(), p.lieuNaissance(), p.profession(), p.residence(), p.localite(), p.nombreEnfants(),
                 p.numeroCni(), p.typeUtilisateur(), p.paysResidence(), p.notifications(), p.langue());
+        nouveau.verifierNumeroCni(java.time.Year.now(java.time.ZoneId.of("Africa/Dakar")).getValue());
         annuaire.modifierProfilPersonnel(utilisateur, nouveau);
         return monProfil(utilisateur);
     }

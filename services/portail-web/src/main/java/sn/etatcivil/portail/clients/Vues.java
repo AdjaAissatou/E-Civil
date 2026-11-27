@@ -137,6 +137,20 @@ public final class Vues {
                                   String localite, Integer nombreEnfants, String numeroCni, String typeUtilisateur,
                                   String paysResidence, boolean notifications, String langue) {
         public boolean diaspora() { return "DIASPORA".equals(typeUtilisateur); }
+
+        /** Le premier chiffre du NIN (1 homme, 2 femme) contredit le sexe déclaré. */
+        public boolean ninIncoherent() {
+            if (numeroCni == null || sexe == null || !numeroCni.matches("[12][0-9A-Z][0-9]{11,12}")) return false;
+            return !sexe.equals(numeroCni.charAt(0) == '1' ? "M" : "F");
+        }
+
+        /** NIN présenté par groupes (sexe, centre, année, numéro d'ordre) : 2 018 2018 83088. */
+        public String ninLisible() {
+            if (numeroCni == null) return null;
+            var m = java.util.regex.Pattern.compile("([12])([0-9A-Z][0-9]{2})([0-9]{4})([0-9]{5})([0-9]?)").matcher(numeroCni);
+            return m.matches() ? m.group(1) + " " + m.group(2) + " " + m.group(3) + " " + m.group(4)
+                    + (m.group(5).isEmpty() ? "" : " " + m.group(5)) : numeroCni;
+        }
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

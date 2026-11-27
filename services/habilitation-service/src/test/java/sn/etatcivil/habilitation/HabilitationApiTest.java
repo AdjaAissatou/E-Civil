@@ -83,4 +83,15 @@ class HabilitationApiTest {
                 .andExpect(jsonPath("$.contenu[1].type").value("INITIALISATION"));
         mvc.perform(get("/api/habilitations/journal").with(avec("u", "UTILISATEURS_GERER"))).andExpect(status().isForbidden());
     }
+
+    @Test
+    void lesAgentsVoientLIdentiteDuDemandeur() throws Exception {
+        String citoyen = annuaire.ajouterCompte("fatou@example.sn", true);
+        mvc.perform(get("/api/habilitations/demandeurs/" + citoyen).with(avec("u", "DEMANDES_DEPOSER")))
+                .andExpect(status().isForbidden());
+        mvc.perform(get("/api/habilitations/demandeurs/" + citoyen).with(avec("u", "DEMANDES_CONSULTER")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.email").value("fatou@example.sn"))
+                .andExpect(jsonPath("$.notifications").doesNotExist());
+    }
 }

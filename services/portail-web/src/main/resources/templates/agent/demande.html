@@ -16,6 +16,35 @@
 
     <div class="row g-3">
         <div class="col-lg-7">
+            <!-- Identité déclarée par le demandeur à son inscription, à comparer à sa pièce d'identité -->
+            <div class="card mb-3" th:if="${demandeur}"><div class="card-body">
+                <h2 class="h6 text-brun"><i class="bi bi-person-vcard me-1"></i><th:block th:text="#{agent.demande.demandeur}">Demandeur</th:block></h2>
+                <dl class="row fiche mb-0">
+                    <dt class="col-sm-4" th:text="#{agent.demande.nom_complet}">Nom complet</dt>
+                    <dd class="col-sm-8" th:text="${demandeur.prenom} + ' ' + ${demandeur.nom}"></dd>
+                    <dt class="col-sm-4" th:text="#{agent.demande.lien_avec_la_personne}">Lien avec la personne concernée</dt>
+                    <dd class="col-sm-8" th:text="${d.libelleLien}"></dd>
+                    <dt class="col-sm-4" th:if="${demandeur.numeroCni}" th:text="#{agent.demande.nin}">NIN</dt>
+                    <dd class="col-sm-8" th:if="${demandeur.numeroCni}">
+                        <span class="fw-semibold font-monospace" th:text="${demandeur.ninLisible()}"></span>
+                        <span th:if="${demandeur.ninIncoherent()}" class="badge text-bg-danger ms-1" th:text="#{agent.demande.nin_incoherent}">ne correspond pas au sexe déclaré</span></dd>
+                    <dt class="col-sm-4" th:if="${demandeur.sexe}" th:text="#{citoyen.nouvelle.sexe}">Sexe</dt>
+                    <dd class="col-sm-8" th:if="${demandeur.sexe}" th:text="${demandeur.sexe == 'F'} ? #{citoyen.nouvelle.feminin} : #{citoyen.nouvelle.masculin}"></dd>
+                    <dt class="col-sm-4" th:if="${demandeur.dateNaissance}" th:text="#{agent.demande.ne_e_le}">Né(e) le</dt>
+                    <dd class="col-sm-8" th:if="${demandeur.dateNaissance}"
+                        th:text="${#temporals.format(demandeur.dateNaissance, 'dd/MM/yyyy')} + (${demandeur.lieuNaissance} != null ? #{agent.demande.a} + ${demandeur.lieuNaissance} : '')"></dd>
+                    <dt class="col-sm-4" th:text="#{agent.demande.contact}">Contact</dt>
+                    <dd class="col-sm-8"><span th:text="${demandeur.email}"></span><span th:if="${demandeur.telephone}" th:text="' · ' + ${demandeur.telephone}"></span></dd>
+                    <dt class="col-sm-4" th:if="${demandeur.profession}" th:text="#{citoyen.nouvelle.profession}">Profession</dt>
+                    <dd class="col-sm-8" th:if="${demandeur.profession}" th:text="${demandeur.profession}"></dd>
+                    <dt class="col-sm-4" th:text="#{agent.demande.residence}">Résidence</dt>
+                    <dd class="col-sm-8" th:text="${demandeur.diaspora()} ? #{agent.demande.diaspora} + ' — ' + ${demandeur.paysResidence}
+                        : (${demandeur.residence} ?: '') + (${demandeur.localite} != null ? ' (' + ${demandeur.localite} + ')' : '')"></dd>
+                </dl>
+                <p class="small text-muted mt-2 mb-0" th:if="${d.verificationIdentite}" th:text="#{agent.demande.comparer_nin}">
+                    Comparez ces informations, et en particulier le NIN, à la pièce d'identité jointe.</p>
+            </div></div>
+
             <div th:replace="~{fragments/demande :: resume(${d})}"></div>
 
             <th:block th:if="${renseignement != null or ((s == 'PAYEE' or s == 'ACTE_INTROUVABLE')

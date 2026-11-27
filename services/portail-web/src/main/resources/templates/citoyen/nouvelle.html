@@ -41,7 +41,10 @@
             : #{citoyen.nouvelle.ce_document_concerne_un_acte_dresse_2}"></span>
     </div>
 
-    <form th:action="@{/demandes}" th:object="${demande}" method="post" novalidate enctype="multipart/form-data">
+    <form th:action="@{/demandes}" th:object="${demande}" method="post" novalidate enctype="multipart/form-data" id="form-demande"
+          th:attr="data-moi-prenom=${identite?.prenom}, data-moi-nom=${identite?.nom}, data-moi-sexe=${identite?.sexe},
+                   data-moi-date-naissance=${identite?.dateNaissance}, data-moi-lieu-naissance=${identite?.lieuNaissance},
+                   data-moi-profession=${identite?.profession}, data-moi-residence=${identite?.residence}">
         <input type="hidden" th:field="*{typeDocumentId}">
 
         <div class="card mb-3"><div class="card-body">
@@ -242,15 +245,19 @@
                         <video id="camera" class="d-none" playsinline muted aria-label="Caméra" th:aria-label="#{citoyen.nouvelle.camera}"></video>
                         <img id="apercu-selfie" class="photo-apercu d-none" alt="Votre selfie" th:alt="#{citoyen.nouvelle.votre_selfie}" data-apercu="selfie">
                         <div class="d-flex flex-wrap gap-2 mt-2">
-                            <button type="button" class="btn btn-outline-primary btn-sm d-none" id="ouvrir-camera">
+                            <button type="button" class="btn btn-outline-primary btn-sm d-none" id="ouvrir-camera"
+                                    th:attr="data-reprendre=#{citoyen.nouvelle.reprendre_le_selfie}, data-refusee=#{citoyen.nouvelle.camera_refusee}">
                                 <i class="bi bi-camera me-1"></i><th:block th:text="#{citoyen.nouvelle.prendre_le_selfie_avec_la_camera}">Prendre le selfie avec la caméra</th:block></button>
                             <button type="button" class="btn btn-primary btn-sm d-none" id="capturer"><i class="bi bi-record-circle me-1"></i><th:block th:text="#{citoyen.nouvelle.prendre_la_photo}">Prendre la photo</th:block></button>
                         </div>
-                        <input class="form-control mt-2" type="file" id="selfie" name="selfie" accept="image/jpeg,image/png" capture="user" required>
+                        <!-- le selfie vient de la caméra : ce champ ne sert qu'à transmettre la photo prise, on ne peut pas y choisir de fichier -->
+                        <input class="d-none" type="file" id="selfie" name="selfie" accept="image/jpeg" tabindex="-1" aria-hidden="true">
+                        <div class="alert alert-warning small mt-2 mb-0" id="sans-camera" th:text="#{citoyen.nouvelle.selfie_camera_obligatoire}">
+                            Le selfie se prend uniquement avec la caméra. Ouvrez cette page sur un téléphone ou un ordinateur équipé d'une caméra et autorisez son accès.</div>
                     </div>
                 </div>
             </div>
-            <p class="small text-muted mt-2 mb-0"><th:block th:text="#{citoyen.nouvelle.formats_jpeg_ou_png_5_mo}">Formats JPEG ou PNG, 5 Mo au plus par photo. Les informations doivent être lisibles.</th:block></p>
+            <p class="small text-muted mt-2 mb-0"><th:block th:text="#{citoyen.nouvelle.formats_jpeg_ou_png_5_mo}">Pièce d'identité : JPEG ou PNG, 5 Mo au plus par photo, informations lisibles. Selfie : pris avec la caméra.</th:block></p>
         </div></div>
 
         <button class="btn btn-primary btn-lg" type="submit"><th:block th:text="#{citoyen.nouvelle.envoyer_la_demande}">Envoyer la demande</th:block></button>

@@ -128,6 +128,16 @@ public class Api {
                 .retrieve().body(ProfilPersonnel.class));
     }
 
+    /** Identité déclarée par le demandeur à son inscription ; vide si le service ne répond pas. */
+    public Optional<ProfilPersonnel> demandeur(String id) {
+        try {
+            return Optional.ofNullable(appeler(() -> http.get().uri("/api/habilitations/demandeurs/{id}", id).retrieve()
+                    .body(ProfilPersonnel.class)));
+        } catch (ApiException e) {
+            return Optional.empty();
+        }
+    }
+
     public void preferencesNotifications(boolean notifications) {
         envoyer(() -> http.put().uri("/api/demandes/preferences").contentType(MediaType.APPLICATION_JSON)
                 .body(Map.of("notifications", notifications)).retrieve().toBodilessEntity());
